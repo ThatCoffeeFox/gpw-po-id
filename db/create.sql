@@ -1,4 +1,4 @@
-SELECT
+/* SELECT
   'superadmin'        AS username,
   md5(random()::text) AS password
 \gset
@@ -33,9 +33,11 @@ CREATE DATABASE stock_market
 
 \connect stock_market postgres
 
+*/
+
 BEGIN;
   
-  SET SESSION AUTHORIZATION :username;
+  --SET SESSION AUTHORIZATION :username;
   
   CREATE TYPE user_role AS ENUM ('admin','user');
 
@@ -166,6 +168,6 @@ BEGIN;
     shares_assigned INTEGER   CHECK (COALESCE(shares_assigned,0) >= 0)
   );
 
-  RESET SESSION AUTHORIZATION;
+  --RESET SESSION AUTHORIZATION;
 
 COMMIT;
