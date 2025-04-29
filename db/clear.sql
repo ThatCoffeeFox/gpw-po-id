@@ -1,0 +1,31 @@
+BEGIN;
+
+DROP TABLE IF EXISTS accounts CASCADE;
+
+DROP TABLE IF EXISTS accounts_names CASCADE;
+
+DROP TABLE IF EXISTS wallets CASCADE;
+
+DROP TABLE IF EXISTS tradable_companies CASCADE;
+
+DROP TABLE IF EXISTS wallets_tradable_companies CASCADE;
+
+DROP TABLE IF EXISTS order_types CASCADE;
+
+DROP TABLE IF EXISTS orders CASCADE;
+
+DROP TABLE IF EXISTS transactions CASCADE;
+
+DROP TABLE IF EXISTS subscriptions CASCADE;
+
+DROP TYPE IF EXISTS user_role;
+
+DROP FUNCTION IF EXISTS is_valid_pesel;
+
+DROP FUNCTION IF EXISTS check_order_type;
+
+COMMIT;
+
+DROP DATABASE IF EXISTS stock_market;
+
+DROP ROLE IF EXISTS superadmin;
