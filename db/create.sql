@@ -1,43 +1,6 @@
-/* SELECT
-  'superadmin'        AS username,
-  md5(random()::text) AS password
-\gset
-
-\pset format csv
-\pset tuples_only
-\pset fieldsep ';'
-\o admincredentials.csv
-
-SELECT :'username', :'password';
-
-\o
-\pset format aligned
-\pset tuples_only off
-\pset fieldsep ' '
-
-\connect postgres
-
-DROP DATABASE IF EXISTS stock_market;
-DROP USER     IF EXISTS :username;
-
-CREATE ROLE :username
-  LOGIN
-  PASSWORD :'password'
-  CREATEDB
-  SUPERUSER;
-
-CREATE DATABASE stock_market
-  WITH 
-  OWNER   = :username
-  ENCODING = 'UTF8';
-
-\connect stock_market postgres
-
-*/
+\encoding UTF8
 
 BEGIN;
-  
-  --SET SESSION AUTHORIZATION :username;
   
   CREATE TYPE user_role AS ENUM ('admin','user');
 
@@ -165,10 +128,8 @@ BEGIN;
     wallet_id       INTEGER REFERENCES wallets,
     date            TIMESTAMP NOT NULL DEFAULT current_date,
     shares_amount   INTEGER   NOT NULL CHECK (shares_amount > 0),
-    shares_assigned INTEGER   CHECK (COALESCE(shares_assigned,0) >= 0)
+    shares_assigned INTEGER   DEFAULT NULL CHECK (COALESCE(shares_assigned,0) >= 0)
   );
-
-  --RESET SESSION AUTHORIZATION;
 
 -- accounts
 COPY accounts (email, password, role, last_name, town, town_postal_code, street, street_number, apartment_number, phone_number, pesel) FROM STDIN;
