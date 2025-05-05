@@ -152,6 +152,12 @@ CREATE OR REPLACE FUNCTION check_order_type(order_id INT, type VARCHAR)
     SELECT (order_type = $2) FROM orders WHERE order_id = $1;
 $$;
 
+CREATE TABLE order_cancellations(
+  order_id INTEGER REFERENCES orders,
+  date TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  PRIMARY KEY(order_id, date)
+);
+
 CREATE TABLE transactions (
   sell_order_id INT REFERENCES orders(order_id),
   buy_order_id  INT REFERENCES orders(order_id),
