@@ -52,7 +52,7 @@ CREATE TABLE accounts (
 CREATE table accounts_info(
   account_id INTEGER  REFERENCES  accounts,
   updated_at TIMESTAMP DEFAULT current_timestamp,
-  PRIMARY key(account_id, date),
+  PRIMARY key(account_id, updated_at),
 
   email             VARCHAR(256) NOT NULL -- uwaga bo tu bylo unique
   CHECK (email ~ '.+@.+\.[a-z]+'),
@@ -81,14 +81,14 @@ CREATE TABLE wallets (
 );
 
 CREATE TABLE companies (
-  company_id         SERIAL PRIMARY KEY,
+  company_id         SERIAL PRIMARY KEY
   --FOR FUTURE EXPANSION
 );
 
 CREATE TABLE companies_info(
   company_id INTEGER REFERENCES companies,
   updated_at TIMESTAMP DEFAULT current_date,
-  PRIMARY KEY(company_id, date),
+  PRIMARY KEY(company_id, updated_at),
   name               VARCHAR(256) NOT NULL,
   code               VARCHAR(3) NOT NULL CHECK (code ~ '[A-Z]{3}'),-- uwaga bo tu bylo uniques 
   town_id            INTEGER NOT NULL,
