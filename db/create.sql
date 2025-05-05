@@ -46,25 +46,24 @@ CREATE TABLE postal_codes_towns (
 
 CREATE TABLE accounts (
   account_id        SERIAL PRIMARY KEY,
-  created_at        TIMESTAMP NOT NULL DEFAULT current_timestamp
+  role              user_role    NOT NULL
 );
 
 CREATE table accounts_info(
   account_id INTEGER  REFERENCES  accounts,
-  date TIMESTAMP DEFAULT current_timestamp,
+  updated_at TIMESTAMP DEFAULT current_timestamp,
   PRIMARY key(account_id, date),
 
   email             VARCHAR(256) NOT NULL -- uwaga bo tu bylo unique
   CHECK (email ~ '.+@.+\.[a-z]+'),
   password          VARCHAR(256) NOT NULL,
-  role              user_role    NOT NULL,
   first_name        VARCHAR(128) NOT NULL,
   secondary_name    VARCHAR(128),
   last_name         VARCHAR(256) NOT NULL,
   town_id           INTEGER NOT NULL,
   postal_code       VARCHAR(6) NOT NULL,
   street            VARCHAR(128),
-  street_number     INTEGER CHECK (street_number > 0),
+  street_number     VARCHAR(8),
   apartment_number  VARCHAR(8),
   phone_number      VARCHAR(16) NOT NULL,
   CHECK (phone_number ~ '\+[0-9]{10,13}'),
@@ -82,19 +81,20 @@ CREATE TABLE wallets (
 );
 
 CREATE TABLE companies (
-  company_id         SERIAL PRIMARY KEY
+  company_id         SERIAL PRIMARY KEY,
+  --FOR FUTURE EXPANSION
 );
 
 CREATE TABLE companies_info(
   company_id INTEGER REFERENCES companies,
-  date TIMESTAMP DEFAULT current_date,
+  updated_at TIMESTAMP DEFAULT current_date,
   PRIMARY KEY(company_id, date),
   name               VARCHAR(256) NOT NULL,
   code               VARCHAR(3) NOT NULL CHECK (code ~ '[A-Z]{3}'),-- uwaga bo tu bylo uniques 
   town_id            INTEGER NOT NULL,
   postal_code        VARCHAR(6) NOT NULL,
   street             VARCHAR(128),
-  street_number      INTEGER CHECK (street_number > 0),
+  street_number      VARCHAR(8),
   apartment_number   VARCHAR(8),
   total_shares       INTEGER NOT NULL CHECK (total_shares > 0),
   FOREIGN KEY (town_id, postal_code)
