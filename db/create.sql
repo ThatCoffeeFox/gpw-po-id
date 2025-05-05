@@ -49,7 +49,7 @@ CREATE TABLE accounts (
   created_at        TIMESTAMP NOT NULL DEFAULT current_timestamp
 );
 
-CREATE table accounts_personal_info(
+CREATE table accounts_info(
   account_id INTEGER  REFERENCES  accounts,
   date TIMESTAMP DEFAULT current_timestamp,
   PRIMARY key(account_id, date),
