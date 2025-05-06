@@ -28,6 +28,7 @@ admincredentials.csv
 app/node_modules
 app/HELP.md
 app/target/
+/app/src/main/frontend/generated/
 !app/.mvn/wrapper/maven-wrapper.jar
 !app/**/src/main/**/target/
 !app/**/src/test/**/target/
