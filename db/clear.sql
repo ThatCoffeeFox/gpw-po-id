@@ -1,5 +1,11 @@
 BEGIN;
 
+DROP TRIGGER IF EXISTS check_accounts_info_trigger ON accounts_info;
+
+DROP TRIGGER IF EXISTS check_companies_info_trigger ON companies_info;
+
+DROP TRIGGER IF EXISTS is_valid_order_trigger ON orders;
+
 DROP TYPE IF EXISTS user_role CASCADE;
 
 DROP TYPE IF EXISTS transfer_type CASCADE;
@@ -34,10 +40,30 @@ DROP TABLE IF EXISTS order_types CASCADE;
 
 DROP TABLE IF EXISTS orders CASCADE;
 
-DROP TABLE IF EXISTS order_cancellations CASCADE;
-
 DROP TABLE IF EXISTS transactions CASCADE;
 
 DROP TABLE IF EXISTS subscriptions CASCADE;
 
+DROP TABLE IF EXISTS order_cancellations CASCADE;
+
+DROP FUNCTION IF EXISTS funds_in_wallets CASCADE;
+
+DROP FUNCTION IF EXISTS shares_left_in_order CASCADE;
+
+DROP FUNCTION IF EXISTS shares_in_wallets CASCADE;
+
+DROP FUNCTION IF EXISTS blocked_funds_in_wallets CASCADE;
+
+DROP FUNCTION IF EXISTS blocked_shares_in_wallets CASCADE;
+
+DROP FUNCTION IF EXISTS check_accounts_info CASCADE;
+
+DROP FUNCTION IF EXISTS is_valid_order CASCADE;
+
+DROP FUNCTION IF EXISTS check_companies_info CASCADE;
+
 COMMIT;
+
+--DROP DATABASE IF EXISTS stock_market;
+
+--DROP ROLE IF EXISTS superadmin;
