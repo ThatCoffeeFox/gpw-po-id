@@ -64,6 +64,6 @@ DROP FUNCTION IF EXISTS check_companies_info CASCADE;
 
 COMMIT;
 
---DROP DATABASE IF EXISTS stock_market;
+DROP DATABASE IF EXISTS stock_market;
 
---DROP ROLE IF EXISTS superadmin;
+DROP ROLE IF EXISTS superadmin;
