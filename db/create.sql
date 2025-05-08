@@ -96,7 +96,6 @@ CREATE TABLE companies_info(
   street             VARCHAR(128),
   street_number      VARCHAR(8),
   apartment_number   VARCHAR(8),
-  total_shares       INTEGER NOT NULL CHECK (total_shares > 0),
   FOREIGN KEY (town_id, postal_code)
   REFERENCES postal_codes_towns(town_id, postal_code)
 );
@@ -130,7 +129,7 @@ CREATE TABLE external_transfers(
 CREATE TABLE order_types (
   order_type VARCHAR(32) PRIMARY KEY
 );
-  
+
 INSERT INTO order_types VALUES ('sell'), ('buy');
 
 CREATE TABLE orders (

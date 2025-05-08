@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.account;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import pl.gpwpoid.origin.wallet.Wallet;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -25,8 +26,11 @@ public class Account {
     @Column(name = "role", nullable = false, columnDefinition = "user_role") 
     private UserRole role;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "account", fetch = FetchType.EAGER)
     private Set<AccountInfo> infos;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Wallet> wallets;
 
     public Long getAccountId() {
         return accountId;
@@ -46,5 +50,13 @@ public class Account {
 
     public void setInfos(Set<AccountInfo> infos) {
         this.infos = infos;
+    }
+
+    public Set<Wallet> getWallets() {
+        return wallets;
+    }
+
+    public void setWallets(Set<Wallet> wallets) {
+        this.wallets = wallets;
     }
 }
