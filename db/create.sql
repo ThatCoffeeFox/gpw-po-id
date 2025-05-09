@@ -288,7 +288,7 @@ CREATE OR REPLACE FUNCTION tradable_companies()
        BEGIN
             RETURN QUERY SELECT cs.company_id
                     FROM companies_status cs
-                    WHERE date = (SELECT cs1.date FROM companies_status cs1 WHERE cs1.company_id = cs.company_id ORDER BY cs1.date DESC LIMIT 1);
+                    WHERE date = (SELECT cs1.date FROM companies_status cs1 WHERE cs1.company_id = cs.company_id ORDER BY cs1.date DESC LIMIT 1)
                     AND cs.tradable = true;
             END
 $$ LANGUAGE plpgsql;
@@ -355,6 +355,7 @@ CREATE OR REPLACE FUNCTION check_companies_info()
             WHERE company_id = NEW.company_id;
             IF no_of_updates = 0 THEN
                 DELETE FROM companies c WHERE c.company_id = NEW.company_id;
+            END IF;
             RAISE EXCEPTION 'code should be unique for each company';
             RETURN NULL;
         END IF;
@@ -373,7 +374,7 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
         funds NUMERIC(17,2);
         shares INTEGER;
     BEGIN
-        IF NEW.company_id NOT IN tradable_companies() THEN
+        IF NEW.company_id NOT IN (SELECT * FROM tradable_companies()) THEN
             RAISE EXCEPTION 'company % is not tradable', NEW.company_id;
         END IF;
         IF NEW.order_type = 'buy' THEN
@@ -423,7 +424,7 @@ CREATE OR REPLACE FUNCTION is_valid_subscription()
         --ipo wciaz trwa
         IF current_date > (SELECT i.subscription_end FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
             RAISE EXCEPTION 'subscription has ended';
-        END IF
+        END IF;
         RETURN NEW;
     END
 $$ LANGUAGE plpgsql;
@@ -439,7 +440,7 @@ CREATE OR REPLACE FUNCTION is_valid_transaction()
     BEGIN
         IF NEW.sell_order_id IN (SELECT order_id FROM order_cancellations) THEN
             RAISE EXCEPTION 'sell order is cancelled';
-        ELSE IF NEW.buy_order_id IN (SELECT order_id FROM order_cancellations) THEM
+        ELSE IF NEW.buy_order_id IN (SELECT order_id FROM order_cancellations) THEN
             RAISE EXCEPTION 'buy order is cancelled'; END IF;
         END IF;
         RETURN NEW;
