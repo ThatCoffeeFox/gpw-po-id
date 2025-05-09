@@ -67,7 +67,7 @@ CREATE table accounts_info(
   phone_number      VARCHAR(16) NOT NULL,
   CHECK (phone_number ~ '\+[0-9]{10,13}'),
   pesel VARCHAR(11), -- uwaga bo tu bylo unique
-  CHECK (is_valid_pesel(pesel)),
+  --CHECK (is_valid_pesel(pesel)),
   FOREIGN KEY (town_id, postal_code)
   REFERENCES postal_codes_towns(town_id, postal_code)
 );
@@ -456,7 +456,7 @@ CREATE OR REPLACE FUNCTION is_valid_cancellation()
     RETURNS TRIGGER
     AS $$
     BEGIN
-        IF (SELECT sl.shares_left FROM shares_left_in_order() WHERE sl.order_id = NEW.order_id) = 0 THEN
+        IF (SELECT sl.shares_left FROM shares_left_in_order() sl WHERE sl.order_id = NEW.order_id) = 0 THEN
             RAISE EXCEPTION 'cannot cancel a completed order';
         END IF;
         RETURN NEW;
