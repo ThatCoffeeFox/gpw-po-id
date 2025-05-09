@@ -78,6 +78,10 @@ DROP FUNCTION IF EXISTS is_valid_cancellation CASCADE;
 
 DROP FUNCTION IF EXISTS is_valid_subscription CASCADE;
 
+DROP VIEW IF EXISTS active_buy_orders CASCADE;
+
+DROP VIEW IF EXISTS active_sell_orders CASCADE;
+
 COMMIT;
 
 DROP DATABASE IF EXISTS stock_market;
