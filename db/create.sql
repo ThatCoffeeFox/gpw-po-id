@@ -26,17 +26,17 @@ CREATE OR REPLACE FUNCTION is_valid_pesel(pesel_input VARCHAR(11))
 $$;
 
 
-CREATE TABLE postal_codes (
+CREATE TABLE IF NOT EXISTS postal_codes (
   postal_code VARCHAR(6) PRIMARY KEY
     CHECK (postal_code ~ '[0-9]{2}-[0-9]{3}')
 );
 
-CREATE TABLE towns (
+CREATE TABLE IF NOT EXISTS towns (
   town_id SERIAL PRIMARY KEY,
   name    VARCHAR(128) NOT NULL
 );
 
-CREATE TABLE postal_codes_towns (
+CREATE TABLE IF NOT EXISTS postal_codes_towns (
   postal_code VARCHAR(6)
     REFERENCES postal_codes(postal_code),
   town_id     INTEGER
@@ -113,7 +113,7 @@ CREATE TABLE ipo(
 
 CREATE TABLE companies_status(
   company_id INTEGER REFERENCES companies,
-  date TIMESTAMP DEFAULT current_date,
+  date TIMESTAMP DEFAULT current_timestamp,
   PRIMARY KEY(company_id, date),
   tradable BOOLEAN NOT NULL DEFAULT false 
 );
@@ -122,7 +122,7 @@ CREATE TABLE external_transfers(
   transfer_id SERIAL PRIMARY KEY,
   wallet_id INTEGER NOT NULL REFERENCES wallets,
   type transfer_type NOT NULL,
-  date TIMESTAMP NOT NULL DEFAULT current_date,
+  date TIMESTAMP NOT NULL DEFAULT current_timestamp,
   amount NUMERIC(17,2) NOT NULL CHECK(amount > 0)
 );
 

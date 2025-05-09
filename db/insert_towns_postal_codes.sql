@@ -1,6 +1,24 @@
 \encoding UTF8
 
 BEGIN;
+CREATE TABLE IF NOT EXISTS postal_codes (
+  postal_code VARCHAR(6) PRIMARY KEY
+    CHECK (postal_code ~ '[0-9]{2}-[0-9]{3}')
+);
+
+CREATE TABLE IF NOT EXISTS towns (
+  town_id SERIAL PRIMARY KEY,
+  name    VARCHAR(128) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS postal_codes_towns (
+  postal_code VARCHAR(6)
+    REFERENCES postal_codes(postal_code),
+  town_id     INTEGER
+    REFERENCES towns(town_id),
+  PRIMARY KEY (postal_code, town_id)
+);
+
 COPY postal_codes(postal_code) FROM stdin WITH (FORMAT csv);
 00-002
 00-003
