@@ -299,6 +299,7 @@ CREATE OR REPLACE FUNCTION check_accounts_info()
             IF no_of_updates = 0 THEN
                 DELETE FROM accounts a WHERE a.account_id = NEW.account_id;
             END IF;
+            RAISE EXCEPTION 'pesel should be unique for each account';
             RETURN NULL;
         END IF;
 
@@ -314,6 +315,7 @@ CREATE OR REPLACE FUNCTION check_accounts_info()
             IF no_of_updates = 0 THEN
                 DELETE FROM accounts a WHERE a.account_id = NEW.account_id;
             END IF;
+            RAISE EXCEPTION 'email should be unique for each account';
             RETURN NULL;
         END IF;
     END
@@ -329,6 +331,7 @@ CREATE OR REPLACE FUNCTION check_companies_info()
     AS $$
     DECLARE
         no_of_diff_companies INTEGER;
+        no_of_updates INTEGER;
     BEGIN
         SELECT COUNT(*) INTO no_of_diff_companies
         FROM companies_info
@@ -336,6 +339,12 @@ CREATE OR REPLACE FUNCTION check_companies_info()
         IF no_of_diff_companies = 0 THEN
             RETURN NEW;
         ELSE
+            SELECT COUNT(*) INTO no_of_updates
+            FROM companies_info
+            WHERE company_id = NEW.company_id;
+            IF no_of_updates = 0 THEN
+                DELETE FROM companies c WHERE c.company_id = NEW.company_id;
+            RAISE EXCEPTION 'code should be unique for each company';
             RETURN NULL;
         END IF;
     END
@@ -358,6 +367,7 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
             FROM funds_in_wallets() f
             WHERE f.wallet_id = NEW.wallet_id;
             IF funds < NEW.shares_amount*NEW.share_price THEN
+                RAISE EXCEPTION 'cannot place order - not enough funds in wallet';
                 RETURN NULL;
             ELSE 
                 RETURN NEW;
@@ -367,6 +377,7 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
             FROM shares_in_wallets() f
             WHERE f.wallet_id = NEW.wallet_id AND f.company_id = NEW.company_id;
             IF shares < NEW.shares_amount THEN
+                RAISE EXCEPTION 'cannaot place order - not enough shares in wallet';
                 RETURN NULL;
             ELSE
                 RETURN NEW;
