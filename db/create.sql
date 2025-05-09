@@ -282,6 +282,17 @@ CREATE OR REPLACE FUNCTION shares_value()
     END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION tradable_companies()
+       RETURNS TABLE(company_id INTEGER)
+       AS $$
+       BEGIN
+            RETURN QUERY SELECT cs.company_id
+                    FROM companies_status cs
+                    WHERE date = (SELECT cs1.date FROM companies_status cs1 WHERE cs1.company_id = cs.company_id ORDER BY cs1.date DESC LIMIT 1);
+                    AND cs.tradable = true;
+            END
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION check_accounts_info()
     RETURNS TRIGGER
     AS $$
@@ -362,12 +373,15 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
         funds NUMERIC(17,2);
         shares INTEGER;
     BEGIN
+        IF NEW.company_id NOT IN tradable_companies() THEN
+            RAISE EXCEPTION 'company % is not tradable', NEW.company_id;
+        END IF;
         IF NEW.order_type = 'buy' THEN
             SELECT f.funds INTO funds
             FROM funds_in_wallets() f
             WHERE f.wallet_id = NEW.wallet_id;
             IF funds < NEW.shares_amount*NEW.share_price THEN
-                RAISE EXCEPTION 'cannot place order - not enough funds in wallet';
+                RAISE EXCEPTION 'cannot place order - not enough funds in wallet %', NEW.wallet_id;
                 RETURN NULL;
             ELSE 
                 RETURN NEW;
@@ -377,7 +391,7 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
             FROM shares_in_wallets() f
             WHERE f.wallet_id = NEW.wallet_id AND f.company_id = NEW.company_id;
             IF shares < NEW.shares_amount THEN
-                RAISE EXCEPTION 'cannaot place order - not enough shares in wallet';
+                RAISE EXCEPTION 'cannot place order - not enough shares in wallet %', NEW.wallet_id;
                 RETURN NULL;
             ELSE
                 RETURN NEW;
@@ -390,4 +404,70 @@ CREATE OR REPLACE TRIGGER is_valid_order_trigger
     BEFORE INSERT ON orders
     FOR EACH ROW
     EXECUTE PROCEDURE is_valid_order();
+
+CREATE OR REPLACE FUNCTION is_valid_subscription()
+    RETURNS TRIGGER
+    AS $$
+    DECLARE 
+        funds NUMERIC(17,2);
+        ipo_price NUMERIC(17,2);
+    BEGIN
+        --odpowiednia ilosc pieniedzy na koncie
+        SELECT f.funds INTO funds
+        FROM funds_in_wallets() f
+        WHERE f.wallet_id = NEW.wallet_id;
+
+        IF funds < NEW.shares_amount * (SELECT i.ipo_price FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
+            RAISE EXCEPTION 'not enough funds in wallet %', NEW.wallet_id;
+        END IF;
+        --ipo wciaz trwa
+        IF current_date > (SELECT i.subscription_end FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
+            RAISE EXCEPTION 'subscription has ended';
+        END IF
+        RETURN NEW;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER is_valid_subscription_trigger
+    BEFORE INSERT ON subscriptions
+    FOR EACH ROW
+    EXECUTE PROCEDURE is_valid_subscription();
+
+CREATE OR REPLACE FUNCTION is_valid_transaction()
+    RETURNS TRIGGER
+    AS $$
+    BEGIN
+        IF NEW.sell_order_id IN (SELECT order_id FROM order_cancellations) THEN
+            RAISE EXCEPTION 'sell order is cancelled';
+        ELSE IF NEW.buy_order_id IN (SELECT order_id FROM order_cancellations) THEM
+            RAISE EXCEPTION 'buy order is cancelled'; END IF;
+        END IF;
+        RETURN NEW;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER is_valid_transaction_trigger
+    BEFORE INSERT ON transactions
+    FOR EACH ROW
+    EXECUTE PROCEDURE is_valid_transaction();
+
+CREATE OR REPLACE FUNCTION is_valid_cancellation()
+    RETURNS TRIGGER
+    AS $$
+    BEGIN
+        IF (SELECT sl.shares_left FROM shares_left_in_order() WHERE sl.order_id = NEW.order_id) = 0 THEN
+            RAISE EXCEPTION 'cannot cancel a completed order';
+        END IF;
+        RETURN NEW;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
+    BEFORE INSERT ON order_cancellations
+    FOR EACH ROW
+    EXECUTE PROCEDURE is_valid_cancellation();
+
+CREATE OR REPLACE VIEW active_buy_orders AS
+    SELECT 
+
 COMMIT;

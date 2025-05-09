@@ -6,6 +6,12 @@ DROP TRIGGER IF EXISTS check_companies_info_trigger ON companies_info;
 
 DROP TRIGGER IF EXISTS is_valid_order_trigger ON orders;
 
+DROP TRIGGER IF EXISTS is_valid_transaction_trigger ON transactions;
+
+DROP TRIGGER IF EXISTS is_valid_cancellation_trigger ON order_cancellations;
+
+DROP TRIGGER IF EXISTS is_valid_subscription_trigger ON subscriptions;
+
 DROP TYPE IF EXISTS user_role CASCADE;
 
 DROP TYPE IF EXISTS transfer_type CASCADE;
@@ -63,6 +69,14 @@ DROP FUNCTION IF EXISTS check_accounts_info CASCADE;
 DROP FUNCTION IF EXISTS is_valid_order CASCADE;
 
 DROP FUNCTION IF EXISTS check_companies_info CASCADE;
+
+DROP FUNCTION IF EXISTS tradable_companies CASCADE;
+
+DROP FUNCTION IF EXISTS is_valid_transaction CASCADE;
+
+DROP FUNCTION IF EXISTS is_valid_cancellation CASCADE;
+
+DROP FUNCTION IF EXISTS is_valid_subscription CASCADE;
 
 COMMIT;
 
