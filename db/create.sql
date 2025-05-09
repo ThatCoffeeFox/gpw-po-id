@@ -287,11 +287,18 @@ CREATE OR REPLACE FUNCTION check_accounts_info()
     AS $$
     DECLARE
         no_of_diff_accounts INTEGER;
+        no_of_updates INTEGER;
     BEGIN
         SELECT COUNT(*) INTO no_of_diff_accounts
         FROM accounts_info
         WHERE pesel = NEW.pesel AND account_id != NEW.account_id;
         IF no_of_diff_accounts != 0 THEN
+            SELECT COUNT(*) INTO no_of_updates
+            FROM accounts_info
+            WHERE account_id = NEW.account_id;
+            IF no_of_updates = 0 THEN
+                DELETE FROM accounts a WHERE a.account_id = NEW.account_id;
+            END IF;
             RETURN NULL;
         END IF;
 
@@ -300,7 +307,13 @@ CREATE OR REPLACE FUNCTION check_accounts_info()
         WHERE email = NEW.email AND account_id != NEW.account_id;
         IF no_of_diff_accounts = 0 THEN
             RETURN NEW;
-        ELSE               
+        ELSE
+            SELECT COUNT(*) INTO no_of_updates
+            FROM accounts_info
+            WHERE account_id = NEW.account_id;
+            IF no_of_updates = 0 THEN
+                DELETE FROM accounts a WHERE a.account_id = NEW.account_id;
+            END IF;
             RETURN NULL;
         END IF;
     END
