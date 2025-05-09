@@ -56,6 +56,8 @@ DROP FUNCTION IF EXISTS blocked_funds_in_wallets CASCADE;
 
 DROP FUNCTION IF EXISTS blocked_shares_in_wallets CASCADE;
 
+DROP FUNCTION IF EXISTS shares_value CASCADE;
+
 DROP FUNCTION IF EXISTS check_accounts_info CASCADE;
 
 DROP FUNCTION IF EXISTS is_valid_order CASCADE;

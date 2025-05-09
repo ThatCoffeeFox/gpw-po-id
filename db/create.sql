@@ -265,6 +265,24 @@ CREATE OR REPLACE FUNCTION blocked_shares_in_wallets() --funkcja na zablokowane 
     END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION shares_value()
+    RETURNS TABLE(company_id INTEGER, shares_value NUMERIC(17,2))
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT c.company_id, 
+                COALESCE((SELECT t.share_price
+                    FROM transactions t 
+                    JOIN orders o ON t.sell_order_id = o.order_id
+                    WHERE o.company_id = c.company_id
+                    ORDER BY t.date DESC
+                    LIMIT 1),i.ipo_price)
+                FROM companies c
+                JOIN ipo i ON c.company_id = i.company_id
+                ORDER BY i.subscription_start DESC
+                LIMIT 1;
+    END
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION check_accounts_info()
     RETURNS TRIGGER
     AS $$
