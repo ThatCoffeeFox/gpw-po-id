@@ -25,7 +25,6 @@ CREATE OR REPLACE FUNCTION is_valid_pesel(pesel_input VARCHAR(11))
        ) = (10 - SUBSTRING(pesel_input FROM 11 FOR 1)::INT) % 10;
 $$;
 
-
 CREATE TABLE IF NOT EXISTS postal_codes (
   postal_code VARCHAR(6) PRIMARY KEY
     CHECK (postal_code ~ '[0-9]{2}-[0-9]{3}')
@@ -177,4 +176,194 @@ CREATE TABLE subscriptions (
   shares_assigned INTEGER CHECK (shares_assigned >= 0)
 );
 
+CREATE OR REPLACE FUNCTION funds_in_wallets()
+    RETURNS TABLE(wallet_id INTEGER, funds NUMERIC(17,2))
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT w.wallet_id,
+                (SELECT COALESCE(SUM(et.amount),0) 
+                    FROM external_transfers et 
+                    WHERE et.wallet_id = w.wallet_id AND type = 'deposit') --wplacone na konto
+                - (SELECT COALESCE(SUM(et.amount),0) 
+                    FROM external_transfers et
+                    WHERE et.wallet_id = w.wallet_id AND type = 'withdrawal') --wyplacone z konta
+                + (SELECT COALESCE(SUM(t.share_price*t.shares_amount),0) 
+                    FROM transactions t 
+                    JOIN orders o ON t.sell_order_id = o.order_id 
+                    WHERE o.wallet_id = w.wallet_id) --pieniadze ze sprzedanych akcji
+                - (SELECT COALESCE(SUM(t.share_price*t.shares_amount),0) 
+                    FROM transactions t 
+                    JOIN orders o ON t.buy_order_id = o.order_id 
+                    WHERE o.wallet_id = w.wallet_id) --pieniadze wydane na akcje
+                - (SELECT COALESCE(SUM(s.shares_assigned*i.ipo_price),0) 
+                    FROM subscriptions s 
+                    JOIN ipo i ON i.ipo_id = s.ipo_id 
+                    WHERE s.wallet_id = w.wallet_id AND s.shares_assigned IS NOT NULL) --pieniadze wydane na zakonczone zapisy
+                - (SELECT COALESCE(SUM(s.shares_amount*i.ipo_price),0) 
+                    FROM subscriptions s 
+                    JOIN ipo i ON i.ipo_id = s.ipo_id 
+                    WHERE s.wallet_id = w.wallet_id AND s.shares_assigned IS NULL) --pieniadze wydane na trwajace zapisy
+                FROM wallets w;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION shares_left_in_order() --funkcja na obliczenie ile akcji zostalo w zleceniu
+    RETURNS TABLE(order_id INTEGER, shares_left INTEGER)
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT o.order_id,
+                o.shares_amount - (SELECT SUM(t.shares_amount) FROM transactions t WHERE t.sell_order_id = o.order_id OR t.buy_order_id = o.order_id)::INTEGER
+                FROM orders o;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION shares_in_wallets()  --funkcja na ilosc akcji firm w portfelu
+    RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, shares_amount INTEGER)
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT w.wallet_id, c.company_id,
+                (SELECT COALESCE(SUM(t.shares_amount),0) 
+                    FROM transactions t 
+                    JOIN orders o ON o.order_id = t.buy_order_id 
+                    WHERE o.wallet_id = w.wallet_id AND o.company_id = c.company_id)::INTEGER --kupione akcje
+                - (SELECT COALESCE(SUM(t.shares_amount),0) 
+                    FROM transactions t 
+                    JOIN orders o ON o.order_id = t.sell_order_id 
+                    WHERE o.wallet_id = w.wallet_id AND o.company_id = c.company_id)::INTEGER --sprzedane akcje
+                + (SELECT COALESCE(SUM(s.shares_assigned),0) 
+                    FROM subscriptions s 
+                    JOIN ipo i ON s.ipo_id = i.ipo_id
+                    WHERE s.wallet_id = w.wallet_id AND s.shares_assigned IS NOT NULL AND i.company_id = c.company_id)::INTEGER --akcje kupione w trakcie emisji
+                FROM wallets w CROSS JOIN companies c;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()  --funkcja na zabklokowane srodku w portfelu
+    RETURNS TABLE(wallet_id INTEGER, blocked_funds NUMERIC(17,2))
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT w.wallet_id,
+                (SELECT COALESCE(SUM(sl.shares_left*o.share_price),0) 
+                    FROM orders o 
+                    JOIN shares_left_in_order() sl ON sl.order_id = o.order_id 
+                    WHERE o.order_type = 'buy')
+                FROM wallets w;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION blocked_shares_in_wallets() --funkcja na zablokowane akcje firmy w portfelu
+    RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, blocked_shares INTEGER)
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT w.wallet_id, c.company_id,
+                (SELECT COALESCE(SUM(sl.shares_left),0) 
+                    FROM orders o 
+                    JOIN shares_left_in_order() sl ON sl.order_id = o.order_id 
+                    WHERE o.order_type = 'sell' AND o.company_id = c.company_id AND o.wallet_id = w.wallet_id)::INTEGER
+        FROM wallets w CROSS JOIN companies c;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION shares_value()
+    RETURNS TABLE(company_id INTEGER, shares_value NUMERIC(17,2))
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT c.company_id, 
+                COALESCE((SELECT t.share_price
+                    FROM transactions t 
+                    JOIN orders o ON t.sell_order_id = o.order_id
+                    WHERE o.company_id = c.company_id
+                    ORDER BY t.date DESC
+                    LIMIT 1),i.ipo_price)
+                FROM companies c
+                JOIN ipo i ON c.company_id = i.company_id
+                ORDER BY i.subscription_start DESC
+                LIMIT 1;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_accounts_info()
+    RETURNS TRIGGER
+    AS $$
+    DECLARE
+        no_of_diff_accounts INTEGER;
+    BEGIN
+        SELECT COUNT(*) INTO no_of_diff_accounts
+        FROM accounts_info
+        WHERE pesel = NEW.pesel AND account_id != NEW.account_id;
+        IF no_of_diff_accounts != 0 THEN
+            RETURN NULL;
+        END IF;
+
+        SELECT COUNT(*) INTO no_of_diff_accounts 
+        FROM accounts_info 
+        WHERE email = NEW.email AND account_id != NEW.account_id;
+        IF no_of_diff_accounts = 0 THEN
+            RETURN NEW;
+        ELSE               
+            RETURN NULL;
+        END IF;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER check_accounts_info_trigger
+    BEFORE INSERT ON accounts_info
+    FOR EACH ROW 
+    EXECUTE PROCEDURE check_accounts_info();
+
+CREATE OR REPLACE FUNCTION check_companies_info()
+    RETURNS TRIGGER
+    AS $$
+    DECLARE
+        no_of_diff_companies INTEGER;
+    BEGIN
+        SELECT COUNT(*) INTO no_of_diff_companies
+        FROM companies_info
+        WHERE code = NEW.code AND company_id != NEW.company_id;
+        IF no_of_diff_companies = 0 THEN
+            RETURN NEW;
+        ELSE
+            RETURN NULL;
+        END IF;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER check_companies_info_trigger
+    BEFORE INSERT ON companies_info
+    FOR EACH ROW
+    EXECUTE PROCEDURE check_companies_info();
+
+CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmiany
+    RETURNS TRIGGER
+    AS $$
+    DECLARE
+        funds NUMERIC(17,2);
+        shares INTEGER;
+    BEGIN
+        IF NEW.order_type = 'buy' THEN
+            SELECT f.funds INTO funds
+            FROM funds_in_wallets() f
+            WHERE f.wallet_id = NEW.wallet_id;
+            IF funds < NEW.shares_amount*NEW.share_price THEN
+                RETURN NULL;
+            ELSE 
+                RETURN NEW;
+            END IF;
+        ELSE
+            SELECT f.shares_amount INTO shares
+            FROM shares_in_wallets() f
+            WHERE f.wallet_id = NEW.wallet_id AND f.company_id = NEW.company_id;
+            IF shares < NEW.shares_amount THEN
+                RETURN NULL;
+            ELSE
+                RETURN NEW;
+            END IF;
+        END IF;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER is_valid_order_trigger
+    BEFORE INSERT ON orders
+    FOR EACH ROW
+    EXECUTE PROCEDURE is_valid_order();
 COMMIT;
