@@ -31,25 +31,25 @@ public class OrderServiceImpl implements OrderService {
 
     static final Map<Integer, BlockingQueue<Order>> companyIdOrderQueue  = new ConcurrentHashMap<>();
 
-    private final ExecutorService executorService;
+    private final Executor executor;
 
     @Autowired
     public OrderServiceImpl(OrderRepository orderRepository,
                             OrderFactory orderFactory,
                             OrderCancellationFactory orderCancellationFactory,
                             CompanyService companyService,
-                            ExecutorService executorService){
+                            Executor executor){
         this.orderRepository = orderRepository;
 
         this.orderFactory = orderFactory;
         this.orderCancellationFactory = orderCancellationFactory;
 
         this.companyService = companyService;
-        this.executorService = executorService;
+        this.executor = executor;
 
         for(int id : companyService.getTradableCompaniesId()){
             companyIdOrderQueue.put(id, new LinkedBlockingQueue<>());
-            executorService.execute(new OrderMatcher(id));
+            executor.execute(new OrderMatcher(id));
         }
     }
 

@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface CompanyRepository extends JpaRepository<Company,Long> {
-    @Query("SELECT * FROM tradable_companies();")
+    @Query(value = "SELECT * FROM tradable_companies()", nativeQuery = true)
     List<Integer> findTradableCompaniesId();
 }
