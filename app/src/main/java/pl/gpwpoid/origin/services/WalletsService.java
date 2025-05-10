@@ -5,6 +5,7 @@ import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface WalletsService {
     void addWallet(Integer walletId,
@@ -13,4 +14,5 @@ public interface WalletsService {
 
     Collection<Wallet> getWallets();
     Collection<WalletListItem> getWalletsForCurrentUser();
+    Optional<Wallet> getWalletById(Integer walletId);
 }
