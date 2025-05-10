@@ -18,7 +18,7 @@ public class OrderDTO {
     private OrderType orderType;
 
     @NotNull(message = "Portfel jest wymagany")
-    private Wallet wallet;
+    private WalletDTO wallet;
 
     @NotNull(message = "Ilość akcji jest wymagana")
     @Min(value = 1, message = "Ilość akcji musi być większa od 0")

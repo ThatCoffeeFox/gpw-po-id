@@ -2,7 +2,6 @@ package pl.gpwpoid.origin.ui.views;
 
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
@@ -21,19 +20,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
-import pl.gpwpoid.origin.repositories.views.CompanyListItem;
-import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
+import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @Route("companies/:companyId")
@@ -50,7 +46,7 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
 
     //pola
     private final ComboBox<OrderType> orderType = new ComboBox<>("Typ zlecenia");
-    private final ComboBox<Wallet> wallet = new ComboBox<>("Portfel");
+    private final ComboBox<WalletDTO> wallet = new ComboBox<>("Portfel");
     private final IntegerField sharesAmount = new IntegerField("Ilość akcji");
     private final NumberField sharePrice = new NumberField("Cena za akcję");
     private final DateTimePicker orderExpirationDate = new DateTimePicker("Data wygaśnięcia zlecenia");
@@ -92,7 +88,21 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         binder.forField(orderType).bind("orderType");
         binder.forField(wallet).bind("wallet");
         binder.forField(sharesAmount).bind("amount");
-        binder.forField(sharePrice).bind("price");
+        binder.forField(sharePrice)
+                .withConverter(
+                        doubleValue -> {
+                            if(doubleValue == null)
+                                return null;
+                            return BigDecimal.valueOf(doubleValue);
+                        },
+                        bigDecimal -> {
+                            if(bigDecimal == null)
+                                return null;
+                            return bigDecimal.doubleValue();
+                        },
+                        "Nieprawidłowa cena"
+                )
+                .bind("price");
         binder.forField(orderExpirationDate).bind("dateTime");
 
         binder.setBean(orderDTO);
@@ -112,15 +122,15 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         wallet.setPlaceholder("Wybierz portfel");
         wallet.setRequiredIndicatorVisible(true);
         wallet.setErrorMessage("Portfel jest wymagany");
-        Collection<Wallet> wallets;
+        Collection<WalletDTO> wallets;
         if(SecurityUtils.isLoggedIn()){
-            wallets = walletsService.getWalletForCurrentUser();
+            wallets = walletsService.getWalletDTOForCurrentUser();
         }
         else{
             wallets = Collections.emptyList();
         }
         wallet.setItems(wallets);
-        wallet.setItemLabelGenerator(Wallet::getName);
+        wallet.setItemLabelGenerator(WalletDTO::getName);
 
         sharesAmount.setPlaceholder("Wpisz ilość akcji");
         sharesAmount.setRequiredIndicatorVisible(true);
@@ -130,7 +140,7 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
 
         orderExpirationDate.setLocale(new Locale("pl", "PL"));
         orderExpirationDate.setStep(Duration.ofMinutes(1));
-        orderExpirationDate.setMin(LocalDateTime.now());
+        //orderExpirationDate.setMin(LocalDateTime.now());
     }
 
     private void configureSubmitButton(){

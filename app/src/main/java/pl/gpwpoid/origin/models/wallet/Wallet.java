@@ -23,7 +23,7 @@ public class Wallet {
     @Column(name = "wallet_id")
     private Integer walletId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
