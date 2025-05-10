@@ -40,6 +40,13 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
     private Integer companyId;
     private Optional<Company> company;
 
+    //pola
+    ComboBox<String> orderType = new ComboBox<>("Order Type");
+    ComboBox<Wallet> wallet = new ComboBox<>("Wallet");
+    IntegerField amount = new IntegerField("Amount of shares");
+    NumberField price = new NumberField("Price");
+    DatePicker date = new DatePicker("Date");
+
     @Autowired
     public CompanyView(CompanyService companyService, OrderService orderService, WalletsService walletsService) {
         this.companyService = companyService;
