@@ -2,15 +2,17 @@ package pl.gpwpoid.origin.services.implementations.order;
 
 import pl.gpwpoid.origin.models.order.Order;
 
+import java.util.Date;
+
 
 class OrderWrapper{
     private Order order;
 
-    private int shares_left;
+    private int sharesLeft;
 
     OrderWrapper(Order order){
         this.order = order;
-        this.shares_left = order.getSharesAmount();
+        this.sharesLeft = order.getSharesAmount();
     }
 
     Order getOrder(){
@@ -18,8 +20,16 @@ class OrderWrapper{
     }
 
     void tradeShares(int tradeAamount){
-        if(tradeAamount < shares_left) throw new IllegalArgumentException("Cannot trade more shares that left in the order");
-        shares_left -= tradeAamount;
+        if(tradeAamount > sharesLeft) throw new IllegalArgumentException("Cannot trade more shares that left in the order");
+        sharesLeft -= tradeAamount;
+    }
+
+    boolean isValid(){
+        return order.getCancellations().isEmpty() && order.getOrderExpirationDate().compareTo(new Date()) >= 0 && sharesLeft > 0;
+    }
+
+    int getSharesLeft(){
+        return this.sharesLeft;
     }
 }
 
