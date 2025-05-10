@@ -1,7 +1,6 @@
 package pl.gpwpoid.origin.services.implementations;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.account.Account;
@@ -13,7 +12,7 @@ import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Optional;
 
 @Service
 public class WalletServiceImpl implements WalletsService {
@@ -43,5 +42,10 @@ public class WalletServiceImpl implements WalletsService {
     public Collection<WalletListItem> getWalletsForCurrentUser() {
         String email = SecurityUtils.getAuthenticatedEmail();
         return walletRepository.getWalletsForCurrentUser(email);
+    }
+
+    @Override
+    public Optional<Wallet> getWalletById(Integer walletId) {
+        return walletRepository.findById(Long.valueOf(walletId));
     }
 }

@@ -39,6 +39,7 @@ public class OrderFactory {
         order.setSharePrice(sharePrice);
         order.setWallet(wallet);
         order.setCompany(company);
+        order.setOrderStartDate(new Date());
         order.setOrderExpirationDate(orderExpirationDate);
 
         return order;
