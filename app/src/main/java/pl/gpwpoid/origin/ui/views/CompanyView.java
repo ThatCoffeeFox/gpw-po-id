@@ -3,6 +3,7 @@ package pl.gpwpoid.origin.ui.views;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -29,12 +30,11 @@ import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 @Route("companies/:companyId")
 @RolesAllowed({"admin","user"})
@@ -43,18 +43,18 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
     private final OrderService orderService;
     private final WalletsService walletsService;
     private Integer companyId;
-    private Optional<Company> company;
+    private Company company;
 
-    private Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
+    private final Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
     private OrderDTO orderDTO;
 
     //pola
-    private ComboBox<OrderType> orderType = new ComboBox<>("Order Type");
-    private ComboBox<Wallet> wallet = new ComboBox<>("Wallet");
-    private IntegerField sharesAmount = new IntegerField("Amount of shares");
-    private NumberField sharePrice = new NumberField("Price");
-    private DatePicker orderExpirationDate = new DatePicker("Date");
-    private Button submitButton = new Button("Złóż zlecenie");
+    private final ComboBox<OrderType> orderType = new ComboBox<>("Typ zlecenia");
+    private final ComboBox<Wallet> wallet = new ComboBox<>("Portfel");
+    private final IntegerField sharesAmount = new IntegerField("Ilość akcji");
+    private final NumberField sharePrice = new NumberField("Cena za akcję");
+    private final DateTimePicker orderExpirationDate = new DateTimePicker("Data wygaśnięcia zlecenia");
+    private final Button submitButton = new Button("Złóż zlecenie");
 
     @Autowired
     public CompanyView(CompanyService companyService, OrderService orderService, WalletsService walletsService) {
@@ -65,7 +65,8 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         setSizeFull();
         setAlignItems(Alignment.CENTER);
 
-        FormLayout formLayout =createOrderPlacementForm();
+        FormLayout formLayout = createOrderPlacementForm();
+        add(formLayout);
         bindFields();
         configureFields();
         configureSubmitButton();
@@ -73,7 +74,7 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
 
     private FormLayout createOrderPlacementForm(){
         FormLayout formLayout = new FormLayout();
-        formLayout.add(orderType, wallet, sharesAmount, sharePrice, orderExpirationDate);
+        formLayout.add(orderType, wallet, sharesAmount, sharePrice, orderExpirationDate, submitButton);
         formLayout.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("500px", 2)
@@ -85,19 +86,19 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
 
     private void bindFields(){
         this.orderDTO = new OrderDTO();
+        orderDTO.setCompany(company);
         binder.setBean(orderDTO);
 
-        binder.forField(orderType).bind("Typ zlecenia");
-        binder.forField(wallet).bind("Portfel");
-        binder.forField(sharesAmount).bind("Liczba akcji");
-        binder.forField(sharePrice).bind("Cena za akcję");
-        binder.forField(orderExpirationDate).bind("Moment wygaśnięcia zlecenia");
+        binder.forField(orderType).bind("orderType");
+        binder.forField(wallet).bind("wallet");
+        binder.forField(sharesAmount).bind("amount");
+        binder.forField(sharePrice).bind("price");
+        binder.forField(orderExpirationDate).bind("dateTime");
 
         binder.setBean(orderDTO);
     }
 
     private void configureFields(){
-        //orderType
         orderType.setPlaceholder("Wybierz typ zlecenia");
         orderType.setRequiredIndicatorVisible(true);
         orderType.setErrorMessage("Typ zlecenia jest wymagany");
@@ -106,13 +107,14 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         OrderType buyOrder = new OrderType();
         buyOrder.setOrderType("buy");
         orderType.setItems(sellOrder, buyOrder);
+        orderType.setItemLabelGenerator(OrderType::getOrderType);
 
         wallet.setPlaceholder("Wybierz portfel");
         wallet.setRequiredIndicatorVisible(true);
         wallet.setErrorMessage("Portfel jest wymagany");
         Collection<Wallet> wallets;
         if(SecurityUtils.isLoggedIn()){
-            wallets = walletsService.getWallets();
+            wallets = walletsService.getWalletForCurrentUser();
         }
         else{
             wallets = Collections.emptyList();
@@ -126,17 +128,27 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
 
         sharePrice.setPlaceholder("Wpisz cenę za akcję");
 
-        orderExpirationDate.setPlaceholder("Wybierz datę wygaśnięcia zlecenia");
+        orderExpirationDate.setLocale(new Locale("pl", "PL"));
+        orderExpirationDate.setStep(Duration.ofMinutes(1));
+        orderExpirationDate.setMin(LocalDateTime.now());
     }
 
     private void configureSubmitButton(){
         submitButton.addClickListener(event -> {
             try {
-                binder.writeBean(orderDTO);
-                orderService.addOrder(orderDTO);
+                OrderDTO order = binder.getBean();
+                if(order.getCompany() == null){
+                    if(company != null)
+                        order.setCompany(company);
+                    else
+                        showError("Brak firmy");
+                }
+                binder.writeBean(order);
+                orderService.addOrder(order);
                 Notification.show("Złożono zlecenie", 4000, Notification.Position.TOP_CENTER);
-                this.orderDTO = new OrderDTO();
-                binder.readBean(orderDTO);
+                OrderDTO nextOrder = new OrderDTO();
+                nextOrder.setCompany(company);
+                binder.setBean(nextOrder);
                 orderType.clear();
                 wallet.clear();
             } catch (ValidationException e) {
@@ -161,12 +173,18 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         else{
             showError("Nie podano ID firmy");
         }
+
     }
 
     private void loadCompanyDetails() {
         if(companyId != null) {
-            company = companyService.getCompanyById(companyId);
-            if(company.isEmpty()){
+            Optional<Company> currentCompany = companyService.getCompanyById(companyId);
+            if(currentCompany.isPresent()){
+                company = currentCompany.get();
+                OrderDTO newOrderDTO = new OrderDTO();
+                newOrderDTO.setCompany(company);
+            }
+            else{
                 showError("firma o ID " + companyId + " nie została znalezniona");
             }
         }

@@ -14,6 +14,7 @@ import pl.gpwpoid.origin.repositories.OrderRepository;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
+import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
 import java.lang.Integer;
 import java.math.BigDecimal;
@@ -77,6 +78,18 @@ public class OrderServiceImpl implements OrderService {
         }
 
         companyIdOrderQueue.get(company.getCompanyId()).add(order);
+    }
+
+    @Override
+    @Transactional
+    public void addOrder(OrderDTO orderDTO) {
+        Order order;
+        try{
+            order = orderFactory.createOrder(orderDTO);
+            orderRepository.save(order);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create order",e);
+        }
     }
 
     @Override

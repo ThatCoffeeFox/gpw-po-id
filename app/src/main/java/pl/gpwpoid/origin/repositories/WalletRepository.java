@@ -22,7 +22,8 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
     List<WalletListItem> getWalletListViewForCurrentUser(String email);
 
     @Query(value = """
-        SELECT w 
+        SELECT 
+            w.*
         FROM wallets w 
         JOIN accounts a ON a.account_id = w.account_id
         JOIN accounts_info ai ON a.account_id = ai.account_id

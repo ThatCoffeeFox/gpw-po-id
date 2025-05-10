@@ -5,6 +5,7 @@ import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -18,6 +19,8 @@ public interface OrderService {
                   Wallet wallet,
                   Company company,
                   Date orderExpirationDate);
+
+    void addOrder(OrderDTO orderDTO);
 
     void cancelOrder(Order order);
 
