@@ -207,17 +207,17 @@ CREATE OR REPLACE FUNCTION funds_in_wallets()
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_left_in_order() --funkcja na obliczenie ile akcji zostalo w zleceniu
+CREATE OR REPLACE FUNCTION shares_left_in_order()
     RETURNS TABLE(order_id INTEGER, shares_left INTEGER)
     AS $$
     BEGIN
         RETURN QUERY SELECT o.order_id,
-                o.shares_amount - (SELECT SUM(t.shares_amount) FROM transactions t WHERE t.sell_order_id = o.order_id OR t.buy_order_id = o.order_id)::INTEGER
+                o.shares_amount - COALESCE((SELECT SUM(t.shares_amount) FROM transactions t WHERE t.sell_order_id = o.order_id OR t.buy_order_id = o.order_id),0)::INTEGER
                 FROM orders o;
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_in_wallets()  --funkcja na ilosc akcji firm w portfelu
+CREATE OR REPLACE FUNCTION shares_in_wallets()
     RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, shares_amount INTEGER)
     AS $$
     BEGIN
@@ -238,7 +238,7 @@ CREATE OR REPLACE FUNCTION shares_in_wallets()  --funkcja na ilosc akcji firm w 
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()  --funkcja na zabklokowane srodku w portfelu
+CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()
     RETURNS TABLE(wallet_id INTEGER, blocked_funds NUMERIC(17,2))
     AS $$
     BEGIN
@@ -251,7 +251,7 @@ CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()  --funkcja na zabklokowane
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION blocked_shares_in_wallets() --funkcja na zablokowane akcje firmy w portfelu
+CREATE OR REPLACE FUNCTION blocked_shares_in_wallets()
     RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, blocked_shares INTEGER)
     AS $$
     BEGIN
@@ -277,9 +277,20 @@ CREATE OR REPLACE FUNCTION shares_value()
                     LIMIT 1),i.ipo_price)
                 FROM companies c
                 JOIN ipo i ON c.company_id = i.company_id
-                ORDER BY i.subscription_start DESC
-                LIMIT 1;
+                WHERE i.subscription_start = (SELECT MAX(subscription_start) FROM ipo i WHERE c.company_id = i.company_id)
+                ORDER BY 1;
     END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION tradable_companies()
+       RETURNS TABLE(company_id INTEGER)
+       AS $$
+       BEGIN
+            RETURN QUERY SELECT cs.company_id
+                    FROM companies_status cs
+                    WHERE date = (SELECT cs1.date FROM companies_status cs1 WHERE cs1.company_id = cs.company_id ORDER BY cs1.date DESC LIMIT 1)
+                    AND cs.tradable = true;
+            END
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION check_accounts_info()
@@ -299,6 +310,7 @@ CREATE OR REPLACE FUNCTION check_accounts_info()
             IF no_of_updates = 0 THEN
                 DELETE FROM accounts a WHERE a.account_id = NEW.account_id;
             END IF;
+            RAISE EXCEPTION 'pesel should be unique for each account';
             RETURN NULL;
         END IF;
 
@@ -314,6 +326,7 @@ CREATE OR REPLACE FUNCTION check_accounts_info()
             IF no_of_updates = 0 THEN
                 DELETE FROM accounts a WHERE a.account_id = NEW.account_id;
             END IF;
+            RAISE EXCEPTION 'email should be unique for each account';
             RETURN NULL;
         END IF;
     END
@@ -329,6 +342,7 @@ CREATE OR REPLACE FUNCTION check_companies_info()
     AS $$
     DECLARE
         no_of_diff_companies INTEGER;
+        no_of_updates INTEGER;
     BEGIN
         SELECT COUNT(*) INTO no_of_diff_companies
         FROM companies_info
@@ -336,6 +350,13 @@ CREATE OR REPLACE FUNCTION check_companies_info()
         IF no_of_diff_companies = 0 THEN
             RETURN NEW;
         ELSE
+            SELECT COUNT(*) INTO no_of_updates
+            FROM companies_info
+            WHERE company_id = NEW.company_id;
+            IF no_of_updates = 0 THEN
+                DELETE FROM companies c WHERE c.company_id = NEW.company_id;
+            END IF;
+            RAISE EXCEPTION 'code should be unique for each company';
             RETURN NULL;
         END IF;
     END
@@ -353,11 +374,15 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
         funds NUMERIC(17,2);
         shares INTEGER;
     BEGIN
+        IF NEW.company_id NOT IN (SELECT * FROM tradable_companies()) THEN
+            RAISE EXCEPTION 'company % is not tradable', NEW.company_id;
+        END IF;
         IF NEW.order_type = 'buy' THEN
             SELECT f.funds INTO funds
             FROM funds_in_wallets() f
             WHERE f.wallet_id = NEW.wallet_id;
             IF funds < NEW.shares_amount*NEW.share_price THEN
+                RAISE EXCEPTION 'cannot place order - not enough funds in wallet %', NEW.wallet_id;
                 RETURN NULL;
             ELSE 
                 RETURN NEW;
@@ -367,6 +392,7 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
             FROM shares_in_wallets() f
             WHERE f.wallet_id = NEW.wallet_id AND f.company_id = NEW.company_id;
             IF shares < NEW.shares_amount THEN
+                RAISE EXCEPTION 'cannot place order - not enough shares in wallet %', NEW.wallet_id;
                 RETURN NULL;
             ELSE
                 RETURN NEW;
@@ -379,4 +405,84 @@ CREATE OR REPLACE TRIGGER is_valid_order_trigger
     BEFORE INSERT ON orders
     FOR EACH ROW
     EXECUTE PROCEDURE is_valid_order();
+
+CREATE OR REPLACE FUNCTION is_valid_subscription()
+    RETURNS TRIGGER
+    AS $$
+    DECLARE 
+        funds NUMERIC(17,2);
+        ipo_price NUMERIC(17,2);
+    BEGIN
+        --odpowiednia ilosc pieniedzy na koncie
+        SELECT f.funds INTO funds
+        FROM funds_in_wallets() f
+        WHERE f.wallet_id = NEW.wallet_id;
+
+        IF funds < NEW.shares_amount * (SELECT i.ipo_price FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
+            RAISE EXCEPTION 'not enough funds in wallet %', NEW.wallet_id;
+        END IF;
+        --ipo wciaz trwa
+        IF NEW.date > (SELECT i.subscription_end FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
+            RAISE EXCEPTION 'subscription has ended';
+        END IF;
+        RETURN NEW;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER is_valid_subscription_trigger
+    BEFORE INSERT ON subscriptions
+    FOR EACH ROW
+    EXECUTE PROCEDURE is_valid_subscription();
+
+CREATE OR REPLACE FUNCTION is_valid_transaction()
+    RETURNS TRIGGER
+    AS $$
+    BEGIN
+        IF NEW.sell_order_id IN (SELECT order_id FROM order_cancellations) THEN
+            RAISE EXCEPTION 'sell order is cancelled';
+        ELSE IF NEW.buy_order_id IN (SELECT order_id FROM order_cancellations) THEN
+            RAISE EXCEPTION 'buy order is cancelled'; END IF;
+        END IF;
+        RETURN NEW;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER is_valid_transaction_trigger
+    BEFORE INSERT ON transactions
+    FOR EACH ROW
+    EXECUTE PROCEDURE is_valid_transaction();
+
+CREATE OR REPLACE FUNCTION is_valid_cancellation()
+    RETURNS TRIGGER
+    AS $$
+    BEGIN
+        IF (SELECT sl.shares_left FROM shares_left_in_order() sl WHERE sl.order_id = NEW.order_id) = 0 THEN
+            RAISE EXCEPTION 'cannot cancel a completed order';
+        END IF;
+        RETURN NEW;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
+    BEFORE INSERT ON order_cancellations
+    FOR EACH ROW
+    EXECUTE PROCEDURE is_valid_cancellation();
+
+CREATE OR REPLACE VIEW active_buy_orders AS
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
+    FROM orders o
+    JOIN shares_left_in_order() sl ON o.order_id = sl.order_id
+    WHERE o.order_type = 'buy' 
+    AND sl.shares_left > 0 
+    AND o.order_expiration_date > current_timestamp
+    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
+
+CREATE OR REPLACE VIEW active_sell_orders AS
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
+    FROM orders o
+    JOIN shares_left_in_order() sl ON o.order_id = sl.order_id
+    WHERE o.order_type = 'sell'
+    AND sl.shares_left > 0
+    AND o.order_expiration_date > current_timestamp
+    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
 COMMIT;
