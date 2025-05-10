@@ -5,6 +5,7 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Route("accounts") // URL będzie /accounts
 @PageTitle("Lista Kont")
+@RolesAllowed("admin")
 public class AccountsListView extends VerticalLayout {
 
     private final AccountService accountService;

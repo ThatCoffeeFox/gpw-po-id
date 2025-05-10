@@ -22,12 +22,12 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("sellOrderId")
     @JoinColumn(name = "sell_order_id")
-    private pl.gpwpoid.origin.models.order.Order sellOrder;
+    private Order sellOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("buyOrderId")
     @JoinColumn(name = "buy_order_id")
-    private pl.gpwpoid.origin.models.order.Order buyOrder;
+    private Order buyOrder;
 
     @Column(name = "date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT current_timestamp") // W SQL current_date
     @Temporal(TemporalType.TIMESTAMP)

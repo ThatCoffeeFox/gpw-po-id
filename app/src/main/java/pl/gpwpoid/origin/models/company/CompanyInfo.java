@@ -29,7 +29,7 @@ public class CompanyInfo {
     @Column(name = "code", nullable = false, length = 3) // usunięto unique, zgodnie z SQL
     private String code;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumns({
             @JoinColumn(name = "town_id", referencedColumnName = "town_id", nullable = false),
             @JoinColumn(name = "postal_code", referencedColumnName = "postal_code", nullable = false)

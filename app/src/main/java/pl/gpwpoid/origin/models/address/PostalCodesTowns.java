@@ -9,6 +9,7 @@ import pl.gpwpoid.origin.models.company.CompanyInfo;
 import pl.gpwpoid.origin.models.keys.PostalCodesTownsId;
 import pl.gpwpoid.origin.models.address.Town;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -20,12 +21,14 @@ public class PostalCodesTowns {
     @EmbeddedId
     private PostalCodesTownsId id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("postalCode")
     @JoinColumn(name = "postal_code")
     private pl.gpwpoid.origin.models.address.PostalCode postalCode;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    //05210807197
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("townId")
     @JoinColumn(name = "town_id")
     private Town town;
@@ -36,4 +39,5 @@ public class PostalCodesTowns {
 
      @OneToMany(mappedBy = "postalCodesTowns")
      private Set<CompanyInfo> companyInfos;
+
 }
