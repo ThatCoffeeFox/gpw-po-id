@@ -13,7 +13,7 @@ import java.util.Collection;
 
 
 @Route("companies")
-@PageTitle("Lista firm")
+@PageTitle("Companies list")
 @RolesAllowed({"admin","user"})
 public class CompaniesListView extends VerticalLayout {
     private final CompanyService companyService;
@@ -32,7 +32,7 @@ public class CompaniesListView extends VerticalLayout {
     private void configureGrid() {
         grid.setSizeFull();
 
-        grid.addColumn(CompanyListItem::getName).setHeader("Nazwa firmy").setSortable(true);
+        grid.addColumn(CompanyListItem::getName).setHeader("Company name").setSortable(true);
         grid.addColumn(CompanyListItem::getCode).setHeader("Code").setSortable(true);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
