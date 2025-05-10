@@ -13,6 +13,7 @@ public interface WalletsService {
                    String walletName);
 
     Collection<Wallet> getWallets();
-    Collection<WalletListItem> getWalletsForCurrentUser();
+    Collection<WalletListItem> getWalletListViewForCurrentUser();
+    Collection<Wallet> getWalletForCurrentUser();
     Optional<Wallet> getWalletById(Integer walletId);
 }

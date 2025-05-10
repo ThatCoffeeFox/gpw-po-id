@@ -3,11 +3,15 @@ package pl.gpwpoid.origin.ui.views;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.data.binder.BeanValidationBinder;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
@@ -21,6 +25,7 @@ import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.WalletsService;
+import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
@@ -40,12 +45,16 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
     private Integer companyId;
     private Optional<Company> company;
 
+    private Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
+    private OrderDTO orderDTO;
+
     //pola
-    ComboBox<String> orderType = new ComboBox<>("Order Type");
-    ComboBox<Wallet> wallet = new ComboBox<>("Wallet");
-    IntegerField amount = new IntegerField("Amount of shares");
-    NumberField price = new NumberField("Price");
-    DatePicker date = new DatePicker("Date");
+    private ComboBox<OrderType> orderType = new ComboBox<>("Order Type");
+    private ComboBox<Wallet> wallet = new ComboBox<>("Wallet");
+    private IntegerField sharesAmount = new IntegerField("Amount of shares");
+    private NumberField sharePrice = new NumberField("Price");
+    private DatePicker orderExpirationDate = new DatePicker("Date");
+    private Button submitButton = new Button("Złóż zlecenie");
 
     @Autowired
     public CompanyView(CompanyService companyService, OrderService orderService, WalletsService walletsService) {
@@ -54,73 +63,89 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         this.walletsService = walletsService;
 
         setSizeFull();
+        setAlignItems(Alignment.CENTER);
 
-        ComboBox<String> orderType = new ComboBox<>("Order Type");
-        orderType.setPlaceholder("Choose Order Type");
-        orderType.setItems("sell", "buy");
-        orderType.setRequiredIndicatorVisible(true);
-        orderType.setErrorMessage("Order type is required");
-
-        ComboBox<WalletListItem> walletId = new ComboBox<>("Wallet");
-        walletId.setPlaceholder("Choose Wallet");
-        Collection<WalletListItem> walletList;
-        if(SecurityUtils.isLoggedIn()){
-            walletList = walletsService.getWalletsForCurrentUser();
-        }
-        else{
-            walletList = Collections.emptyList();
-        }
-        walletId.setItems(walletList);
-        walletId.setItemLabelGenerator(WalletListItem::getName);
-        walletId.setRequiredIndicatorVisible(true);
-        walletId.setErrorMessage("Wallet is required");
-
-        IntegerField shares = new IntegerField("Amount of shares");
-        shares.setRequiredIndicatorVisible(true);
-        shares.setErrorMessage("Amount of shares is required");
-
-        NumberField price = new NumberField("Price");
-
-        DatePicker orderExpiration = new DatePicker("Order expiration");
-
-        Button submit = new Button("Submit", buttonClickEvent -> {
-            String chosenOrderTypeString = orderType.getValue();
-            OrderType chosenOrderType = new OrderType();
-            chosenOrderType.setOrderType(chosenOrderTypeString);
-
-            Integer chosenWalletId = walletId.getValue().getWalletId();
-            Optional<Wallet> chosenWalletOptional = walletsService.getWalletById(chosenWalletId);
-            Wallet chosenWallet;
-            if(chosenWalletOptional.isPresent()){
-                chosenWallet = chosenWalletOptional.get();
-            }
-            else{
-                chosenWallet = null;
-                showError("Wallet not found");
-            }
-
-            Integer chosenSharesAmount = shares.getValue();
-            BigDecimal chosenPrice = BigDecimal.valueOf(price.getValue());
-            Optional<Company> chosenCompanyOptional = companyService.getCompanyById(companyId);
-            Company chosenCompany;
-            if(chosenCompanyOptional.isPresent()){
-                chosenCompany = chosenCompanyOptional.get();
-            }
-            else{
-                chosenCompany = null;
-                showError("Company not found");
-            }
-
-            LocalDate chosenExpirationDateLocal = orderExpiration.getValue();
-            Date chosenExpirationDate = Date.from(chosenExpirationDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-            orderService.addOrder(chosenOrderType,chosenSharesAmount, chosenPrice, chosenWallet, chosenCompany, chosenExpirationDate);
-        });
-
-        add(orderType, walletId, shares, price, orderExpiration, submit);
+        FormLayout formLayout =createOrderPlacementForm();
+        bindFields();
+        configureFields();
+        configureSubmitButton();
     }
 
+    private FormLayout createOrderPlacementForm(){
+        FormLayout formLayout = new FormLayout();
+        formLayout.add(orderType, wallet, sharesAmount, sharePrice, orderExpirationDate);
+        formLayout.setResponsiveSteps(
+                new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("500px", 2)
+        );
+        formLayout.setWidth("700px");
+        formLayout.setColspan(submitButton, 2);
+        return formLayout;
+    }
 
+    private void bindFields(){
+        this.orderDTO = new OrderDTO();
+        binder.setBean(orderDTO);
+
+        binder.forField(orderType).bind("Typ zlecenia");
+        binder.forField(wallet).bind("Portfel");
+        binder.forField(sharesAmount).bind("Liczba akcji");
+        binder.forField(sharePrice).bind("Cena za akcję");
+        binder.forField(orderExpirationDate).bind("Moment wygaśnięcia zlecenia");
+
+        binder.setBean(orderDTO);
+    }
+
+    private void configureFields(){
+        //orderType
+        orderType.setPlaceholder("Wybierz typ zlecenia");
+        orderType.setRequiredIndicatorVisible(true);
+        orderType.setErrorMessage("Typ zlecenia jest wymagany");
+        OrderType sellOrder = new OrderType();
+        sellOrder.setOrderType("sell");
+        OrderType buyOrder = new OrderType();
+        buyOrder.setOrderType("buy");
+        orderType.setItems(sellOrder, buyOrder);
+
+        wallet.setPlaceholder("Wybierz portfel");
+        wallet.setRequiredIndicatorVisible(true);
+        wallet.setErrorMessage("Portfel jest wymagany");
+        Collection<Wallet> wallets;
+        if(SecurityUtils.isLoggedIn()){
+            wallets = walletsService.getWallets();
+        }
+        else{
+            wallets = Collections.emptyList();
+        }
+        wallet.setItems(wallets);
+        wallet.setItemLabelGenerator(Wallet::getName);
+
+        sharesAmount.setPlaceholder("Wpisz ilość akcji");
+        sharesAmount.setRequiredIndicatorVisible(true);
+        sharesAmount.setErrorMessage("Ilość akcji jest wymagana");
+
+        sharePrice.setPlaceholder("Wpisz cenę za akcję");
+
+        orderExpirationDate.setPlaceholder("Wybierz datę wygaśnięcia zlecenia");
+    }
+
+    private void configureSubmitButton(){
+        submitButton.addClickListener(event -> {
+            try {
+                binder.writeBean(orderDTO);
+                orderService.addOrder(orderDTO);
+                Notification.show("Złożono zlecenie", 4000, Notification.Position.TOP_CENTER);
+                this.orderDTO = new OrderDTO();
+                binder.readBean(orderDTO);
+                orderType.clear();
+                wallet.clear();
+            } catch (ValidationException e) {
+                Notification.show("Niepoprawne dane.", 4000, Notification.Position.TOP_CENTER);
+            } catch (Exception e){
+                Notification.show("Wystąpił błąd podczas składania zlecenia: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER);
+            }
+        });
+    }
 
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {

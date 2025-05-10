@@ -12,6 +12,7 @@ import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,9 +40,16 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<WalletListItem> getWalletsForCurrentUser() {
+    public Collection<WalletListItem> getWalletListViewForCurrentUser() {
         String email = SecurityUtils.getAuthenticatedEmail();
-        return walletRepository.getWalletsForCurrentUser(email);
+        return walletRepository.getWalletListViewForCurrentUser(email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<Wallet> getWalletForCurrentUser(){
+        String email = SecurityUtils.getAuthenticatedEmail();
+        return walletRepository.getWalletForCurrentUser(email);
     }
 
     @Override
