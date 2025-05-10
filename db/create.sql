@@ -67,7 +67,7 @@ CREATE table accounts_info(
   phone_number      VARCHAR(16) NOT NULL,
   CHECK (phone_number ~ '\+[0-9]{10,13}'),
   pesel VARCHAR(11), -- uwaga bo tu bylo unique
-  --CHECK (is_valid_pesel(pesel)),
+  CHECK (is_valid_pesel(pesel)),
   FOREIGN KEY (town_id, postal_code)
   REFERENCES postal_codes_towns(town_id, postal_code)
 );
@@ -207,17 +207,17 @@ CREATE OR REPLACE FUNCTION funds_in_wallets()
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_left_in_order() --funkcja na obliczenie ile akcji zostalo w zleceniu
+CREATE OR REPLACE FUNCTION shares_left_in_order()
     RETURNS TABLE(order_id INTEGER, shares_left INTEGER)
     AS $$
     BEGIN
         RETURN QUERY SELECT o.order_id,
-                o.shares_amount - (SELECT SUM(t.shares_amount) FROM transactions t WHERE t.sell_order_id = o.order_id OR t.buy_order_id = o.order_id)::INTEGER
+                o.shares_amount - COALESCE((SELECT SUM(t.shares_amount) FROM transactions t WHERE t.sell_order_id = o.order_id OR t.buy_order_id = o.order_id),0)::INTEGER
                 FROM orders o;
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_in_wallets()  --funkcja na ilosc akcji firm w portfelu
+CREATE OR REPLACE FUNCTION shares_in_wallets()
     RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, shares_amount INTEGER)
     AS $$
     BEGIN
@@ -238,7 +238,7 @@ CREATE OR REPLACE FUNCTION shares_in_wallets()  --funkcja na ilosc akcji firm w 
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()  --funkcja na zabklokowane srodku w portfelu
+CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()
     RETURNS TABLE(wallet_id INTEGER, blocked_funds NUMERIC(17,2))
     AS $$
     BEGIN
@@ -251,7 +251,7 @@ CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()  --funkcja na zabklokowane
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION blocked_shares_in_wallets() --funkcja na zablokowane akcje firmy w portfelu
+CREATE OR REPLACE FUNCTION blocked_shares_in_wallets()
     RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, blocked_shares INTEGER)
     AS $$
     BEGIN
@@ -277,8 +277,8 @@ CREATE OR REPLACE FUNCTION shares_value()
                     LIMIT 1),i.ipo_price)
                 FROM companies c
                 JOIN ipo i ON c.company_id = i.company_id
-                ORDER BY i.subscription_start DESC
-                LIMIT 1;
+                WHERE i.subscription_start = (SELECT MAX(subscription_start) FROM ipo i WHERE c.company_id = i.company_id)
+                ORDER BY 1;
     END
 $$ LANGUAGE plpgsql;
 
@@ -422,7 +422,7 @@ CREATE OR REPLACE FUNCTION is_valid_subscription()
             RAISE EXCEPTION 'not enough funds in wallet %', NEW.wallet_id;
         END IF;
         --ipo wciaz trwa
-        IF current_date > (SELECT i.subscription_end FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
+        IF NEW.date > (SELECT i.subscription_end FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
             RAISE EXCEPTION 'subscription has ended';
         END IF;
         RETURN NEW;
