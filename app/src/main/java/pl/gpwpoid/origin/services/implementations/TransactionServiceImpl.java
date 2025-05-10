@@ -4,7 +4,7 @@ package pl.gpwpoid.origin.services.implementations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.gpwpoid.origin.models.factories.TransactionFactory;
+import pl.gpwpoid.origin.factories.TransactionFactory;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.TransactionRepository;

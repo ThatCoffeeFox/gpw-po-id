@@ -1,20 +1,20 @@
 package pl.gpwpoid.origin.models.address;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.company.CompanyInfo;
 import pl.gpwpoid.origin.models.keys.PostalCodesTownsId;
 import pl.gpwpoid.origin.models.address.Town;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "postal_codes_towns")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostalCodesTowns {
@@ -27,7 +27,6 @@ public class PostalCodesTowns {
     private pl.gpwpoid.origin.models.address.PostalCode postalCode;
 
 
-    //05210807197
     @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("townId")
     @JoinColumn(name = "town_id")
@@ -39,5 +38,25 @@ public class PostalCodesTowns {
 
      @OneToMany(mappedBy = "postalCodesTowns")
      private Set<CompanyInfo> companyInfos;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PostalCodesTowns that = (PostalCodesTowns) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "PostalCodesTowns{" +
+                "id=" + id +
+                '}';
+    }
 
 }

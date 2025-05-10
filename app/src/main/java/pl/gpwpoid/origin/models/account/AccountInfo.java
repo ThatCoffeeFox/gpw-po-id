@@ -3,16 +3,17 @@ package pl.gpwpoid.origin.models.account;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import pl.gpwpoid.origin.decorators.validPesel.ValidPesel;
 import pl.gpwpoid.origin.models.keys.AccountInfoId;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "accounts_info")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountInfo {
@@ -63,4 +64,28 @@ public class AccountInfo {
     @ValidPesel
     @Column(name = "pesel", length = 11)
     private String pesel;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AccountInfo that = (AccountInfo) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "AccountInfo{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", accountId=" + (account != null ? account.getAccountId() : null) +
+                '}';
+    }
 }
