@@ -19,7 +19,6 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.OrderType;
-import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.WalletsService;
@@ -29,7 +28,6 @@ import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Route("companies/:companyId")
