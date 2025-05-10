@@ -40,7 +40,7 @@ public class AccountInfo {
     @Column(name = "last_name", nullable = false, length = 256)
     private String lastName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumns({
             @JoinColumn(name = "town_id", referencedColumnName = "town_id", nullable = false),
             @JoinColumn(name = "postal_code", referencedColumnName = "postal_code", nullable = false)
