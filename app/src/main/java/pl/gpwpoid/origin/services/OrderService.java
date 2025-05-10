@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services;
 
+import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderType;
@@ -21,4 +22,10 @@ public interface OrderService {
     void cancelOrder(Order order);
 
     Collection<Order> getOrders();
+
+    @Transactional
+    void startOrderMatching(int companyId);
+
+    @Transactional
+    void stopOrderMatching(int companyId);
 }

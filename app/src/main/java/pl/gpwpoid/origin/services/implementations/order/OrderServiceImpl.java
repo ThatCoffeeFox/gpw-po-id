@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services.implementations.order;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.factories.OrderCancellationFactory;
 import pl.gpwpoid.origin.factories.OrderFactory;
 import pl.gpwpoid.origin.models.company.Company;
@@ -31,7 +32,7 @@ public class OrderServiceImpl implements OrderService {
     private final CompanyService companyService;
     private final TransactionService transactionService;
 
-    private final Map<Integer, BlockingQueue<Order>> companyIdOrderQueue;
+    private final ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue;
     private final Map<Integer, Future<?>> companyOrderMatcherFutures = new ConcurrentHashMap<>();
 
     private final ExecutorService orderExecutorService;
@@ -42,7 +43,7 @@ public class OrderServiceImpl implements OrderService {
                             OrderCancellationFactory orderCancellationFactory,
                             CompanyService companyService,
                             TransactionService transactionService,
-                            Map<Integer,BlockingQueue<Order>> companyIdOrderQueue,
+                            ConcurrentMap<Integer,BlockingQueue<Order>> companyIdOrderQueue,
                             ExecutorService orderExecutorService){
         this.orderRepository = orderRepository;
 
@@ -60,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void addOrder(OrderType orderType,
                          int shares_amount,
                          BigDecimal sharePrice,
@@ -78,6 +80,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void cancelOrder(Order order) {
         try{
             OrderCancellation newOrderCancellation = orderCancellationFactory.createOrderCancellation(order);
@@ -89,10 +92,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Collection<Order> getOrders() {
         return orderRepository.findAll();
     }
 
+    @Transactional
+    @Override
     public void startOrderMatching(int companyId) {
         companyIdOrderQueue.putIfAbsent(companyId, new LinkedBlockingQueue<>());
 
@@ -101,6 +107,8 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
+    @Transactional
+    @Override
     public void stopOrderMatching(int companyId) {
         Future<?> future = companyOrderMatcherFutures.get(companyId);
         if (future != null && !future.isDone() && !future.isCancelled()) {

@@ -2,16 +2,20 @@ package pl.gpwpoid.origin.services.implementations;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.factories.TransactionFactory;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.TransactionRepository;
+import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -35,5 +39,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(readOnly = true)
     public Collection<Transaction> getTransactions() {
         return transactionRepository.findAll();
+    }
+
+    @Override
+    public Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit) {
+        Pageable pageable = PageRequest.of(0,limit);
+        return transactionRepository.findTransactionsByIdAsListItems(companyId, pageable);
     }
 }
