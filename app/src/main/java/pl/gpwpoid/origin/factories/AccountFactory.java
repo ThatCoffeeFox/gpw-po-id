@@ -1,4 +1,4 @@
-package pl.gpwpoid.origin.models.factories;
+package pl.gpwpoid.origin.factories;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,7 +55,6 @@ public class AccountFactory {
         AccountInfo accountInfo = new AccountInfo();
 
         AccountInfoId accountInfoId = new AccountInfoId();
-        accountInfoId.setUpdatedAt(new Date());
         accountInfo.setId(accountInfoId);
 
         accountInfo.setAccount(account);

@@ -151,7 +151,7 @@ CREATE OR REPLACE FUNCTION check_order_type(order_id INT, type VARCHAR)
 $$;
 
 CREATE TABLE order_cancellations(
-  order_id INTEGER REFERENCES orders,
+  order_id INTEGER UNIQUE REFERENCES orders,
   date TIMESTAMP NOT NULL DEFAULT current_timestamp,
   PRIMARY KEY(order_id, date)
 );

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
-import pl.gpwpoid.origin.models.factories.AccountFactory;
+import pl.gpwpoid.origin.factories.AccountFactory;
 import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
