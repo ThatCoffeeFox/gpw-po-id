@@ -1,14 +1,18 @@
 package pl.gpwpoid.origin.services.implementations;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
-import pl.gpwpoid.origin.models.factories.AccountFactory;
+import pl.gpwpoid.origin.models.address.Town;
+import pl.gpwpoid.origin.factories.AccountFactory;
 import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.services.AddressService;
+import pl.gpwpoid.origin.ui.views.DTO.RegistrationDTO;
 
 import java.util.Collection;
 
@@ -16,29 +20,37 @@ import java.util.Collection;
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final AccountFactory accountFactory;
+    private final AddressService addressService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AccountServiceImpl(AccountRepository accountRepository, AccountFactory accountFactory) {
+    public AccountServiceImpl(AccountRepository accountRepository, AccountFactory accountFactory,
+                              AddressService addressService, PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
         this.accountFactory = accountFactory;
+        this.addressService = addressService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
-    public Account addAccount(String email,
-                           String unprotectedPassword,
-                           String firstName,
-                           String secondaryName,
-                           String lastName,
-                           PostalCodesTowns postalCodesTowns,
-                           String phoneNumber,
-                           String pesel,
-                           String street,
-                           String streetNumber,
-                           String apartmentNumber,
-                           Account.UserRole role
-    ) {
-        Account newAccount = accountFactory.createAccount(email, unprotectedPassword, firstName, secondaryName, lastName, postalCodesTowns, phoneNumber, pesel, street, streetNumber, apartmentNumber, role);
+    public Account addAccount(RegistrationDTO registrationDTO) {
+        Town town = addressService.getTownById(registrationDTO.getTownId()).get();
+        PostalCodesTowns postalCodesTowns = addressService.getPostalCodesTowns(town, registrationDTO.getPostalCode()).get();
+        Account newAccount = accountFactory.createAccount(
+                registrationDTO.getEmail(),
+                registrationDTO.getPassword(),
+                registrationDTO.getFirstName(),
+                registrationDTO.getSecondaryName(),
+                registrationDTO.getLastName(),
+                postalCodesTowns,
+                registrationDTO.getPhoneNumber(),
+                registrationDTO.getPesel(),
+                registrationDTO.getStreet(),
+                registrationDTO.getStreetNumber(),
+                registrationDTO.getApartmentNumber(),
+                registrationDTO.getRole()
+        );
         return accountRepository.save(newAccount);
     }
 

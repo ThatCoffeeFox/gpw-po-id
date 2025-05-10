@@ -1,4 +1,4 @@
-package pl.gpwpoid.origin.models.factories;
+package pl.gpwpoid.origin.factories;
 
 import org.springframework.stereotype.Component;
 import pl.gpwpoid.origin.models.keys.TransactionId;
