@@ -19,13 +19,11 @@ import java.util.List;
 public class WalletServiceImpl implements WalletsService {
     private final WalletRepository walletRepository;
     private final WalletFactory walletFactory;
-    private final SecurityServiceImpl securityService;
 
     @Autowired
-    public WalletServiceImpl(WalletRepository walletRepository, WalletFactory walletFactory, SecurityServiceImpl securityService) {
+    public WalletServiceImpl(WalletRepository walletRepository, WalletFactory walletFactory) {
         this.walletRepository = walletRepository;
         this.walletFactory = walletFactory;
-        this.securityService = securityService;
     }
 
     @Override
