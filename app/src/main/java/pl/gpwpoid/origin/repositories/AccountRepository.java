@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.account.Account;
+import pl.gpwpoid.origin.repositories.views.AccountAuthItem;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 
 import java.util.List;
@@ -26,12 +27,26 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                 ai.apartmentNumber
         )
         FROM Account a LEFT JOIN AccountInfo ai ON a.accountId = ai.id.accountId
-        WHERE ai.id.updatedAt = (
-                SELECT MAX(ai2.id.updatedAt)
-                FROM AccountInfo ai2
-                WHERE ai2.id.accountId = a.accountId
-            )
+        ORDER BY ai.id.updatedAt DESC LIMIT 1
     """)
     List<AccountListItem> findAllAccountsAsViewItems();
+
+    @Query("""
+        SELECT new pl.gpwpoid.origin.repositories.views.AccountAuthItem(
+            a.accountId,
+            ai.email,
+            ai.password,
+            a.role
+        )
+        FROM Account a LEFT JOIN AccountInfo ai ON a.accountId = ai.id.accountId
+        WHERE ai.email = (
+            SELECT
+                ai.email
+            FROM AccountInfo ai
+            WHERE ai.id.accountId = a.accountId
+            ORDER BY ai.id.updatedAt DESC LIMIT 1
+        ) AND ai.email = :email
+    """)
+    AccountAuthItem findAccountByEmailAsAuthItem(String email);
 }
 
