@@ -7,6 +7,7 @@ import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.keys.AccountInfoId;
+import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -50,7 +51,9 @@ public class AccountFactory {
 
 
         Account account = new Account();
-        account.setRole(role != null ? role : Account.UserRole.user);
+        account.setRole(role);
+        account.setAccountInfos(new HashSet<>());
+        account.setWallets(new HashSet<>());
 
         AccountInfo accountInfo = new AccountInfo();
 
@@ -70,9 +73,7 @@ public class AccountFactory {
         accountInfo.setPassword(passwordEncoder.encode(unprotectedPassword));
         accountInfo.setPostalCodesTowns(postalCodesTowns);
 
-        Set<AccountInfo> infos = new HashSet<>();
-        infos.add(accountInfo);
-        account.setAccountInfos(infos);
+        account.getAccountInfos().add(accountInfo);
 
         return account;
     }

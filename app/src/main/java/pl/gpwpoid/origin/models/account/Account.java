@@ -2,17 +2,20 @@ package pl.gpwpoid.origin.models.account;
 
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "accounts")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Account {
@@ -27,7 +30,8 @@ public class Account {
     private Integer accountId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, columnDefinition = "user_role") // user_role to typ ENUM w DB
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "role", nullable = false)
     private UserRole role;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -35,4 +39,28 @@ public class Account {
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true) // ON DELETE CASCADE w SQL
     private Set<Wallet> wallets;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        if (accountId == null) {
+            return false;
+        }
+        return Objects.equals(accountId, account.accountId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accountId);
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "accountId=" + accountId +
+                ", role=" + role +
+                '}';
+    }
 }

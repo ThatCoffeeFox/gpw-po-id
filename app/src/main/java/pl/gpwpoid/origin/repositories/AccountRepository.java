@@ -8,6 +8,7 @@ import pl.gpwpoid.origin.repositories.views.AccountAuthItem;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
@@ -27,7 +28,11 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                 ai.apartmentNumber
         )
         FROM Account a LEFT JOIN AccountInfo ai ON a.accountId = ai.id.accountId
-        ORDER BY ai.id.updatedAt DESC LIMIT 1
+        WHERE ai.id.updatedAt = (
+            SELECT MAX(ai_inner.id.updatedAt)
+            FROM AccountInfo ai_inner
+            WHERE ai_inner.account = a
+        )
     """)
     List<AccountListItem> findAllAccountsAsViewItems();
 
@@ -38,15 +43,28 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             ai.password,
             a.role
         )
-        FROM Account a LEFT JOIN AccountInfo ai ON a.accountId = ai.id.accountId
-        WHERE ai.email = (
-            SELECT
-                ai.email
-            FROM AccountInfo ai
-            WHERE ai.id.accountId = a.accountId
-            ORDER BY ai.id.updatedAt DESC LIMIT 1
-        ) AND ai.email = :email
+        FROM Account a
+        JOIN AccountInfo ai ON ai.account = a
+        WHERE ai.email = :email
+        AND ai.id.updatedAt = (
+            SELECT MAX(ai_inner.id.updatedAt)
+            FROM AccountInfo ai_inner
+            WHERE ai_inner.account = a
+        )
     """)
     AccountAuthItem findAccountByEmailAsAuthItem(String email);
+
+    @Query("""
+        SELECT a
+        FROM Account a
+        JOIN AccountInfo ai ON ai.account = a
+        WHERE ai.email = :email
+        AND ai.id.updatedAt = (
+            SELECT MAX(ai_inner.id.updatedAt)
+            FROM AccountInfo ai_inner
+            WHERE ai_inner.account = a
+        )
+    """)
+    Optional<Account> findAccountByEmail(String email);
 }
 
