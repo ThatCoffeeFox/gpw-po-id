@@ -18,7 +18,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     SELECT new pl.gpwpoid.origin.repositories.views.TransactionListItem(t.date, t.sharesAmount, t.sharePrice)
     FROM Transaction t
     WHERE t.buyOrder.company.id = :companyId
-    ORDER BY t.date ASC
+    ORDER BY t.date DESC
     """)
 
     List<TransactionListItem> findTransactionsByIdAsListItems(@Param("companyId") int companyId, Pageable pageable);
