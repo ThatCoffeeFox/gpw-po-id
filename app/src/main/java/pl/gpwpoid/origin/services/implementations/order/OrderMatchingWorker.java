@@ -29,6 +29,7 @@ public class OrderMatchingWorker implements Runnable {
         try{
             while(!Thread.interrupted()){
                 Order order = companyIdOrderQueue.get(companyId).take();
+                System.out.println("Start");
                 if("sell".equals(order.getOrderType().getOrderType())){
                     sellQueue.add(new OrderWrapper(order));
                 }
@@ -36,21 +37,26 @@ public class OrderMatchingWorker implements Runnable {
                     buyQueue.add(new OrderWrapper(order));
                 }
                 tryMatchOrders();
+                System.out.println("End");
             }
         }
         catch (InterruptedException e){
             Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed in matching worker", e);
         }
     }
 
     void tryMatchOrders(){
         if(buyQueue.isEmpty() || sellQueue.isEmpty())return;
         OrderWrapper buyOrder =  buyQueue.peek(), sellOrder = sellQueue.peek();
+        System.out.println(buyOrder.isValid());
         if(!buyOrder.isValid()){
             buyQueue.poll();
             tryMatchOrders();
             return;
         }
+        System.out.println(sellOrder.isValid());
         if(!sellOrder.isValid()){
             sellQueue.poll();
             tryMatchOrders();
@@ -65,13 +71,12 @@ public class OrderMatchingWorker implements Runnable {
 
         try{
             transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
+            buyOrder.tradeShares(sharesAmount);
+            sellOrder.tradeShares(sharesAmount);
         }
         catch (Exception e){
             throw new RuntimeException("Transaction failed", e);
         }
-
-        buyOrder.tradeShares(sharesAmount);
-        sellOrder.tradeShares(sharesAmount);
         tryMatchOrders();
     }
 }

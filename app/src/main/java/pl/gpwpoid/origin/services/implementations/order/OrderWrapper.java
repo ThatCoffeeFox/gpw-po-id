@@ -19,13 +19,14 @@ class OrderWrapper{
         return order;
     }
 
-    void tradeShares(int tradeAamount){
-        if(tradeAamount > sharesLeft) throw new IllegalArgumentException("Cannot trade more shares that left in the order");
-        sharesLeft -= tradeAamount;
+    void tradeShares(int tradeAmount){
+        if(tradeAmount > sharesLeft) throw new IllegalArgumentException("Cannot trade more shares that left in the order");
+        sharesLeft -= tradeAmount;
     }
 
     boolean isValid(){
-        return order.getCancellations().isEmpty() && order.getOrderExpirationDate().compareTo(new Date()) >= 0 && sharesLeft > 0;
+        System.out.println();
+        return sharesLeft > 0 && (order.getCancellations() == null || order.getCancellations().isEmpty()) && (order.getOrderExpirationDate() == null || order.getOrderExpirationDate().compareTo(new Date()) >= 0);
     }
 
     int getSharesLeft(){

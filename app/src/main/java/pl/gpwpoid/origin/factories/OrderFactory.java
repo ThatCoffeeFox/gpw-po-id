@@ -23,6 +23,12 @@ public class OrderFactory {
         if(orderType == null){
             throw new IllegalArgumentException("Order type cannot be null");
         }
+        if(shares_amount <= 0){
+            throw new IllegalArgumentException("Shars ammount has to be grater than zero");
+        }
+        if(sharePrice != null && sharePrice.compareTo(BigDecimal.valueOf(0)) <= 0){
+            throw  new IllegalArgumentException("Share price has to be null or greater than zero");
+        }
         if(wallet == null){
             throw new IllegalArgumentException("Wallet cannot be null");
         }
@@ -32,6 +38,7 @@ public class OrderFactory {
         if (orderExpirationDate != null && orderExpirationDate.before(new Date())) {
             throw new IllegalArgumentException("Order expiration date must be null or in the future");
         }
+
 
         Order order = new Order();
         order.setOrderType(orderType);

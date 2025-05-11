@@ -93,7 +93,7 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
             }
 
             Integer chosenSharesAmount = shares.getValue();
-            BigDecimal chosenPrice = BigDecimal.valueOf(price.getValue());
+            BigDecimal chosenPrice = price.getValue() == null ? null : BigDecimal.valueOf(price.getValue());
             Optional<Company> chosenCompanyOptional = companyService.getCompanyById(companyId);
             Company chosenCompany;
             if(chosenCompanyOptional.isPresent()){
@@ -105,7 +105,7 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
             }
 
             LocalDate chosenExpirationDateLocal = orderExpiration.getValue();
-            Date chosenExpirationDate = Date.from(chosenExpirationDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date chosenExpirationDate = chosenExpirationDateLocal == null ? null : Date.from(chosenExpirationDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             orderService.addOrder(chosenOrderType,chosenSharesAmount, chosenPrice, chosenWallet, chosenCompany, chosenExpirationDate);
         });
