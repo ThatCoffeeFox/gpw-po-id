@@ -4,7 +4,11 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -12,30 +16,35 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.data.renderer.NumberRenderer;
+import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.OrderType;
+import pl.gpwpoid.origin.repositories.views.TransactionListItem;
+import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
+import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.time.Duration;
 import java.util.*;
 
-@Route("companies/:companyId")
-@RolesAllowed({"admin","user"})
-public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
+@Route("companies")
+@AnonymousAllowed
+public class CompanyView extends HorizontalLayout implements HasUrlParameter<Integer>{
     private final CompanyService companyService;
     private final OrderService orderService;
     private final WalletsService walletsService;
+    private final TransactionService transactionService;
     private Integer companyId;
     private Company company;
 
@@ -50,20 +59,34 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
     private final DateTimePicker orderExpirationDate = new DateTimePicker("Data wygaśnięcia zlecenia");
     private final Button submitButton = new Button("Złóż zlecenie");
 
+    private final Grid<TransactionListItem> grid = new Grid<>();
+    private final H3 table = new H3("Niedawne transakcje");
+
     @Autowired
-    public CompanyView(CompanyService companyService, OrderService orderService, WalletsService walletsService) {
+    public CompanyView(CompanyService companyService, OrderService orderService, WalletsService walletsService, TransactionService transactionService) {
         this.companyService = companyService;
         this.orderService = orderService;
         this.walletsService = walletsService;
+        this.transactionService = transactionService;
 
         setSizeFull();
-        setAlignItems(Alignment.CENTER);
+        setPadding(true);
+        setSpacing(true);
+        setAlignItems(Alignment.START);
 
-        FormLayout formLayout = createOrderPlacementForm();
-        add(formLayout);
-        bindFields();
-        configureFields();
-        configureSubmitButton();
+        if(SecurityUtils.isLoggedIn()){
+            FormLayout formLayout = createOrderPlacementForm();
+            VerticalLayout gridLayout = configureGrid();
+            add(gridLayout, formLayout);
+            setFlexGrow(1, formLayout);
+            setFlexGrow(1, gridLayout);
+            configureFields();
+            configureSubmitButton();
+        }
+        else{
+            VerticalLayout gridLayout = configureGrid();
+            add(gridLayout);
+        }
     }
 
     private FormLayout createOrderPlacementForm(){
@@ -73,7 +96,7 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("500px", 2)
         );
-        formLayout.setWidth("700px");
+        //formLayout.setWidth("700px");
         formLayout.setColspan(submitButton, 2);
         return formLayout;
     }
@@ -167,21 +190,43 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         });
     }
 
-    @Override
-    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        Optional<String> CompanyIdParam = beforeEnterEvent.getRouteParameters().get("companyId");
-        if (CompanyIdParam.isPresent()) {
-            try{
-                companyId = Integer.parseInt(CompanyIdParam.get());
-                loadCompanyDetails();
-            } catch (NumberFormatException e) {
-                showError("Nieprawidłowy format ID firmy");
-            }
-        }
-        else{
-            showError("Nie podano ID firmy");
-        }
+    private VerticalLayout configureGrid(){
+        table.setWidth("100%");
+        table.getStyle().set("text-align", "center");
+        table.getStyle().set("margin-bottom", "10px");
+        grid.setAllRowsVisible(true);
+        grid.setWidth("100%");
+        grid.addColumn(TransactionListItem::getDate).setHeader("Data");
+        grid.addColumn(TransactionListItem::getSharesAmount).setHeader("Ilość sprzedanych akcji");
+        NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("pl","PL"));
+        grid.addColumn(new NumberRenderer<>(TransactionListItem::getSharePrice, currency, "brak"))
+                .setHeader("Cena")
+                .setTextAlign(ColumnTextAlign.END).setSortable(true);
+        VerticalLayout gridLayout = new VerticalLayout();
+        gridLayout.add(table, grid);
+        gridLayout.setAlignItems(Alignment.CENTER);
+        gridLayout.setPadding(false);
+        gridLayout.setSpacing(false);
+        gridLayout.setMaxWidth("700px");
+        return gridLayout;
+    }
 
+
+    private void loadTransactionListItems(){
+        Collection<TransactionListItem> transactionList = transactionService.getCompanyTransactionsById(companyId, 5);
+        grid.setItems(transactionList);
+    }
+
+    @Override
+    public void setParameter(BeforeEvent beforeEvent, Integer parameter) {
+        this.companyId = parameter;
+        try{
+            loadTransactionListItems();
+            loadCompanyDetails();
+            bindFields();
+        } catch (Exception e){
+            showError("Nieprawidłowy adres: " + e.getMessage());
+        }
     }
 
     private void loadCompanyDetails() {
@@ -197,7 +242,7 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
             }
         }
         else{
-            showError("bral ID firmy");
+            showError("brak ID firmy");
         }
     }
 
@@ -205,5 +250,4 @@ public class CompanyView extends VerticalLayout implements BeforeEnterObserver {
         add(new Text(message));
         Notification.show(message, 4000, Notification.Position.MIDDLE);
     }
-
 }

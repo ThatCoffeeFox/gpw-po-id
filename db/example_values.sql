@@ -27,27 +27,27 @@ INSERT INTO companies DEFAULT VALUES;
 INSERT INTO companies DEFAULT VALUES;
 
 INSERT INTO companies_info (company_id, updated_at, name, code, town_id, postal_code, street, street_number, apartment_number) VALUES
-                                                                                                                                   (1, NOW() - INTERVAL '10 days', 'Tech Innovators Inc.', 'TII', 35803, '00-002', 'Innovation Drive', '100', '200'),
-                                                                                                                                   (2, NOW() - INTERVAL '10 days', 'Green Solutions Co.', 'GSC', 35803, '00-002', 'Eco Park', '1', NULL),
-                                                                                                                                   (3, NOW() - INTERVAL '10 days', 'Future Gadgets Ltd.', 'FGL', 35803, '00-002', 'Gadget Plaza', '42', '3'),
-                                                                                                                                   (4, NOW() - INTERVAL '5 days' , 'aaa', 'AAA', 35803, '00-002', 'street' , '2', '5');
+(1, NOW() - INTERVAL '10 days', 'Tech Innovators Inc.', 'TII', 35803, '00-002', 'Innovation Drive', '100', '200'),
+(2, NOW() - INTERVAL '10 days', 'Green Solutions Co.', 'GSC', 35803, '00-002', 'Eco Park', '1', NULL),
+(3, NOW() - INTERVAL '10 days', 'Future Gadgets Ltd.', 'FGL', 35803, '00-002', 'Gadget Plaza', '42', '3'),
+(4, NOW() - INTERVAL '5 days' , 'aaa', 'AAA', 35803, '00-002', 'street' , '2', '5');
 INSERT INTO companies_status (company_id, date, tradable) VALUES
-                                                              (1, NOW() - INTERVAL '30 days', TRUE),
-                                                              (2, NOW() - INTERVAL '20 days', TRUE),
-                                                              (3, NOW() - INTERVAL '15 days', TRUE),
-                                                              (4, NOW() - INTERVAL '10 days', TRUE);
+(1, NOW() - INTERVAL '30 days', TRUE),
+(2, NOW() - INTERVAL '20 days', TRUE),
+(3, NOW() - INTERVAL '15 days', TRUE),
+(4, NOW() - INTERVAL '10 days', TRUE);
 
 INSERT INTO wallets (account_id, name) VALUES
-                                           (1, 'Admin Main Wallet'),
-                                           (1, 'Admin Investment Wallet'),
-                                           (2, 'User1 Primary Wallet'),
-                                           (2, 'User1 Trading Wallet'),
-                                           (3, 'User2 Cash Wallet'),
-                                           (3, 'User2 Stock Wallet'),
-                                           (4, 'User3 General Wallet'),
-                                           (4, 'User3 IPO Wallet'),
-                                           (5, 'User4 Savings Wallet'),
-                                           (5, 'User4 Market Wallet');
+(1, 'Admin Main Wallet'),
+(1, 'Admin Investment Wallet'),
+(2, 'User1 Primary Wallet'),
+(2, 'User1 Trading Wallet'),
+(3, 'User2 Cash Wallet'),
+(3, 'User2 Stock Wallet'),
+(4, 'User3 General Wallet'),
+(4, 'User3 IPO Wallet'),
+(5, 'User4 Savings Wallet'),
+(5, 'User4 Market Wallet');
 
 INSERT INTO external_transfers (wallet_id, type, amount, date) VALUES
 (1, 'deposit', 50000.00, NOW() - INTERVAL '50 days'),

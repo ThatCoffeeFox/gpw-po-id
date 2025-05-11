@@ -5,6 +5,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import jakarta.annotation.security.RolesAllowed;
 import pl.gpwpoid.origin.repositories.views.CompanyListItem;
 import pl.gpwpoid.origin.services.CompanyService;
@@ -14,7 +15,7 @@ import java.util.Collection;
 
 @Route("companies")
 @PageTitle("Companies list")
-@RolesAllowed({"admin","user"})
+@AnonymousAllowed
 public class CompaniesListView extends VerticalLayout {
     private final CompanyService companyService;
     private final Grid<CompanyListItem> grid = new Grid<>();
