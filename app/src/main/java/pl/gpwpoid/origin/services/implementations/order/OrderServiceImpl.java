@@ -145,7 +145,7 @@ public class OrderServiceImpl implements OrderService {
     public void stopOrderMatching(int companyId) {
         Future<?> future = companyOrderMatcherFutures.get(companyId);
         if (future != null && !future.isDone() && !future.isCancelled()) {
-            future.cancel(true); // Interrupts the thread
+            future.cancel(true);
         }
         companyOrderMatcherFutures.remove(companyId);
     }

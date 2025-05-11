@@ -13,7 +13,7 @@ import pl.gpwpoid.origin.services.AccountService;
 import java.util.Collection;
 import java.util.List;
 
-@Route("accounts") // URL będzie /accounts
+@Route("accounts")
 @PageTitle("Lista Kont")
 @RolesAllowed("admin")
 public class AccountsListView extends VerticalLayout {
@@ -63,16 +63,16 @@ public class AccountsListView extends VerticalLayout {
                 .setSortable(true).setFlexGrow(1);
 
 
-//        grid.asSingleSelect().addValueChangeListener(event -> {
-//            AccountListItem selectedItem = event.getValue();
-//            if (selectedItem != null) {
-//                // Przekierowujemy do AccountDetailView używając accountId z DTO
-//                // Upewnij się, że AccountDetailView akceptuje parametr typu Long lub Integer,
-//                // w zależności od tego, jaki typ ma accountId w AccountListItem i Account.
-//                // Jeśli accountId w AccountListItem jest Long, a w AccountDetailView Integer, dokonaj konwersji.
-//                UI.getCurrent().navigate(AccountDetailView.class, selectedItem.getAccountId().intValue()); // Przykład konwersji na int
-//            }
-//        });
+
+
+
+
+
+
+
+
+
+
     }
 
     private void loadAccountListItems() {

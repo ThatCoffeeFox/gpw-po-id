@@ -7,11 +7,8 @@ import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.keys.AccountInfoId;
-import pl.gpwpoid.origin.models.wallet.Wallet;
 
-import java.util.Date;
 import java.util.HashSet;
-import java.util.Set;
 
 @Component
 public class AccountFactory {

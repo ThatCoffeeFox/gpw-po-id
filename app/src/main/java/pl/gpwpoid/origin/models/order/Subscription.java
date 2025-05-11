@@ -30,7 +30,7 @@ public class Subscription {
     @JoinColumn(name = "wallet_id")
     private Wallet wallet;
 
-    @Column(name = "date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT current_timestamp") // W SQL current_date
+    @Column(name = "date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT current_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
@@ -39,6 +39,6 @@ public class Subscription {
     private Integer sharesAmount;
 
     @PositiveOrZero
-    @Column(name = "shares_assigned") // Może być NULL
+    @Column(name = "shares_assigned")
     private Integer sharesAssigned;
 }

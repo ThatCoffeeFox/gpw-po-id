@@ -29,7 +29,7 @@ public class Transaction {
     @JoinColumn(name = "buy_order_id")
     private Order buyOrder;
 
-    @Column(name = "date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT current_timestamp") // W SQL current_date
+    @Column(name = "date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT current_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
@@ -39,5 +39,5 @@ public class Transaction {
 
     @Column(name = "share_price", nullable = false, precision = 17, scale = 2)
     private BigDecimal sharePrice;
-    // CHECKy na order_type są na poziomie DB
+
 }

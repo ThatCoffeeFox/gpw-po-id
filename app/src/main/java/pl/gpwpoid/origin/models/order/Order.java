@@ -41,7 +41,7 @@ public class Order {
     @Column(name = "order_expiration_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date orderExpirationDate;
-    // CHECK (order_start_date < order_expiration_date) - walidacja na poziomie DB lub serwisu
+
 
     @Column(name = "share_price", precision = 17, scale = 2)
     private BigDecimal sharePrice;
