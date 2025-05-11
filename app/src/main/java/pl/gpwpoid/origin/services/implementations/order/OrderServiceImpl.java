@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -48,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
                             CompanyService companyService,
                             TransactionService transactionService,
                             ConcurrentMap<Integer,BlockingQueue<Order>> companyIdOrderQueue,
-                            ExecutorService orderExecutorService,
+                            @Qualifier("orderExecutorService") ExecutorService orderExecutorService,
                             WalletsService walletsService){
         this.orderRepository = orderRepository;
 
