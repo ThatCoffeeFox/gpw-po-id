@@ -57,7 +57,7 @@ public class WalletsListView extends VerticalLayout {
 
     private void loadWalletListItems() {
         if(SecurityUtils.isLoggedIn()) {
-            Collection<WalletListItem> walletList = walletsService.getWalletsForCurrentUser();
+            Collection<WalletListItem> walletList = walletsService.getWalletListViewForCurrentUser();
             grid.setItems(walletList);
         }
         else

@@ -9,10 +9,13 @@ import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.WalletRepository;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.WalletsService;
+import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class WalletServiceImpl implements WalletsService {
@@ -39,9 +42,23 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<WalletListItem> getWalletsForCurrentUser() {
+    public Collection<WalletListItem> getWalletListViewForCurrentUser() {
         String email = SecurityUtils.getAuthenticatedEmail();
-        return walletRepository.getWalletsForCurrentUser(email);
+        return walletRepository.getWalletListViewForCurrentUser(email);
+    }
+
+    @Override
+    public Collection<WalletDTO> getWalletDTOForCurrentUser() {
+        String email = SecurityUtils.getAuthenticatedEmail();
+        List<Wallet> wallets = walletRepository.getWalletForCurrentUser(email);
+        return wallets.stream().map(wallet -> new WalletDTO(wallet.getWalletId(), wallet.getName())).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<Wallet> getWalletForCurrentUser(){
+        String email = SecurityUtils.getAuthenticatedEmail();
+        return walletRepository.getWalletForCurrentUser(email);
     }
 
     @Override
