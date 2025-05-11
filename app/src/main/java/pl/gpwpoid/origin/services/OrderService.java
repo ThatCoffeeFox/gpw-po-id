@@ -13,12 +13,6 @@ import java.util.Date;
 
 
 public interface OrderService {
-    void addOrder(OrderType orderType,
-                  int shares_amount,
-                  BigDecimal sharePrice,
-                  Wallet wallet,
-                  Company company,
-                  Date orderExpirationDate);
 
     void addOrder(OrderDTO orderDTO);
 
@@ -26,9 +20,7 @@ public interface OrderService {
 
     Collection<Order> getOrders();
 
-    @Transactional
     void startOrderMatching(int companyId);
 
-    @Transactional
     void stopOrderMatching(int companyId);
 }

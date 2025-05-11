@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
+import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.services.TransactionService;
 
@@ -29,7 +30,6 @@ public class OrderMatchingWorker implements Runnable {
         try{
             while(!Thread.interrupted()){
                 Order order = companyIdOrderQueue.get(companyId).take();
-                System.out.println("Start");
                 if("sell".equals(order.getOrderType().getOrderType())){
                     sellQueue.add(new OrderWrapper(order));
                 }
@@ -37,7 +37,6 @@ public class OrderMatchingWorker implements Runnable {
                     buyQueue.add(new OrderWrapper(order));
                 }
                 tryMatchOrders();
-                System.out.println("End");
             }
         }
         catch (InterruptedException e){
@@ -47,6 +46,7 @@ public class OrderMatchingWorker implements Runnable {
         }
     }
 
+    @Transactional
     void tryMatchOrders(){
         if(buyQueue.isEmpty() || sellQueue.isEmpty())return;
         OrderWrapper buyOrder =  buyQueue.peek(), sellOrder = sellQueue.peek();

@@ -7,11 +7,9 @@ import java.util.Comparator;
 public class SellComparator implements Comparator<OrderWrapper> {
     @Override
     public int compare(OrderWrapper o1, OrderWrapper o2) {
-        // Compare prices (ascending order, smaller price should come first)
         int priceCmp = o1.getOrder().getSharePrice().compareTo(o2.getOrder().getSharePrice());
         if (priceCmp != 0) return priceCmp;
 
-        // If prices are equal, compare by order start date (ascending order)
         return o1.getOrder().getOrderStartDate().compareTo(o2.getOrder().getOrderStartDate());
     }
 }

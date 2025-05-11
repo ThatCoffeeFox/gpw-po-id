@@ -3,12 +3,12 @@ package pl.gpwpoid.origin.services.implementations.order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pl.gpwpoid.origin.factories.OrderCancellationFactory;
 import pl.gpwpoid.origin.factories.OrderFactory;
-import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderCancellation;
-import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.OrderRepository;
 import pl.gpwpoid.origin.services.CompanyService;
@@ -18,9 +18,7 @@ import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
 import java.lang.Integer;
-import java.math.BigDecimal;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -63,49 +61,56 @@ public class OrderServiceImpl implements OrderService {
         this.orderExecutorService = orderExecutorService;
         this.walletsService = walletsService;
 
-        for(int id : companyService.getTradableCompaniesId()){
+        for(int id : this.companyService.getTradableCompaniesId()){
            startOrderMatching(id);
         }
     }
 
-    @Override
-    @Transactional
-    public void addOrder(OrderType orderType,
-                         int shares_amount,
-                         BigDecimal sharePrice,
-                         Wallet wallet,
-                         Company company,
-                         Date orderExpirationDate) {
-        Order order;
-        try{
-            order = orderFactory.createOrder(orderType,shares_amount,sharePrice,wallet,company,orderExpirationDate);
-            orderRepository.save(order);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create order",e);
-        }
-
-        companyIdOrderQueue.get(company.getCompanyId()).add(order);
-    }
 
     @Override
     @Transactional
     public void addOrder(OrderDTO orderDTO) {
         Order order;
-        try{
+        try {
             Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWallet().getWalletId());
-            if(wallet.isPresent()){
-                Date orderExpirationDate = null;
-                if(orderDTO.getDateTime() != null){
-                    ZoneId zonedDateTime = ZoneId.of("UTC");
-                    orderExpirationDate = Date.from(orderDTO.getDateTime().atZone(zonedDateTime).toInstant());
-                }
-                order = orderFactory.createOrder(orderDTO.getOrderType(), orderDTO.getAmount(), orderDTO.getPrice(), wallet.get(), orderDTO.getCompany(), orderExpirationDate);
-                orderRepository.save(order);
+            if (!wallet.isPresent()) {
+                throw new RuntimeException("This wallet does not exist");
             }
+
+            Date orderExpirationDate = null;
+            if (orderDTO.getDateTime() != null) {
+                ZoneId zonedDateTime = ZoneId.of("UTC");
+                orderExpirationDate = Date.from(orderDTO.getDateTime().atZone(zonedDateTime).toInstant());
+            }
+
+            order = orderFactory.createOrder(
+                    orderDTO.getOrderType(),
+                    orderDTO.getAmount(),
+                    orderDTO.getPrice(),
+                    wallet.get(),
+                    orderDTO.getCompany(),
+                    orderExpirationDate
+            );
+
+            orderRepository.save(order);
+            orderRepository.flush();
+
+            Order finalOrder = order;
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    companyIdOrderQueue
+                            .get(orderDTO.getCompany().getCompanyId())
+                            .add(finalOrder);
+                }
+            });
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create order",e);
+            throw new RuntimeException("Failed to create order", e);
         }
     }
+
 
     @Override
     @Transactional
