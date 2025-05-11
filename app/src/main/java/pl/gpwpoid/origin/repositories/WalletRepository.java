@@ -19,5 +19,15 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
         JOIN accounts a ON a.account_id = w.account_id JOIN accounts_info ai ON a.account_id = ai.account_id
         WHERE ai.email = :email;
 """, nativeQuery = true)
-    List<WalletListItem> getWalletsForCurrentUser(String email);
+    List<WalletListItem> getWalletListViewForCurrentUser(String email);
+
+    @Query(value = """
+        SELECT 
+            w.*
+        FROM wallets w 
+        JOIN accounts a ON a.account_id = w.account_id
+        JOIN accounts_info ai ON a.account_id = ai.account_id
+        WHERE ai.email = :email
+""", nativeQuery = true)
+    List<Wallet> getWalletForCurrentUser(String email);
 }

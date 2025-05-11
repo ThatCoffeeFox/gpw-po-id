@@ -58,7 +58,6 @@ public class AccountFactory {
         AccountInfo accountInfo = new AccountInfo();
 
         AccountInfoId accountInfoId = new AccountInfoId();
-        accountInfoId.setUpdatedAt(new Date());
         accountInfo.setId(accountInfoId);
 
         accountInfo.setAccount(account);

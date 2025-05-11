@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services;
 
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
+import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -13,4 +14,5 @@ public interface TransactionService {
                         BigDecimal sharePrice);
 
     Collection<Transaction> getTransactions();
+    Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit);
 }
