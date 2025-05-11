@@ -36,7 +36,7 @@ public class RegistrationView extends VerticalLayout {
     private Binder<RegistrationDTO> binder = new BeanValidationBinder<>(RegistrationDTO.class);
     private RegistrationDTO registrationDTO;
 
-    // Pola formularza
+
     private EmailField email = new EmailField("Email");
     private PasswordField password = new PasswordField("Hasło");
     private PasswordField confirmPassword = new PasswordField("Potwierdź hasło");
@@ -87,7 +87,7 @@ public class RegistrationView extends VerticalLayout {
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("500px", 2)
         );
-        formLayout.setWidth("700px"); // Możesz dostosować szerokość
+        formLayout.setWidth("700px");
         formLayout.setColspan(registerButton, 2);
         return formLayout;
     }
@@ -105,14 +105,14 @@ public class RegistrationView extends VerticalLayout {
         binder.forField(secondaryName).bind("secondaryName");
         binder.forField(lastName).bind("lastName");
 
-        // Bindowanie ComboBoxów do DTO
+
         binder.forField(townComboBox)
-                .asRequired("Miasto jest wymagane") // Dodatkowa walidacja, bo DTO ma townId
+                .asRequired("Miasto jest wymagane")
                 .bind(dto -> dto.getTownId() != null ? addressService.getTownById(dto.getTownId()).orElse(null) : null,
                         (dto, town) -> dto.setTownId(town != null ? town.getTownId() : null));
 
         binder.forField(postalCodeComboBox)
-                .asRequired("Kod pocztowy jest wymagany") // Dodatkowa walidacja
+                .asRequired("Kod pocztowy jest wymagany")
                 .bind("postalCode");
 
         binder.forField(street).bind("street");
@@ -121,12 +121,12 @@ public class RegistrationView extends VerticalLayout {
         binder.forField(phoneNumber).bind("phoneNumber");
         binder.forField(pesel).bind("pesel");
 
-        // Wypełnij DTO pustym obiektem na start
+
         binder.setBean(new RegistrationDTO());
     }
 
     private void configureAddressFields() {
-        // Konfiguracja ComboBoxa dla miast
+
         townComboBox.setItems(query -> {
             String name = query.getFilter().orElse("");
             return addressService.getTownsByName(name, query.getOffset(), query.getLimit());
@@ -137,23 +137,23 @@ public class RegistrationView extends VerticalLayout {
         townComboBox.setItemLabelGenerator(Town::getName);
         townComboBox.setPlaceholder("Wpisz nazwę miasta...");
         townComboBox.setClearButtonVisible(true);
-        townComboBox.setPageSize(15); // Liczba elementów na stronę sugestii
+        townComboBox.setPageSize(15);
 
-        // ComboBox dla kodów pocztowych - początkowo pusty i nieaktywny
+
         postalCodeComboBox.setItems(Collections.emptyList());
         postalCodeComboBox.setEnabled(false);
         postalCodeComboBox.setPlaceholder("Najpierw wybierz miasto");
         postalCodeComboBox.setClearButtonVisible(true);
 
-        // Listener dla zmiany wartości w ComboBoxie miast
+
         townComboBox.addValueChangeListener(event -> {
             Town selectedTown = event.getValue();
             postalCodeComboBox.clear();
             if (selectedTown != null && selectedTown.getTownId() != null) {
-                addressService.getTownById(selectedTown.getTownId()).ifPresent(fullTown -> { // findFullTownById zwraca Optional<Town>
+                addressService.getTownById(selectedTown.getTownId()).ifPresent(fullTown -> {
                     postalCodeComboBox.setItems(addressService.getPostalCodesFromTown(fullTown).stream().map(
                             postalCodesTowns -> postalCodesTowns.getPostalCode().getPostalCode()
-                    ).toList()); // Zakładając, że ta metoda zwraca List<String>
+                    ).toList());
                     postalCodeComboBox.setEnabled(true);
                     postalCodeComboBox.setPlaceholder("Wybierz kod pocztowy");
                 });
@@ -162,9 +162,9 @@ public class RegistrationView extends VerticalLayout {
                 postalCodeComboBox.setEnabled(false);
                 postalCodeComboBox.setPlaceholder("Najpierw wybierz miasto");
             }
-            // Wyczyść bindowanie kodu pocztowego, aby uniknąć problemów z walidacją
-            // gdy miasto się zmienia i stary kod pocztowy przestaje być ważny
-            if (binder.getBean() != null) { // Upewnij się, że bean jest ustawiony
+
+
+            if (binder.getBean() != null) {
                 binder.getBean().setPostalCode(null);
             }
         });
@@ -174,22 +174,22 @@ public class RegistrationView extends VerticalLayout {
         registerButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         registerButton.addClickListener(event -> {
             try {
-                // Walidacja i pobranie danych z bindera
+
                 binder.writeBean(registrationDTO);
 
                 accountService.addAccount(registrationDTO);
                 Notification.show("Rejestracja zakończona sukcesem!", 3000, Notification.Position.TOP_CENTER)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                // Można wyczyścić formularz lub przekierować użytkownika
+
                 this.registrationDTO = new RegistrationDTO();
-                binder.setBean(this.registrationDTO); // Reset formularza
-                townComboBox.clear(); // Również wyczyść pola adresowe
-                // getUI().ifPresent(ui -> ui.navigate("login")); // Przekierowanie na logowanie
+                binder.setBean(this.registrationDTO);
+                townComboBox.clear();
+                 getUI().ifPresent(ui -> ui.navigate("login"));
             } catch (ValidationException e) {
                 Notification.show("Proszę poprawić błędy w formularzu.", 3000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
             } catch (Exception e) {
-                // Tutaj możesz chcieć bardziej szczegółowo obsłużyć wyjątki, np. gdy email/pesel już istnieje
+
                 Notification.show("Wystąpił błąd podczas rejestracji: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }

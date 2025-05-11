@@ -19,8 +19,8 @@ import java.util.Set;
 public class OrderType {
     @Id
     @Column(name = "order_type", length = 32)
-    private String orderType; // np. "sell", "buy"
+    private String orderType;
 
-    @OneToMany(mappedBy = "orderType") // Relacja zwrotna do Orders
+    @OneToMany(mappedBy = "orderType")
     private Set<pl.gpwpoid.origin.models.order.Order> orders;
 }

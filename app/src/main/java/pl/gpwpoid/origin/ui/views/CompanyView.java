@@ -49,7 +49,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
     private final Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
     private OrderDTO orderDTO;
 
-    //pola
+
     private final ComboBox<OrderType> orderType = new ComboBox<>("Typ zlecenia");
     private final ComboBox<WalletDTO> wallet = new ComboBox<>("Portfel");
     private final IntegerField sharesAmount = new IntegerField("Ilość akcji");
@@ -94,7 +94,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("500px", 2)
         );
-        //formLayout.setWidth("700px");
+
         formLayout.setColspan(submitButton, 2);
         return formLayout;
     }
@@ -159,7 +159,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
 
         orderExpirationDate.setLocale(new Locale("pl", "PL"));
         orderExpirationDate.setStep(Duration.ofMinutes(1));
-        //orderExpirationDate.setMin(LocalDateTime.now());
+
     }
 
     private void configureSubmitButton(){

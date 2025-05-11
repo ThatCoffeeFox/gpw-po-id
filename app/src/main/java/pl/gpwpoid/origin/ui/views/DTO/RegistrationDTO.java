@@ -34,10 +34,10 @@ public class RegistrationDTO {
     private String lastName;
 
     @NotNull(message = "Miasto jest wymagane")
-    private Integer townId; // Będziemy przechowywać ID wybranego miasta
+    private Integer townId;
 
     @NotBlank(message = "Kod pocztowy jest wymagany")
-    private String postalCode; // Będziemy przechowywać wybrany kod pocztowy
+    private String postalCode;
 
     @Size(max = 128, message = "Ulica zbyt długa")
     private String street;
@@ -53,9 +53,9 @@ public class RegistrationDTO {
     private String phoneNumber;
 
     @NotBlank(message = "PESEL jest wymagany")
-    @ValidPesel // Twoja niestandardowa adnotacja walidacyjna
+    @ValidPesel
     private String pesel;
 
-    // Domyślnie rola użytkownika to 'user'
+
     private Account.UserRole role = Account.UserRole.user;
 }

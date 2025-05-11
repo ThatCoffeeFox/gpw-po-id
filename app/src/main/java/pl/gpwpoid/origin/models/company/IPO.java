@@ -13,11 +13,11 @@ import java.util.Date;
 import java.util.Set;
 
 @Entity
-@Table(name = "ipo") // IPO jest słowem kluczowym w niektórych dialektach SQL, ale nazwa tabeli jest małą literą
+@Table(name = "ipo")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IPO { // Nazwa klasy IPO, bo IPOEntity wyglądałoby dziwnie
+public class IPO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ipo_id")
@@ -46,7 +46,7 @@ public class IPO { // Nazwa klasy IPO, bo IPOEntity wyglądałoby dziwnie
     @Column(name = "subscription_end", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date subscriptionEnd;
-    // CHECK (subscription_start < subscription_end) - walidacja na poziomie DB lub serwisu
+
 
     @OneToMany(mappedBy = "ipo")
     private Set<Subscription> subscriptions;

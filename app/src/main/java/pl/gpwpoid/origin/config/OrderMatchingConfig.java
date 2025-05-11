@@ -17,13 +17,13 @@ public class OrderMatchingConfig {
         t.setMaxPoolSize(20);
         t.setQueueCapacity(100);
         t.setThreadNamePrefix("OrderMatcher-");
-        t.initialize();  // IMPORTANT, so the pool is actually created
+        t.initialize();
         return t;
     }
 
     @Bean(destroyMethod = "shutdown")
     public ExecutorService orderExecutorService(ThreadPoolTaskExecutor taskExecutor) {
-        // get the native JDK ExecutorService
+
         return taskExecutor.getThreadPoolExecutor();
     }
 

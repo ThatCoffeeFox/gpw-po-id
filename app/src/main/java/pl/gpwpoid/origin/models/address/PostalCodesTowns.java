@@ -32,7 +32,7 @@ public class PostalCodesTowns {
     @JoinColumn(name = "town_id")
     private Town town;
 
-    // Relacje zwrotne, jeśli potrzebne (np. w AccountInfo, CompanyInfo)
+
      @OneToMany(mappedBy = "postalCodesTowns")
      private Set<AccountInfo> accountInfos;
 

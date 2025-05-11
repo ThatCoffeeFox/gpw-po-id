@@ -25,8 +25,8 @@ public class CompanyInfo {
     @Column(name = "name", nullable = false, length = 256)
     private String name;
 
-    @Pattern(regexp = "[A-Z]{3}") // Walidacja na poziomie Java
-    @Column(name = "code", nullable = false, length = 3) // usunięto unique, zgodnie z SQL
+    @Pattern(regexp = "[A-Z]{3}")
+    @Column(name = "code", nullable = false, length = 3)
     private String code;
 
     @ManyToOne(fetch = FetchType.EAGER)
