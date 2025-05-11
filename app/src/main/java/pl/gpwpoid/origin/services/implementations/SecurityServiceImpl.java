@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountAuthItem;
+import pl.gpwpoid.origin.utils.ExtendedUser;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -39,9 +40,10 @@ public class SecurityServiceImpl implements UserDetailsService {
         String roleName = "ROLE_" + user.getRole().name();
         Collection<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(roleName));
 
-        return new User(
+        return new ExtendedUser(
                 user.getEmail(),
                 user.getPassword(),
+                user.getAccountId(),
                 true,
                 true,
                 true,

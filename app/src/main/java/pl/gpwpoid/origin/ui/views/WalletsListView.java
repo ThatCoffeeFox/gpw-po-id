@@ -7,6 +7,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.NumberRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.WalletsService;
@@ -17,7 +18,7 @@ import java.util.*;
 
 @Route("wallets")
 @PageTitle("Lista portfeli")
-@RolesAllowed({"admin","user"})
+@PermitAll
 public class WalletsListView extends VerticalLayout {
     private final WalletsService walletsService;
     private final Grid<WalletListItem> grid = new Grid<>();
