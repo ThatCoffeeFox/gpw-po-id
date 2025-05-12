@@ -8,6 +8,7 @@ import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.keys.AccountInfoId;
 
+import java.util.Date;
 import java.util.HashSet;
 
 @Component
@@ -55,6 +56,7 @@ public class AccountFactory {
         AccountInfo accountInfo = new AccountInfo();
 
         AccountInfoId accountInfoId = new AccountInfoId();
+        accountInfoId.setUpdatedAt(new Date());
         accountInfo.setId(accountInfoId);
 
         accountInfo.setAccount(account);
