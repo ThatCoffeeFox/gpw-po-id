@@ -5,6 +5,7 @@ import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.BlockingQueue;
@@ -15,19 +16,28 @@ public class OrderMatchingWorker implements Runnable {
     private final PriorityQueue<OrderWrapper> sellQueue;
     private final TransactionService transactionService;
     private final Map<Integer, BlockingQueue<Order>> companyIdOrderQueue;
+    private BigDecimal recentTransactionSharePrice;
 
     OrderMatchingWorker(int companyId,
+                        List<OrderWrapper> activeBuyOrders,
+                        List<OrderWrapper> activeSellOrders,
+                        BigDecimal recentTransactionSharePrice,
                         TransactionService transactionService,
                         Map<Integer, BlockingQueue<Order>> companyIdOrderQueue){
         this.companyId = companyId;
-        this.buyQueue = new PriorityQueue<>(new BuyComparator());
+        this.buyQueue = new PriorityQueue<>(new BuyComparator() );
         this.sellQueue = new PriorityQueue<>(new SellComparator());
+        this.recentTransactionSharePrice = recentTransactionSharePrice;
         this.transactionService = transactionService;
         this.companyIdOrderQueue = companyIdOrderQueue;
+
+        if(activeBuyOrders != null) this.buyQueue.addAll(activeBuyOrders);
+        if(activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
     }
     @Override
     public void run() {
         try{
+            tryMatchOrders();
             while(!Thread.interrupted()){
                 Order order = companyIdOrderQueue.get(companyId).take();
                 if("sell".equals(order.getOrderType().getOrderType())){
@@ -46,7 +56,6 @@ public class OrderMatchingWorker implements Runnable {
         }
     }
 
-    @Transactional
     void tryMatchOrders(){
         if(buyQueue.isEmpty() || sellQueue.isEmpty())return;
         OrderWrapper buyOrder =  buyQueue.peek(), sellOrder = sellQueue.peek();

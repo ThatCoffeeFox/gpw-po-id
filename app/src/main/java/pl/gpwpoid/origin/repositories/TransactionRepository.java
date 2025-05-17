@@ -9,6 +9,7 @@ import pl.gpwpoid.origin.models.keys.TransactionId;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -20,6 +21,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     WHERE t.buyOrder.company.id = :companyId
     ORDER BY t.date DESC
     """)
-
     List<TransactionListItem> findTransactionsByIdAsListItems(@Param("companyId") int companyId, Pageable pageable);
+
+    @Query(value = """
+            SELECT shares_value
+            FROM shares_value()
+            WHERE company_id = :companyId
+            """, nativeQuery = true)
+    BigDecimal findShareValueByCompanyId(@Param("companyId") Integer companyId);
 }

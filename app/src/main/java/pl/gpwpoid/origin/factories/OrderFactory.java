@@ -1,10 +1,12 @@
 package pl.gpwpoid.origin.factories;
 
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Component;
 import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
 import java.math.BigDecimal;
@@ -54,4 +56,26 @@ public class OrderFactory {
 
         return order;
     }
+
+    public Order createOrder(ActiveOrderProjection activeOrderProjection, OrderType orderType){
+        Order order = new Order();
+        order.setOrderId(activeOrderProjection.getOrderId());
+        order.setOrderType(orderType);
+        order.setSharesAmount(activeOrderProjection.getSharesAmount());
+        order.setSharePrice(activeOrderProjection.getSharePrice());
+        order.setOrderStartDate(activeOrderProjection.getOrderStartDate());
+        order.setOrderExpirationDate(activeOrderProjection.getOrderExpirationDate());
+
+        Wallet wallet = new Wallet();
+        wallet.setWalletId(activeOrderProjection.getWalletId());
+        order.setWallet(wallet);
+
+        Company company = new Company();
+        company.setCompanyId(activeOrderProjection.getCompanyId());
+        order.setCompany(company);
+
+        return order;
+    }
+
+    //Dodac z order dto bo to mega fajne obiektowo jest
 }

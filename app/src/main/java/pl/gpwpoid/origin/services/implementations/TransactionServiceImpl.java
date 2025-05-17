@@ -15,7 +15,6 @@ import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.List;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -42,8 +41,15 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit) {
         Pageable pageable = PageRequest.of(0,limit);
         return transactionRepository.findTransactionsByIdAsListItems(companyId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public BigDecimal getShareValueByCompanyId(Integer companyId){
+        return transactionRepository.findShareValueByCompanyId(companyId);
     }
 }

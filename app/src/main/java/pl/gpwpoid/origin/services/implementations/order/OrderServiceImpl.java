@@ -8,10 +8,13 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pl.gpwpoid.origin.factories.OrderCancellationFactory;
 import pl.gpwpoid.origin.factories.OrderFactory;
+import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderCancellation;
+import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.OrderRepository;
+import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
@@ -20,10 +23,7 @@ import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
 import java.lang.Integer;
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Service
@@ -137,7 +137,14 @@ public class OrderServiceImpl implements OrderService {
         companyIdOrderQueue.putIfAbsent(companyId, new LinkedBlockingQueue<>());
 
         companyOrderMatcherFutures.computeIfAbsent(companyId, id ->
-                orderExecutorService.submit(new OrderMatchingWorker(id, transactionService, companyIdOrderQueue))
+                orderExecutorService.submit(
+                        new OrderMatchingWorker(
+                                id,
+                                getActiveBuyOrderWrappersByCompanyId(companyId),
+                                getActiveSellOrderWrappersByCompanyId(companyId),
+                                transactionService.getShareValueByCompanyId(companyId),
+                                transactionService,
+                                companyIdOrderQueue))
         );
     }
 
@@ -151,4 +158,29 @@ public class OrderServiceImpl implements OrderService {
         companyOrderMatcherFutures.remove(companyId);
     }
 
+
+    private List<OrderWrapper> getActiveBuyOrderWrappersByCompanyId(Integer companyId) {
+        List<ActiveOrderProjection> projections = orderRepository.findActiveBuyOrdersByCompanyId(companyId);
+        OrderType orderType = new OrderType();
+        orderType.setOrderType("buy");
+        Optional<Company> company = companyService.getCompanyById(companyId);
+        return projections.stream().map(activeOrderProjection -> {
+            return new OrderWrapper(
+                    orderFactory.createOrder(activeOrderProjection, orderType),
+                    activeOrderProjection.getSharesLeft());
+        }).toList();
+    }
+
+
+    private List<OrderWrapper> getActiveSellOrderWrappersByCompanyId(Integer companyId) {
+        List<ActiveOrderProjection> projections = orderRepository.findActiveSellOrdersByCompanyId(companyId);
+        OrderType orderType = new OrderType();
+        orderType.setOrderType("sell");
+        Optional<Company> company = companyService.getCompanyById(companyId);
+        return projections.stream().map(activeOrderProjection -> {
+            return new OrderWrapper(
+                    orderFactory.createOrder(activeOrderProjection, orderType),
+                    activeOrderProjection.getSharesLeft());
+        }).toList();
+    }
 }

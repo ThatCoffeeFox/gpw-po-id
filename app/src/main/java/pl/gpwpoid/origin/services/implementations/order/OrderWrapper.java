@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
 import pl.gpwpoid.origin.models.order.Order;
+import pl.gpwpoid.origin.repositories.OrderRepository;
 
 import java.util.Date;
 
@@ -13,6 +14,11 @@ class OrderWrapper{
     OrderWrapper(Order order){
         this.order = order;
         this.sharesLeft = order.getSharesAmount();
+    }
+
+    OrderWrapper(Order order, int sharesLeft){
+        this.order = order;
+        this.sharesLeft = sharesLeft;
     }
 
     Order getOrder(){
