@@ -8,8 +8,10 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pl.gpwpoid.origin.factories.OrderCancellationFactory;
 import pl.gpwpoid.origin.factories.OrderFactory;
+import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderCancellation;
+import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.OrderRepository;
 import pl.gpwpoid.origin.services.CompanyService;
@@ -73,23 +75,29 @@ public class OrderServiceImpl implements OrderService {
     public void addOrder(OrderDTO orderDTO) {
         Order order;
         try {
-            Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWallet().getWalletId());
+            Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWalletId());
             if (!wallet.isPresent()) {
                 throw new RuntimeException("This wallet does not exist");
             }
 
+            Optional<Company> company = companyService.getCompanyById(orderDTO.getCompanyId());
+            if(!company.isPresent())
+                throw new RuntimeException("This company does not exist");
+
             Date orderExpirationDate = null;
-            if (orderDTO.getDateTime() != null) {
+            if (orderDTO.getOrderExpirationDate() != null) {
                 ZoneId zonedDateTime = ZoneId.of("UTC");
-                orderExpirationDate = Date.from(orderDTO.getDateTime().atZone(zonedDateTime).toInstant());
+                orderExpirationDate = Date.from(orderDTO.getOrderExpirationDate().atZone(zonedDateTime).toInstant());
             }
 
+            OrderType ordertype = new OrderType();
+            ordertype.setOrderType(orderDTO.getOrderType());
             order = orderFactory.createOrder(
-                    orderDTO.getOrderType(),
-                    orderDTO.getAmount(),
-                    orderDTO.getPrice(),
+                    ordertype,
+                    orderDTO.getSharesAmount(),
+                    orderDTO.getSharePrice(),
                     wallet.get(),
-                    orderDTO.getCompany(),
+                    company.get(),
                     orderExpirationDate
             );
 
@@ -102,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
                 @Override
                 public void afterCommit() {
                     companyIdOrderQueue
-                            .get(orderDTO.getCompany().getCompanyId())
+                            .get(orderDTO.getCompanyId())
                             .add(finalOrder);
                 }
             });

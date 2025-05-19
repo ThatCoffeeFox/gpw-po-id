@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
+import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
@@ -46,12 +47,12 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
     private Integer companyId;
     private Company company;
 
+    private Collection<WalletListItem> userWallets;
     private final Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
     private OrderDTO orderDTO;
 
-
-    private final ComboBox<OrderType> orderType = new ComboBox<>("Typ zlecenia");
-    private final ComboBox<WalletDTO> wallet = new ComboBox<>("Portfel");
+    private final ComboBox<String> orderType = new ComboBox<>("Typ zlecenia");
+    private final ComboBox<WalletListItem> wallet = new ComboBox<>("Portfel");
     private final IntegerField sharesAmount = new IntegerField("Ilość akcji");
     private final NumberField sharePrice = new NumberField("Cena za akcję");
     private final DateTimePicker orderExpirationDate = new DateTimePicker("Data wygaśnięcia zlecenia");
@@ -73,6 +74,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         setAlignItems(Alignment.START);
 
         if(SecurityUtils.isLoggedIn()){
+            loadWalletListItems();
             FormLayout formLayout = createOrderPlacementForm();
             VerticalLayout gridLayout = configureGrid();
             add(gridLayout, formLayout);
@@ -101,12 +103,20 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
 
     private void bindFields(){
         this.orderDTO = new OrderDTO();
-        orderDTO.setCompany(company);
         binder.setBean(orderDTO);
 
         binder.forField(orderType).bind("orderType");
-        binder.forField(wallet).bind("wallet");
-        binder.forField(sharesAmount).bind("amount");
+        binder.forField(wallet)
+                .withConverter(
+                        WalletListItem::getWalletId,
+                        walletId -> {
+                            return userWallets.stream().filter(w -> w.getWalletId().equals(walletId))
+                                    .findFirst().orElse(null);
+                        },
+                        "ERROR"
+                )
+                .bind("walletId");
+        binder.forField(sharesAmount).bind("sharesAmount");
         binder.forField(sharePrice)
                 .withConverter(
                         doubleValue -> {
@@ -121,69 +131,63 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
                         },
                         "Nieprawidłowa cena"
                 )
-                .bind("price");
-        binder.forField(orderExpirationDate).bind("dateTime");
+                .bind("sharePrice");
+        binder.forField(orderExpirationDate).bind("orderExpirationDate");
 
         binder.setBean(orderDTO);
     }
 
     private void configureFields(){
-        orderType.setPlaceholder("Wybierz typ zlecenia");
         orderType.setRequiredIndicatorVisible(true);
         orderType.setErrorMessage("Typ zlecenia jest wymagany");
-        OrderType sellOrder = new OrderType();
-        sellOrder.setOrderType("sell");
-        OrderType buyOrder = new OrderType();
-        buyOrder.setOrderType("buy");
-        orderType.setItems(sellOrder, buyOrder);
-        orderType.setItemLabelGenerator(OrderType::getOrderType);
+        orderType.setItems("sell", "buy");
+        orderType.setItemLabelGenerator(
+                orderType -> {
+                    if(orderType.equals("sell"))
+                        return "Sprzedaj";
+                    if(orderType.equals("buy"))
+                        return "Kup";
+                    return null;
+                }
+        );
 
-        wallet.setPlaceholder("Wybierz portfel");
         wallet.setRequiredIndicatorVisible(true);
         wallet.setErrorMessage("Portfel jest wymagany");
-        Collection<WalletDTO> wallets;
-        if(SecurityUtils.isLoggedIn()){
-            wallets = walletsService.getWalletDTOForCurrentUser();
-        }
-        else{
-            wallets = Collections.emptyList();
-        }
-        wallet.setItems(wallets);
-        wallet.setItemLabelGenerator(WalletDTO::getName);
+        wallet.setItems(userWallets);
+        wallet.setItemLabelGenerator(
+                wallet -> {
+                    NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("pl","PL"));
+                    return wallet.getName() + " " + new NumberRenderer<>(WalletListItem::getFunds, currency, "brak");
+                }
+        );
 
-        sharesAmount.setPlaceholder("Wpisz ilość akcji");
         sharesAmount.setRequiredIndicatorVisible(true);
         sharesAmount.setErrorMessage("Ilość akcji jest wymagana");
 
-        sharePrice.setPlaceholder("Wpisz cenę za akcję");
-
         orderExpirationDate.setLocale(new Locale("pl", "PL"));
         orderExpirationDate.setStep(Duration.ofMinutes(1));
-
     }
 
     private void configureSubmitButton(){
         submitButton.addClickListener(event -> {
             try {
                 OrderDTO order = binder.getBean();
-                if(order.getCompany() == null){
-                    if(company != null)
-                        order.setCompany(company);
-                    else
-                        showError("Brak firmy");
-                }
+                if(company != null)
+                    order.setCompanyId(companyId);
+                else
+                    showError("Brak firmy");
                 binder.writeBean(order);
                 orderService.addOrder(order);
                 Notification.show("Złożono zlecenie", 4000, Notification.Position.TOP_CENTER);
+
                 OrderDTO nextOrder = new OrderDTO();
-                nextOrder.setCompany(company);
                 binder.setBean(nextOrder);
                 orderType.clear();
                 wallet.clear();
             } catch (ValidationException e) {
-                Notification.show("Niepoprawne dane.", 4000, Notification.Position.TOP_CENTER);
+                showError("Niepoprawne dane");
             } catch (Exception e){
-                Notification.show("Wystąpił błąd podczas składania zlecenia: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER);
+                showError("Wystąpił błąd podczas składania zlecenia: " + e.getMessage());
             }
         });
     }
@@ -227,21 +231,21 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         }
     }
 
-    private void loadCompanyDetails() {
+    private void loadCompanyDetails() { //TODO: change to CompanyViewItem, display name etc
         if(companyId != null) {
             Optional<Company> currentCompany = companyService.getCompanyById(companyId);
-            if(currentCompany.isPresent()){
+            if(currentCompany.isPresent())
                 company = currentCompany.get();
-                OrderDTO newOrderDTO = new OrderDTO();
-                newOrderDTO.setCompany(company);
-            }
-            else{
+            else
                 showError("firma o ID " + companyId + " nie została znalezniona");
-            }
         }
         else{
             showError("brak ID firmy");
         }
+    }
+
+    private void loadWalletListItems(){
+        userWallets = walletsService.getWalletListViewForCurrentUser();
     }
 
     private void showError(String message) {
