@@ -21,7 +21,7 @@ public class MainLayout extends AppLayout {
 
         HorizontalLayout header;
         if(SecurityUtils.isLoggedIn()) {
-            H2 name = new H2(SecurityUtils.getAuthenticatedEmail());
+            H2 name = new H2(String.valueOf(SecurityUtils.getAuthenticatedAccountId()));
             Button logout = new Button("Logout", click -> SecurityUtils.logout());
             header = new HorizontalLayout(title, name, logout);
         } else {

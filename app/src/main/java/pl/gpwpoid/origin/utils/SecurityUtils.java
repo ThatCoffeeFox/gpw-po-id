@@ -14,7 +14,7 @@ import java.util.Optional;
 public final class SecurityUtils {
     private SecurityUtils() {}
 
-    public static Optional<UserDetails> getAuthenticatedUser() {
+    public static Optional<ExtendedUserDetails> getAuthenticatedUser() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext == null) {
 
@@ -27,8 +27,8 @@ public final class SecurityUtils {
         }
 
         Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            return Optional.of((UserDetails) principal);
+        if (principal instanceof ExtendedUserDetails) {
+            return Optional.of((ExtendedUserDetails) principal);
         }
 
         return Optional.empty();
@@ -39,6 +39,13 @@ public final class SecurityUtils {
             return null;
         }
         return getAuthenticatedUser().get().getUsername();
+    }
+
+    public static Integer getAuthenticatedAccountId() {
+        if(getAuthenticatedUser().isEmpty()) {
+            return null;
+        }
+        return getAuthenticatedUser().get().getAccountId();
     }
 
     public static boolean isLoggedIn() {

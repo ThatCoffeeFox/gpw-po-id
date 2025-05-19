@@ -5,9 +5,14 @@ import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 
-public class ExtendedUser extends User {
+public class ExtendedUser extends User implements ExtendedUserDetails {
 
-    public Integer accountId;
+    private final Integer accountId;
+
+    @Override
+    public Integer getAccountId() {
+        return accountId;
+    }
 
     public ExtendedUser(String username, String password, Integer accountId, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -18,4 +23,5 @@ public class ExtendedUser extends User {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.accountId = accountId;
     }
+
 }
