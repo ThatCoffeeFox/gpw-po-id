@@ -33,6 +33,8 @@ import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.Duration;
 import java.util.*;
@@ -60,6 +62,11 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
 
     private final Grid<TransactionListItem> grid = new Grid<>();
     private final H3 table = new H3("Niedawne transakcje");
+
+    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
+            "#,##0.00",
+            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
+    );
 
     @Autowired
     public CompanyView(CompanyService companyService, OrderService orderService, WalletsService walletsService, TransactionService transactionService) {
@@ -156,8 +163,10 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         wallet.setItems(userWallets);
         wallet.setItemLabelGenerator(
                 wallet -> {
-                    NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("pl","PL"));
-                    return wallet.getName() + " " + new NumberRenderer<>(WalletListItem::getFunds, currency, "brak");
+                    return wallet.getName() +
+                            " (" +
+                            FUNDS_FORMATTER.format(wallet.getFunds()) +
+                            " zł)";
                 }
         );
 

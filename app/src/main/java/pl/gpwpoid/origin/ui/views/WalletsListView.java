@@ -13,6 +13,8 @@ import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -22,6 +24,11 @@ import java.util.*;
 public class WalletsListView extends VerticalLayout {
     private final WalletsService walletsService;
     private final Grid<WalletListItem> grid = new Grid<>();
+
+    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
+            "#,##0.00",
+            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
+    );
 
     public WalletsListView(WalletsService walletsService) {
         this.walletsService = walletsService;
@@ -38,9 +45,10 @@ public class WalletsListView extends VerticalLayout {
 
         grid.addColumn(WalletListItem::getName).setHeader("Nazwa portfela").setSortable(true);
 
-        NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("pl","PL"));
-
-        grid.addColumn(new NumberRenderer<>(WalletListItem::getFunds, currency, "brak"))
+        grid.addColumn(
+                wallet -> {
+                    return FUNDS_FORMATTER.format(wallet.getFunds()) + " zł";
+                })
                 .setHeader("Dostępne fundusze")
                 .setTextAlign(ColumnTextAlign.END).setSortable(true);
 
