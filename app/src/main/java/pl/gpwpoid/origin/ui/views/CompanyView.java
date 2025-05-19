@@ -21,7 +21,6 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.company.Company;
-import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.CompanyService;
@@ -29,7 +28,6 @@ import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
-import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;

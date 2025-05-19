@@ -3,9 +3,6 @@ package pl.gpwpoid.origin.ui.views.DTO;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import pl.gpwpoid.origin.models.company.Company;
-import pl.gpwpoid.origin.models.order.OrderType;
-import pl.gpwpoid.origin.repositories.views.WalletListItem;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
