@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -30,4 +31,18 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
         WHERE ai.email = :email
 """, nativeQuery = true)
     List<Wallet> getWalletForCurrentUser(String email);
+
+    @Query(value = """ 
+        SELECT unblocked_funds 
+        FROM ublocked_funds_in_wallets()
+        WHERE wallet_id = :walletId
+""", nativeQuery = true)
+    BigDecimal getWalletUnblockedFundsById(Integer walletId);
+
+    @Query(value = """
+        SELECT s.shares_amount - b.blocked_shares 
+        FROM blocked_shares_in_wallets() b JOIN shares_in_wallets() s ON s.wallet_id = b.wallet_id AND s.company_id = b.company_id
+        WHERE wallet_id = :walletId AND company_id = :companyId
+""", nativeQuery = true)
+    Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
 }

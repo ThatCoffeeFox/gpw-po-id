@@ -5,6 +5,7 @@ import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -18,4 +19,6 @@ public interface WalletsService {
     Collection<WalletDTO> getWalletDTOForCurrentUser();
     Collection<Wallet> getWalletForCurrentUser();
     Optional<Wallet> getWalletById(Integer walletId);
+    BigDecimal getWalletUnblockedFundsById(Integer walletId);
+    Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
 }

@@ -238,7 +238,7 @@ CREATE OR REPLACE FUNCTION shares_in_wallets()
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()
+CREATE OR REPLACE FUNCTION blocked_funds_in_wallets() --without null prices
     RETURNS TABLE(wallet_id INTEGER, blocked_funds NUMERIC(17,2))
     AS $$
     BEGIN
@@ -474,7 +474,7 @@ CREATE OR REPLACE VIEW active_buy_orders AS
     JOIN shares_left_in_order() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'buy' 
     AND sl.shares_left > 0 
-    AND o.order_expiration_date > current_timestamp
+    AND (o.order_expiration_date > current_timestamp OR o.order_expiration_date IS NULL)
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
 
 CREATE OR REPLACE VIEW active_sell_orders AS
@@ -485,4 +485,22 @@ CREATE OR REPLACE VIEW active_sell_orders AS
     AND sl.shares_left > 0
     AND o.order_expiration_date > current_timestamp
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
+
+CREATE OR REPLACE FUNCTION unblocked_funds_in_wallets()
+    RETURNS TABLE(wallet_id INTEGER, unblocked_funds NUMERIC(17,2))
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT f.wallet_id,
+        CASE 
+            WHEN (SELECT COUNT(*) - COUNT(share_price) 
+                FROM active_buy_orders a
+                WHERE a.wallet_id = f.wallet_id) != 0    
+            THEN 0
+            ELSE f.funds - b.blocked_funds 
+        END
+        FROM funds_in_wallets() f
+        JOIN blocked_funds_in_wallets() b ON b.wallet_id = f.wallet_id;
+    END
+$$ LANGUAGE plpgsql;
+
 COMMIT;
