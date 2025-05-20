@@ -37,6 +37,30 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     List<AccountListItem> findAllAccountsAsViewItems();
 
     @Query("""
+        SELECT new pl.gpwpoid.origin.repositories.views.AccountListItem(
+                a.accountId,
+                ai.firstName,
+                ai.secondaryName,
+                ai.lastName,
+                ai.email,
+                ai.phoneNumber,
+                ai.pesel,
+                ai.postalCodesTowns.town.name,
+                ai.postalCodesTowns.postalCode.postalCode,
+                ai.street,
+                ai.streetNumber,
+                ai.apartmentNumber
+        )
+        FROM Account a LEFT JOIN AccountInfo ai ON a.accountId = ai.id.accountId
+        WHERE ai.id.updatedAt = (
+            SELECT MAX(ai_inner.id.updatedAt)
+            FROM AccountInfo ai_inner
+            WHERE ai_inner.account = a
+        ) AND a.accountId = :id
+    """)
+    Optional<AccountListItem> findAccountByIdAsViewItem(Long id);
+
+    @Query("""
         SELECT new pl.gpwpoid.origin.repositories.views.AccountAuthItem(
             a.accountId,
             ai.email,

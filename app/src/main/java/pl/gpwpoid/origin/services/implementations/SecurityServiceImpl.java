@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountAuthItem;
 import pl.gpwpoid.origin.utils.ExtendedUser;
+import pl.gpwpoid.origin.utils.ExtendedUserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,7 +31,7 @@ public class SecurityServiceImpl implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public ExtendedUserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         AccountAuthItem user = accountRepository.findAccountByEmailAsAuthItem(email);
         if(user == null) {

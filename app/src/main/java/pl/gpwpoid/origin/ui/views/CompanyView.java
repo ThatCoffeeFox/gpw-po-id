@@ -36,7 +36,7 @@ import java.text.NumberFormat;
 import java.time.Duration;
 import java.util.*;
 
-@Route("companies")
+@Route(value = "companies", layout = MainLayout.class)
 @AnonymousAllowed
 public class CompanyView extends HorizontalLayout implements HasUrlParameter<Integer>{
     private final CompanyService companyService;

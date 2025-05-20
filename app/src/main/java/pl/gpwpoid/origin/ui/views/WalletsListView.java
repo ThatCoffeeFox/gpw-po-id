@@ -16,7 +16,7 @@ import pl.gpwpoid.origin.utils.SecurityUtils;
 import java.text.NumberFormat;
 import java.util.*;
 
-@Route("wallets")
+@Route(value = "wallets", layout =  MainLayout.class)
 @PageTitle("Lista portfeli")
 @PermitAll
 public class WalletsListView extends VerticalLayout {
