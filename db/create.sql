@@ -240,16 +240,6 @@ CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_i
                     JOIN ipo i ON s.ipo_id = i.ipo_id
                     WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL AND i.company_id = arg_company_id)::INTEGER; --akcje kupione w trakcie emisji
     END
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION blocked_funds_in_wallet(arg_wallet_id INTEGER)
-    RETURNS NUMERIC(17,2)
-    AS $$
-    BEGIN
-        RETURN (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
-                    FROM orders o
-                    WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy');
-    END
 $$ LANGUAGE plpgsql;        
 
 CREATE OR REPLACE FUNCTION blocked_shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
@@ -369,7 +359,7 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
     RETURNS TRIGGER
     AS $$
     DECLARE
-        funds NUMERIC(17,2) = funds_in_wallet(NEW.wallet_id);
+        funds NUMERIC(17,2) = unblocked_funds_in_wallet(NEW.wallet_id);
         shares INTEGER = shares_in_wallet(NEW.wallet_id, NEW.company_id);
     BEGIN
         IF NEW.company_id NOT IN (SELECT * FROM tradable_companies()) THEN
@@ -402,7 +392,7 @@ CREATE OR REPLACE FUNCTION is_valid_subscription()
     RETURNS TRIGGER
     AS $$
     DECLARE 
-        funds NUMERIC(17,2) = funds_in_wallet(NEW.wallet_id);
+        funds NUMERIC(17,2) = unblocked_funds_in_wallet(NEW.wallet_id);
     BEGIN
         IF funds < NEW.shares_amount * (SELECT i.ipo_price FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
             RAISE EXCEPTION 'not enough funds in wallet %', NEW.wallet_id;
@@ -481,7 +471,10 @@ CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)
                             FROM active_buy_orders abo
                             WHERE abo.wallet_id = arg_wallet_id) != 0
                     THEN 0
-                    ELSE funds_in_wallet(arg_wallet_id) - blocked_funds_in_wallet(arg_wallet_id)
+                    ELSE funds_in_wallet(arg_wallet_id) - 
+                    (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
+                        FROM orders o
+                        WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy')
                 END;
     END;
 $$ LANGUAGE plpgsql;

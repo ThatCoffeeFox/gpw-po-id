@@ -60,8 +60,6 @@ DROP FUNCTION IF EXISTS shares_left_in_order CASCADE;
 
 DROP FUNCTION IF EXISTS shares_in_wallet CASCADE;
 
-DROP FUNCTION IF EXISTS blocked_funds_in_wallet CASCADE;
-
 DROP FUNCTION IF EXISTS blocked_shares_in_wallet CASCADE;
 
 DROP FUNCTION IF EXISTS shares_value CASCADE;
