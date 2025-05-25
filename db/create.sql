@@ -238,7 +238,7 @@ CREATE OR REPLACE FUNCTION shares_in_wallets()
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()
+CREATE OR REPLACE FUNCTION blocked_funds_in_wallets() --without null prices
     RETURNS TABLE(wallet_id INTEGER, blocked_funds NUMERIC(17,2))
     AS $$
     BEGIN
@@ -290,7 +290,7 @@ CREATE OR REPLACE FUNCTION tradable_companies()
                     FROM companies_status cs
                     WHERE date = (SELECT cs1.date FROM companies_status cs1 WHERE cs1.company_id = cs.company_id ORDER BY cs1.date DESC LIMIT 1)
                     AND cs.tradable = true;
-            END     
+            END
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION check_accounts_info()
@@ -469,20 +469,38 @@ CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
     EXECUTE PROCEDURE is_valid_cancellation();
 
 CREATE OR REPLACE VIEW active_buy_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
     FROM orders o
     JOIN shares_left_in_order() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'buy' 
     AND sl.shares_left > 0 
-    AND (o.order_expiration_date IS NULL OR o.order_expiration_date > current_timestamp)
+    AND (o.order_expiration_date > current_timestamp OR o.order_expiration_date IS NULL)
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
 
 CREATE OR REPLACE VIEW active_sell_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
     FROM orders o
     JOIN shares_left_in_order() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'sell'
     AND sl.shares_left > 0
-    AND (o.order_expiration_date IS NULL OR o.order_expiration_date > current_timestamp)
+    AND o.order_expiration_date > current_timestamp
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
+
+CREATE OR REPLACE FUNCTION unblocked_funds_in_wallets()
+    RETURNS TABLE(wallet_id INTEGER, unblocked_funds NUMERIC(17,2))
+    AS $$
+    BEGIN
+        RETURN QUERY SELECT f.wallet_id,
+        CASE 
+            WHEN (SELECT COUNT(*) - COUNT(share_price) 
+                FROM active_buy_orders a
+                WHERE a.wallet_id = f.wallet_id) != 0    
+            THEN 0
+            ELSE f.funds - b.blocked_funds 
+        END
+        FROM funds_in_wallets() f
+        JOIN blocked_funds_in_wallets() b ON b.wallet_id = f.wallet_id;
+    END
+$$ LANGUAGE plpgsql;
+
 COMMIT;

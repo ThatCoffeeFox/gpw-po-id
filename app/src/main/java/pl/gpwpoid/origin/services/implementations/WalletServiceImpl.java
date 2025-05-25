@@ -12,6 +12,7 @@ import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -64,5 +65,15 @@ public class WalletServiceImpl implements WalletsService {
     @Override
     public Optional<Wallet> getWalletById(Integer walletId) {
         return walletRepository.findById(Long.valueOf(walletId));
+    }
+
+    @Override
+    public BigDecimal getWalletUnblockedFundsById(Integer walletId) {
+        return walletRepository.getWalletUnblockedFundsById(walletId);
+    }
+
+    @Override
+    public Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId) {
+        return walletRepository.getWalletUnblockedSharesAmount(walletId, companyId);
     }
 }
