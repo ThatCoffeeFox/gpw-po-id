@@ -13,7 +13,7 @@ import pl.gpwpoid.origin.services.AccountService;
 import java.util.Collection;
 import java.util.List;
 
-@Route("accounts")
+@Route(value = "accounts", layout =  MainLayout.class)
 @PageTitle("Lista Kont")
 @RolesAllowed("admin")
 public class AccountsListView extends VerticalLayout {
@@ -61,17 +61,6 @@ public class AccountsListView extends VerticalLayout {
         grid.addColumn(AccountListItem::getTownName)
                 .setHeader("Miasto")
                 .setSortable(true).setFlexGrow(1);
-
-
-
-
-
-
-
-
-
-
-
 
     }
 

@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.account.Account;
+import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.address.Town;
 import pl.gpwpoid.origin.factories.AccountFactory;
@@ -15,6 +16,7 @@ import pl.gpwpoid.origin.services.AddressService;
 import pl.gpwpoid.origin.ui.views.DTO.RegistrationDTO;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -94,5 +96,19 @@ public class AccountServiceImpl implements AccountService {
     @Transactional(readOnly = true)
     public Collection<AccountListItem> getAccountViewList() {
         return accountRepository.findAllAccountsAsViewItems();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Account getAccountById(Integer id) {
+        Optional<Account> account = accountRepository.findById(Long.valueOf(id));
+        return account.orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AccountListItem getNewestAccountInfoById(Integer id) {
+        Optional<AccountListItem> accountInfo = accountRepository.findAccountByIdAsViewItem(Long.valueOf(id));
+        return accountInfo.orElse(null);
     }
 }
