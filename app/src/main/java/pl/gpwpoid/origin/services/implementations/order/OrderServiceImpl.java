@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,10 @@ import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
+import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.lang.Integer;
+import java.nio.file.AccessDeniedException;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.*;
@@ -70,46 +73,36 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void addOrder(OrderDTO orderDTO) {
-        Order order;
+    public void addOrder(OrderDTO orderDTO) throws AccessDeniedException {
+        Optional<Company> company = companyService.getCompanyById(orderDTO.getCompanyId());
+        if(company.isEmpty()) throw new EntityNotFoundException("This company does not exist");
+
+        Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWalletId());
+
+        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+//        if (!wallet.get().getAccount().equals(SecurityUtils.getAuthenticatedAccount())){
+//            throw new AccessDeniedException("You are not an owner of the wallet");
+//        }
+
+
+        Order order = orderFactory.createOrder(orderDTO, wallet.get(), company.get());
+
         try {
-            Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWallet().getWalletId());
-            if (!wallet.isPresent()) {
-                throw new RuntimeException("This wallet does not exist");
-            }
-
-            Date orderExpirationDate = null;
-            if (orderDTO.getDateTime() != null) {
-                ZoneId zonedDateTime = ZoneId.of("UTC");
-                orderExpirationDate = Date.from(orderDTO.getDateTime().atZone(zonedDateTime).toInstant());
-            }
-
-            order = orderFactory.createOrder(
-                    orderDTO.getOrderType(),
-                    orderDTO.getAmount(),
-                    orderDTO.getPrice(),
-                    wallet.get(),
-                    orderDTO.getCompany(),
-                    orderExpirationDate
-            );
-
             orderRepository.save(order);
             orderRepository.flush();
-
-            Order finalOrder = order;
-
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    companyIdOrderQueue
-                            .get(orderDTO.getCompany().getCompanyId())
-                            .add(finalOrder);
-                }
-            });
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException("Failed to create order", e);
         }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                companyIdOrderQueue
+                        .get(order.getCompany().getCompanyId())
+                        .add(order);
+            }
+        });
     }
 
 

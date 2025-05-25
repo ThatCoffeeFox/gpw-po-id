@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import pl.gpwpoid.origin.models.account.Account;
 
 import javax.swing.text.html.Option;
 import java.util.Optional;
@@ -59,5 +60,9 @@ public final class SecurityUtils {
         );
 
         Optional.ofNullable(VaadinSession.getCurrent()).ifPresent(VaadinSession::close);
+    }
+
+    public static Account getAuthenticatedAccount() {
+        return null;
     }
 }

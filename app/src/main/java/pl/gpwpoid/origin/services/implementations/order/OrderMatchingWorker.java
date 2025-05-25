@@ -34,11 +34,56 @@ public class OrderMatchingWorker implements Runnable {
         if(activeBuyOrders != null) this.buyQueue.addAll(activeBuyOrders);
         if(activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
     }
+    private boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder){
+        return buyOrder.getOrder().getSharePrice() == null ||
+                sellOrder.getOrder().getSharePrice() == null ||
+                (sellOrder.getOrder().getSharePrice().compareTo(buyOrder.getOrder().getSharePrice()) <= 0);
+    }
+
+    private BigDecimal getSharePrice(OrderWrapper buyOrder, OrderWrapper sellOrder){
+        if(buyOrder.getOrder().getSharePrice() == null && sellOrder.getOrder().getSharePrice() == null){
+            return this.recentTransactionSharePrice;
+        }
+        else if(buyOrder.getOrder().getSharePrice() == null){
+            return sellOrder.getOrder().getSharePrice();
+        }
+        else if(sellOrder.getOrder().getSharePrice() == null){
+            return buyOrder.getOrder().getSharePrice();
+        }
+        else if(buyOrder.getOrder().getOrderStartDate().compareTo(sellOrder.getOrder().getOrderStartDate()) < 0) {
+            return buyOrder.getOrder().getSharePrice();
+        }
+        else {
+            return sellOrder.getOrder().getSharePrice();
+        }
+    }
+
     @Override
     public void run() {
-        try{
-            tryMatchOrders();
-            while(!Thread.interrupted()){
+        while(!Thread.interrupted()){
+            while(!(buyQueue.isEmpty() || sellQueue.isEmpty())){//matching loop
+                OrderWrapper buyOrder =  buyQueue.peek(), sellOrder = sellQueue.peek();
+                if(!buyOrder.isValid()){
+                    buyQueue.poll();
+                    continue;
+                }
+                if(!sellOrder.isValid()){
+                    sellQueue.poll();
+                    continue;
+                }
+                if(!canMatchOrders(buyOrder, sellOrder))break;
+                BigDecimal sharePrice = getSharePrice(buyOrder, sellOrder);
+                int sharesAmount = Math.min(buyOrder.getSharesLeft(),  sellOrder.getSharesLeft());
+                try{
+                    transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
+                    buyOrder.tradeShares(sharesAmount);
+                    sellOrder.tradeShares(sharesAmount);
+                }
+                catch (Exception e){
+                    throw new RuntimeException("Transaction failed", e);
+                }
+            }
+            try{
                 Order order = companyIdOrderQueue.get(companyId).take();
                 if("sell".equals(order.getOrderType().getOrderType())){
                     sellQueue.add(new OrderWrapper(order));
@@ -46,46 +91,10 @@ public class OrderMatchingWorker implements Runnable {
                 if("buy".equals(order.getOrderType().getOrderType())){
                     buyQueue.add(new OrderWrapper(order));
                 }
-                tryMatchOrders();
+            }
+            catch (InterruptedException e){
+                Thread.currentThread().interrupt();
             }
         }
-        catch (InterruptedException e){
-            Thread.currentThread().interrupt();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed in matching worker", e);
-        }
-    }
-
-    void tryMatchOrders(){
-        if(buyQueue.isEmpty() || sellQueue.isEmpty())return;
-        OrderWrapper buyOrder =  buyQueue.peek(), sellOrder = sellQueue.peek();
-        System.out.println(buyOrder.isValid());
-        if(!buyOrder.isValid()){
-            buyQueue.poll();
-            tryMatchOrders();
-            return;
-        }
-        System.out.println(sellOrder.isValid());
-        if(!sellOrder.isValid()){
-            sellQueue.poll();
-            tryMatchOrders();
-            return;
-        }
-        if(sellOrder.getOrder().getSharePrice().compareTo(buyOrder.getOrder().getSharePrice()) > 0) return;
-
-        int sharesAmount = Math.min(buyOrder.getSharesLeft(),  sellOrder.getSharesLeft());
-        BigDecimal sharePrice;
-        if(buyOrder.getOrder().getOrderStartDate().compareTo(sellOrder.getOrder().getOrderStartDate()) > 0)sharePrice = sellOrder.getOrder().getSharePrice();
-        else sharePrice = buyOrder.getOrder().getSharePrice();
-
-        try{
-            transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
-            buyOrder.tradeShares(sharesAmount);
-            sellOrder.tradeShares(sharesAmount);
-        }
-        catch (Exception e){
-            throw new RuntimeException("Transaction failed", e);
-        }
-        tryMatchOrders();
     }
 }
