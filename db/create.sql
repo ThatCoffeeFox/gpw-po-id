@@ -176,38 +176,36 @@ CREATE TABLE subscriptions (
   shares_assigned INTEGER CHECK (shares_assigned >= 0)
 );
 
-CREATE OR REPLACE FUNCTION funds_in_wallets()
-    RETURNS TABLE(wallet_id INTEGER, funds NUMERIC(17,2))
+CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER)
+    RETURNS NUMERIC(17,2)
     AS $$
     BEGIN
-        RETURN QUERY SELECT w.wallet_id,
-                (SELECT COALESCE(SUM(et.amount),0) 
+        RETURN (SELECT COALESCE(SUM(et.amount),0) 
                     FROM external_transfers et 
-                    WHERE et.wallet_id = w.wallet_id AND type = 'deposit') --wplacone na konto
+                    WHERE et.wallet_id = arg_wallet_id AND type = 'deposit') --wplacone na konto
                 - (SELECT COALESCE(SUM(et.amount),0) 
                     FROM external_transfers et
-                    WHERE et.wallet_id = w.wallet_id AND type = 'withdrawal') --wyplacone z konta
+                    WHERE et.wallet_id = arg_wallet_id AND type = 'withdrawal') --wyplacone z konta
                 + (SELECT COALESCE(SUM(t.share_price*t.shares_amount),0) 
                     FROM transactions t 
                     JOIN orders o ON t.sell_order_id = o.order_id 
-                    WHERE o.wallet_id = w.wallet_id) --pieniadze ze sprzedanych akcji
+                    WHERE o.wallet_id = arg_wallet_id) --pieniadze ze sprzedanych akcji
                 - (SELECT COALESCE(SUM(t.share_price*t.shares_amount),0) 
                     FROM transactions t 
                     JOIN orders o ON t.buy_order_id = o.order_id 
-                    WHERE o.wallet_id = w.wallet_id) --pieniadze wydane na akcje
+                    WHERE o.wallet_id = arg_wallet_id) --pieniadze wydane na akcje
                 - (SELECT COALESCE(SUM(s.shares_assigned*i.ipo_price),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON i.ipo_id = s.ipo_id 
-                    WHERE s.wallet_id = w.wallet_id AND s.shares_assigned IS NOT NULL) --pieniadze wydane na zakonczone zapisy
+                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL) --pieniadze wydane na zakonczone zapisy
                 - (SELECT COALESCE(SUM(s.shares_amount*i.ipo_price),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON i.ipo_id = s.ipo_id 
-                    WHERE s.wallet_id = w.wallet_id AND s.shares_assigned IS NULL) --pieniadze wydane na trwajace zapisy
-                FROM wallets w;
+                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NULL); --pieniadze wydane na trwajace zapisy
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_left_in_order()
+CREATE OR REPLACE FUNCTION shares_left_in_orders()
     RETURNS TABLE(order_id INTEGER, shares_left INTEGER)
     AS $$
     BEGIN
@@ -217,50 +215,50 @@ CREATE OR REPLACE FUNCTION shares_left_in_order()
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_in_wallets()
-    RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, shares_amount INTEGER)
+CREATE OR REPLACE FUNCTION shares_left_in_order(arg_order_id INTEGER)
+    RETURNS INTEGER
+    AS $$
+    BEGIN 
+        RETURN (SELECT shares_amount FROM orders WHERE order_id = arg_order_id) - COALESCE((SELECT SUM(t.shares_amount) FROM transactions t WHERE t.sell_order_id = arg_order_id OR t.buy_order_id = arg_order_id),0)::INTEGER;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
+    RETURNS INTEGER
     AS $$
     BEGIN
-        RETURN QUERY SELECT w.wallet_id, c.company_id,
-                (SELECT COALESCE(SUM(t.shares_amount),0) 
+        RETURN (SELECT COALESCE(SUM(t.shares_amount),0) 
                     FROM transactions t 
                     JOIN orders o ON o.order_id = t.buy_order_id 
-                    WHERE o.wallet_id = w.wallet_id AND o.company_id = c.company_id)::INTEGER --kupione akcje
+                    WHERE o.wallet_id = arg_wallet_id AND o.company_id = arg_company_id)::INTEGER --kupione akcje
                 - (SELECT COALESCE(SUM(t.shares_amount),0) 
                     FROM transactions t 
                     JOIN orders o ON o.order_id = t.sell_order_id 
-                    WHERE o.wallet_id = w.wallet_id AND o.company_id = c.company_id)::INTEGER --sprzedane akcje
+                    WHERE o.wallet_id = arg_wallet_id AND o.company_id = arg_company_id)::INTEGER --sprzedane akcje
                 + (SELECT COALESCE(SUM(s.shares_assigned),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON s.ipo_id = i.ipo_id
-                    WHERE s.wallet_id = w.wallet_id AND s.shares_assigned IS NOT NULL AND i.company_id = c.company_id)::INTEGER --akcje kupione w trakcie emisji
-                FROM wallets w CROSS JOIN companies c;
+                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL AND i.company_id = arg_company_id)::INTEGER; --akcje kupione w trakcie emisji
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION blocked_funds_in_wallets()
-    RETURNS TABLE(wallet_id INTEGER, blocked_funds NUMERIC(17,2))
+CREATE OR REPLACE FUNCTION blocked_funds_in_wallet(arg_wallet_id INTEGER)
+    RETURNS NUMERIC(17,2)
     AS $$
     BEGIN
-        RETURN QUERY SELECT w.wallet_id,
-                (SELECT COALESCE(SUM(sl.shares_left*o.share_price),0) 
-                    FROM orders o 
-                    JOIN shares_left_in_order() sl ON sl.order_id = o.order_id 
-                    WHERE o.order_type = 'buy')
-                FROM wallets w;
+        RETURN (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
+                    FROM orders o
+                    WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy');
     END
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;        
 
-CREATE OR REPLACE FUNCTION blocked_shares_in_wallets()
-    RETURNS TABLE(wallet_id INTEGER, company_id INTEGER, blocked_shares INTEGER)
+CREATE OR REPLACE FUNCTION blocked_shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
+    RETURNS INTEGER
     AS $$
     BEGIN
-        RETURN QUERY SELECT w.wallet_id, c.company_id,
-                (SELECT COALESCE(SUM(sl.shares_left),0) 
-                    FROM orders o 
-                    JOIN shares_left_in_order() sl ON sl.order_id = o.order_id 
-                    WHERE o.order_type = 'sell' AND o.company_id = c.company_id AND o.wallet_id = w.wallet_id)::INTEGER
-        FROM wallets w CROSS JOIN companies c;
+        RETURN (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)),0)
+                    FROM orders o
+                    WHERE o.wallet_id = arg_wallet_id AND o.company_id = arg_company_id AND o.order_type = 'sell');
     END
 $$ LANGUAGE plpgsql;
 
@@ -371,16 +369,13 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
     RETURNS TRIGGER
     AS $$
     DECLARE
-        funds NUMERIC(17,2);
-        shares INTEGER;
+        funds NUMERIC(17,2) = funds_in_wallet(NEW.wallet_id);
+        shares INTEGER = shares_in_wallet(NEW.wallet_id, NEW.company_id);
     BEGIN
         IF NEW.company_id NOT IN (SELECT * FROM tradable_companies()) THEN
             RAISE EXCEPTION 'company % is not tradable', NEW.company_id;
         END IF;
         IF NEW.order_type = 'buy' THEN
-            SELECT f.funds INTO funds
-            FROM funds_in_wallets() f
-            WHERE f.wallet_id = NEW.wallet_id;
             IF funds < NEW.shares_amount*NEW.share_price THEN
                 RAISE EXCEPTION 'cannot place order - not enough funds in wallet %', NEW.wallet_id;
                 RETURN NULL;
@@ -388,9 +383,6 @@ CREATE OR REPLACE FUNCTION is_valid_order() --nowe typy zlecen beda wymagaly zmi
                 RETURN NEW;
             END IF;
         ELSE
-            SELECT f.shares_amount INTO shares
-            FROM shares_in_wallets() f
-            WHERE f.wallet_id = NEW.wallet_id AND f.company_id = NEW.company_id;
             IF shares < NEW.shares_amount THEN
                 RAISE EXCEPTION 'cannot place order - not enough shares in wallet %', NEW.wallet_id;
                 RETURN NULL;
@@ -410,14 +402,8 @@ CREATE OR REPLACE FUNCTION is_valid_subscription()
     RETURNS TRIGGER
     AS $$
     DECLARE 
-        funds NUMERIC(17,2);
-        ipo_price NUMERIC(17,2);
+        funds NUMERIC(17,2) = funds_in_wallet(NEW.wallet_id);
     BEGIN
-        --odpowiednia ilosc pieniedzy na koncie
-        SELECT f.funds INTO funds
-        FROM funds_in_wallets() f
-        WHERE f.wallet_id = NEW.wallet_id;
-
         IF funds < NEW.shares_amount * (SELECT i.ipo_price FROM ipo i WHERE i.ipo_id = NEW.ipo_id) THEN
             RAISE EXCEPTION 'not enough funds in wallet %', NEW.wallet_id;
         END IF;
@@ -456,7 +442,7 @@ CREATE OR REPLACE FUNCTION is_valid_cancellation()
     RETURNS TRIGGER
     AS $$
     BEGIN
-        IF (SELECT sl.shares_left FROM shares_left_in_order() sl WHERE sl.order_id = NEW.order_id) = 0 THEN
+        IF shares_left_in_order(NEW.order_id) = 0 THEN
             RAISE EXCEPTION 'cannot cancel a completed order';
         END IF;
         RETURN NEW;
@@ -471,18 +457,33 @@ CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
 CREATE OR REPLACE VIEW active_buy_orders AS
     SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
     FROM orders o
-    JOIN shares_left_in_order() sl ON o.order_id = sl.order_id
+    JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'buy' 
     AND sl.shares_left > 0 
-    AND o.order_expiration_date > current_timestamp
+    AND (o.order_expiration_date > current_timestamp OR o.order_expiration_date IS NULL)
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
 
 CREATE OR REPLACE VIEW active_sell_orders AS
     SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
     FROM orders o
-    JOIN shares_left_in_order() sl ON o.order_id = sl.order_id
+    JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'sell'
     AND sl.shares_left > 0
     AND o.order_expiration_date > current_timestamp
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
+
+CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)
+    RETURNS NUMERIC(17,2)
+    AS $$
+    BEGIN
+        RETURN CASE 
+                    WHEN (SELECT COUNT(*) - COUNT(share_price)
+                            FROM active_buy_orders abo
+                            WHERE abo.wallet_id = arg_wallet_id) != 0
+                    THEN 0
+                    ELSE funds_in_wallet(arg_wallet_id) - blocked_funds_in_wallet(arg_wallet_id)
+                END;
+    END;
+$$ LANGUAGE plpgsql;
+
 COMMIT;
