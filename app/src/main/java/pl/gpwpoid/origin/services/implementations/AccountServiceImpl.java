@@ -13,6 +13,7 @@ import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
 import pl.gpwpoid.origin.services.AddressService;
+import pl.gpwpoid.origin.ui.views.DTO.ProfileUpdateDTO;
 import pl.gpwpoid.origin.ui.views.DTO.RegistrationDTO;
 
 import java.util.Collection;
@@ -58,15 +59,24 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
-    public void updateAccountById(Long id) {
-        if(id == null || !accountRepository.existsById(id)) {
+    public void updateAccount(ProfileUpdateDTO profileUpdateDTO) {
+        if(profileUpdateDTO == null || !accountRepository.existsById(Long.valueOf(profileUpdateDTO.getAccountId()))) {
             throw new IllegalArgumentException("ID nie istnieje lub nie może być null");
         }
 
-        Account account = accountRepository.findById(id).isPresent() ? accountRepository.findById(id).get() : null;
-        if(account == null) {
-            throw new NullPointerException("Nie znaleziono konta o takim ID");
-        }
+        Account account = accountRepository.findById(profileUpdateDTO.getAccountId().longValue()).get();
+        Town town = addressService.getTownById(profileUpdateDTO.getTownId()).get();
+        PostalCodesTowns postalCodesTowns = addressService.getPostalCodesTowns(town, profileUpdateDTO.getPostalCode()).get();
+
+        AccountInfo updatedAccountInfo = accountFactory.createAccountInfo(profileUpdateDTO, postalCodesTowns);
+        AccountInfo newestInfo = accountRepository.findAccountInfoById(Long.valueOf(profileUpdateDTO.getAccountId()));
+        updatedAccountInfo.setAccount(account);
+        updatedAccountInfo.setPassword(newestInfo.getPassword());
+        updatedAccountInfo.setFirstName(newestInfo.getFirstName());
+        updatedAccountInfo.setLastName(newestInfo.getLastName());
+        updatedAccountInfo.setSecondaryName(newestInfo.getSecondaryName());
+
+        account.getAccountInfos().add(updatedAccountInfo);
 
         accountRepository.save(account);
     }
@@ -107,7 +117,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional(readOnly = true)
-    public AccountListItem getNewestAccountInfoById(Integer id) {
+    public AccountListItem getNewestAccountInfoItemById(Integer id) {
         Optional<AccountListItem> accountInfo = accountRepository.findAccountByIdAsViewItem(Long.valueOf(id));
         return accountInfo.orElse(null);
     }

@@ -66,7 +66,7 @@ public class MainLayout extends AppLayout {
                 user -> {
                     Button logoutButton = new Button("Wyloguj się", e -> SecurityUtils.logout());
 
-                    AccountListItem userInfo = accountService.getNewestAccountInfoById(user.getAccountId());
+                    AccountListItem userInfo = accountService.getNewestAccountInfoItemById(user.getAccountId());
                     Avatar avatar = new Avatar(userInfo.getFirstName() + " " + userInfo.getLastName());
 
                     header.add(avatar, logoutButton);
