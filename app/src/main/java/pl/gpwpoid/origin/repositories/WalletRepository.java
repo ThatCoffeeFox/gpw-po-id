@@ -15,8 +15,8 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
         SELECT 
             w.wallet_id AS walletId,
             w.name AS name,
-            f.funds AS funds
-        FROM wallets w JOIN funds_in_wallets() f ON w.wallet_id = f.wallet_id
+            funds_in_wallet(w.wallet_id) AS funds
+        FROM wallets w
         JOIN accounts a ON a.account_id = w.account_id JOIN accounts_info ai ON a.account_id = ai.account_id
         WHERE ai.email = :email;
 """, nativeQuery = true)
