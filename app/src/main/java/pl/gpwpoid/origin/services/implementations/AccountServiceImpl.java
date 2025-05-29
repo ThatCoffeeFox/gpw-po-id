@@ -117,8 +117,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional(readOnly = true)
-    public AccountListItem getNewestAccountInfoItemById(Integer id) {
-        Optional<AccountListItem> accountInfo = accountRepository.findAccountByIdAsViewItem(Long.valueOf(id));
-        return accountInfo.orElse(null);
+    public AccountInfo getNewestAccountInfoItemById(Integer id) {
+        if(id == null) {
+            return null;
+        }
+
+        return accountRepository.findAccountInfoById(id.longValue());
     }
 }

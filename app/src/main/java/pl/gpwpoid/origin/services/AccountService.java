@@ -17,6 +17,6 @@ public interface AccountService {
     Collection<Account> getAccounts();
     Collection<AccountListItem> getAccountViewList();
     Account getAccountById(Integer id);
-    AccountListItem getNewestAccountInfoItemById(Integer id);
+    AccountInfo getNewestAccountInfoItemById(Integer id);
 }
 

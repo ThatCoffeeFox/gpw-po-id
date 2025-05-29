@@ -24,6 +24,7 @@ import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.hilla.auth.EndpointAccessChecker;
 import org.springframework.beans.factory.annotation.Autowired;
+import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
 import pl.gpwpoid.origin.utils.SecurityUtils;
@@ -66,7 +67,7 @@ public class MainLayout extends AppLayout {
                 user -> {
                     Button logoutButton = new Button("Wyloguj się", e -> SecurityUtils.logout());
 
-                    AccountListItem userInfo = accountService.getNewestAccountInfoItemById(user.getAccountId());
+                    AccountInfo userInfo = accountService.getNewestAccountInfoItemById(user.getAccountId());
                     Avatar avatar = new Avatar(userInfo.getFirstName() + " " + userInfo.getLastName());
 
                     header.add(avatar, logoutButton);
@@ -94,6 +95,10 @@ public class MainLayout extends AppLayout {
 
         if(accessChecker.hasAccess(WalletsListView.class)) {
             nav.addItem(new SideNavItem("Twoje Portfele", WalletsListView.class, VaadinIcon.WALLET.create()));
+        }
+
+        if(accessChecker.hasAccess(ProfileView.class)) {
+            nav.addItem(new SideNavItem("Mój Profil", ProfileView.class, VaadinIcon.USER.create()));
         }
 
         addToDrawer(nav);
