@@ -52,15 +52,15 @@ DROP TABLE IF EXISTS subscriptions CASCADE;
 
 DROP TABLE IF EXISTS order_cancellations CASCADE;
 
-DROP FUNCTION IF EXISTS funds_in_wallets CASCADE;
+DROP FUNCTION IF EXISTS funds_in_wallet CASCADE;
+
+DROP FUNCTION IF EXISTS shares_left_in_orders CASCADE;
 
 DROP FUNCTION IF EXISTS shares_left_in_order CASCADE;
 
-DROP FUNCTION IF EXISTS shares_in_wallets CASCADE;
+DROP FUNCTION IF EXISTS shares_in_wallet CASCADE;
 
-DROP FUNCTION IF EXISTS blocked_funds_in_wallets CASCADE;
-
-DROP FUNCTION IF EXISTS blocked_shares_in_wallets CASCADE;
+DROP FUNCTION IF EXISTS blocked_shares_in_wallet CASCADE;
 
 DROP FUNCTION IF EXISTS shares_value CASCADE;
 
@@ -77,6 +77,8 @@ DROP FUNCTION IF EXISTS is_valid_transaction CASCADE;
 DROP FUNCTION IF EXISTS is_valid_cancellation CASCADE;
 
 DROP FUNCTION IF EXISTS is_valid_subscription CASCADE;
+
+DROP FUNCTION IF EXISTS unblocked_funds_in_wallet CASCADE;
 
 DROP VIEW IF EXISTS active_buy_orders CASCADE;
 
