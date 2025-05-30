@@ -32,6 +32,7 @@ import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
+import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
@@ -51,15 +52,8 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
     private final OrderService orderService;
     private final WalletsService walletsService;
     private final TransactionService transactionService;
-    private final Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
-    private final ComboBox<OrderType> orderType = new ComboBox<>("Typ zlecenia");
-    private final ComboBox<WalletDTO> wallet = new ComboBox<>("Portfel");
-    private Integer companyId;
-    private Company company;
-
     private Collection<WalletListItem> userWallets;
     private final Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
-    private OrderDTO orderDTO;
 
     private final ComboBox<String> orderType = new ComboBox<>("Typ zlecenia");
     private final ComboBox<WalletListItem> wallet = new ComboBox<>("Portfel");
@@ -108,6 +102,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         gridLayout.getStyle().set("flex-grow", "1");
 
         gridAndFormContainer.add(gridLayout);
+
         if(SecurityUtils.isLoggedIn()){
             loadWalletListItems();
             FormLayout formLayout = createOrderPlacementForm();
@@ -163,7 +158,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         conf.setPlotOptions(plotOptions);
     }
 
-    private void loadAndRenderCandlestickData() {
+        private void loadAndRenderCandlestickData() {
         if (companyId == null) {
 
             return;
@@ -236,16 +231,6 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         binder.setBean(orderDTO);
 
         binder.forField(orderType).bind("orderType");
-        binder.forField(wallet).bind("wallet");
-        binder.forField(sharesAmount).bind("amount");
-        binder.forField(sharePrice).withConverter(doubleValue -> {
-            if (doubleValue == null) return null;
-            return BigDecimal.valueOf(doubleValue);
-        }, bigDecimal -> {
-            if (bigDecimal == null) return null;
-            return bigDecimal.doubleValue();
-        }, "Nieprawidłowa cena").bind("price");
-        binder.forField(orderExpirationDate).bind("dateTime");
         binder.forField(wallet)
                 .withConverter(
                         WalletListItem::getWalletId,
@@ -273,10 +258,11 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
                 )
                 .bind("sharePrice");
         binder.forField(orderExpirationDate).bind("orderExpirationDate");
+
         binder.setBean(orderDTO);
     }
-    private void configureFields() {
-        orderType.setPlaceholder("Wybierz typ zlecenia");
+
+    private void configureFields(){
         orderType.setRequiredIndicatorVisible(true);
         orderType.setErrorMessage("Typ zlecenia jest wymagany");
         orderType.setItems("sell", "buy");
@@ -313,10 +299,10 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         submitButton.addClickListener(event -> {
             try {
                 OrderDTO order = binder.getBean();
-                if (order.getCompany() == null) {
-                    if (company != null) order.setCompany(company);
-                    else showError("Brak firmy");
-                }
+                if(company != null)
+                    order.setCompanyId(companyId);
+                else
+                    showError("Brak firmy");
                 binder.writeBean(order);
                 orderService.addOrder(order);
                 Notification.show("Złożono zlecenie", 4000, Notification.Position.TOP_CENTER);
@@ -326,9 +312,9 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
                 orderType.clear();
                 wallet.clear();
             } catch (ValidationException e) {
-                Notification.show("Niepoprawne dane.", 4000, Notification.Position.TOP_CENTER);
-            } catch (Exception e) {
-                Notification.show("Wystąpił błąd podczas składania zlecenia: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER);
+                showError("Niepoprawne dane");
+            } catch (Exception e){
+                showError("Wystąpił błąd podczas składania zlecenia: " + e.getMessage());
             }
         });
     }
@@ -365,30 +351,24 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         try {
             loadCompanyDetails();
             loadTransactionListItems();
-            if (SecurityUtils.isLoggedIn()) {
-
+            loadCompanyDetails();
+            if(SecurityUtils.isLoggedIn())
                 bindFields();
-
-            }
             loadAndRenderCandlestickData();
-        } catch (Exception e) {
-            System.err.println("ERROR in setParameter for companyId " + companyId + ":");
-            e.printStackTrace();
-            showError("Wystąpił błąd podczas ładowania danych. Szczegóły w logach serwera. Komunikat: " + e.getMessage());
+        } catch (Exception e){
+            showError("Nieprawidłowy adres: " + e.getMessage());
         }
     }
 
-    private void loadCompanyDetails() {
-        if (companyId != null) {
+    private void loadCompanyDetails() { //TODO: change to CompanyViewItem, display name etc
+        if(companyId != null) {
             Optional<Company> currentCompany = companyService.getCompanyById(companyId);
-            if (currentCompany.isPresent()) {
+            if(currentCompany.isPresent())
                 company = currentCompany.get();
-                OrderDTO newOrderDTO = new OrderDTO();
-                newOrderDTO.setCompany(company);
-            } else {
+            else
                 showError("firma o ID " + companyId + " nie została znalezniona");
-            }
-        } else {
+        }
+        else{
             showError("brak ID firmy");
         }
     }
