@@ -80,6 +80,8 @@ DROP FUNCTION IF EXISTS is_valid_subscription CASCADE;
 
 DROP FUNCTION IF EXISTS unblocked_funds_in_wallet CASCADE;
 
+DROP FUNCTION IF EXISTS ublocked_founds_before_market_buy_order CASCADE;
+
 DROP VIEW IF EXISTS active_buy_orders CASCADE;
 
 DROP VIEW IF EXISTS active_sell_orders CASCADE;

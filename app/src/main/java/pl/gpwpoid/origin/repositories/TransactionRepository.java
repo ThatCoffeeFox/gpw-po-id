@@ -11,6 +11,7 @@ import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -19,11 +20,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     @Query("""
     SELECT new pl.gpwpoid.origin.repositories.views.TransactionListItem(t.date, t.sharesAmount, t.sharePrice)
     FROM Transaction t
-    WHERE t.buyOrder.company.companyId = :companyId
+    WHERE t.buyOrder.companyId = :companyId
     ORDER BY t.date DESC
     """)
 
     List<TransactionListItem> findTransactionsByIdAsListItems(@Param("companyId") int companyId, Pageable pageable);
+
+    @Query(value = """
+            SELECT shares_value( :companyId )
+            """, nativeQuery = true)
+    BigDecimal findShareValueByCompanyId(@Param("companyId") Integer companyId);
 
     @Query(value = """
         WITH CompanyTransactions AS (

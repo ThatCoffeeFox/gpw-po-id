@@ -34,7 +34,7 @@ public class Account {
     @Column(name = "role", nullable = false)
     private UserRole role;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch =  FetchType.EAGER)
     private Set<AccountInfo> accountInfos;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
