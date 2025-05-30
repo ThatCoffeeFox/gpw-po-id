@@ -23,4 +23,5 @@ public interface WalletsService {
     Collection<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
     Collection<TransferListItem> getTransferListForCurrentWallet(Integer walletId);
     void addTransfer(TransferDTO transferDTO);
+    void deleteWallet(Integer walletId);
 }

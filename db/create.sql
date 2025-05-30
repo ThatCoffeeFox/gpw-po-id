@@ -76,7 +76,8 @@ CREATE TABLE wallets (
   wallet_id    SERIAL PRIMARY KEY,
   account_id   INTEGER NOT NULL
     REFERENCES accounts(account_id) ON DELETE CASCADE,
-  name         VARCHAR(128) NOT NULL
+  name         VARCHAR(128) NOT NULL,
+  active       BOOLEAN NOT NULL
 );
 
 CREATE TABLE companies (
@@ -270,6 +271,18 @@ CREATE OR REPLACE FUNCTION shares_value(arg_company_id INTEGER)
     END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION shares_value_last_day(arg_company_id INTEGER)
+    RETURNS NUMERIC(17,2)
+    AS $$
+    BEGIN
+    RETURN (SELECT t.share_price
+            FROM transactions t JOIN orders o ON t.sell_order_id = o.order_id
+            WHERE t.date < CURRENT_DATE AND o.company_id = arg_company_id
+            ORDER BY t.date DESC
+            LIMIT 1);
+    END
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION tradable_companies()
        RETURNS TABLE(company_id INTEGER)
        AS $$
@@ -459,7 +472,7 @@ CREATE OR REPLACE VIEW active_sell_orders AS
     JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'sell'
     AND sl.shares_left > 0
-    AND o.order_expiration_date > current_timestamp
+    AND (o.order_expiration_date > current_timestamp OR o.order_expiration_date IS NULL)
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
 
 CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)

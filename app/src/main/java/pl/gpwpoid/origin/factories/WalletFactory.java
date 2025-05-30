@@ -18,6 +18,7 @@ public class WalletFactory {
         Wallet wallet = new Wallet();
         wallet.setAccount(account);
         wallet.setName(name);
+        wallet.setActive(true);
 
         return wallet;
     }

@@ -47,6 +47,8 @@ public class WalletsListView extends HorizontalLayout {
         VerticalLayout addWalletLayout = configureAddWalletButton();
         add(grid, addWalletLayout);
         loadWalletListItems();
+        setSpacing(true);
+        setPadding(true);
     }
 
     private VerticalLayout configureAddWalletButton(){
@@ -55,6 +57,7 @@ public class WalletsListView extends HorizontalLayout {
 
         VerticalLayout addWalletLayout = new VerticalLayout();
         addWalletLayout.add(addWalletButton);
+        addWalletLayout.setWidth("100px");
         return addWalletLayout;
     }
 
@@ -124,6 +127,7 @@ public class WalletsListView extends HorizontalLayout {
         });
 
         grid.getColumns().forEach(column -> column.setAutoWidth(true));
+        grid.setMaxWidth("1000px");
     }
 
     private void loadWalletListItems() {

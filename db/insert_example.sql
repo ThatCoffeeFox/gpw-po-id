@@ -20,17 +20,17 @@ INSERT INTO accounts_info (account_id, updated_at, email, password, first_name, 
     (5, NOW() - INTERVAL '2 days', 'user4@example.com', '$2a$10$TQxTW8484W8ZzNFs0/G8Q..5PrJw8jq1ABQecsbTHH18/YEAwTs4K', 'UserFourFirst', NULL, 'UserFourLast', 35803, '00-002', '1', '1', 'a', '+48555666777', '03250282422');
 
 -- 4. Wallets (2 per account)
-INSERT INTO wallets (account_id, name) VALUES
-(1, 'Admin Main Wallet'),
-(1, 'Admin Investment Wallet'),
-(2, 'User1 Primary Wallet'),
-(2, 'User1 Trading Wallet'),
-(3, 'User2 Cash Wallet'),
-(3, 'User2 Stock Wallet'),
-(4, 'User3 General Wallet'),
-(4, 'User3 IPO Wallet'),
-(5, 'User4 Savings Wallet'),
-(5, 'User4 Market Wallet');
+INSERT INTO wallets (account_id, name, active) VALUES
+(1, 'Admin Main Wallet', true),
+(1, 'Admin Investment Wallet', true),
+(2, 'User1 Primary Wallet', true),
+(2, 'User1 Trading Wallet', true),
+(3, 'User2 Cash Wallet', true),
+(3, 'User2 Stock Wallet', true),
+(4, 'User3 General Wallet', true),
+(4, 'User3 IPO Wallet', true),
+(5, 'User4 Savings Wallet', true),
+(5, 'User4 Market Wallet', true);
 
 -- 5. External Transfers
 -- wallet 1: 49500
@@ -155,7 +155,7 @@ INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiratio
 -- wallet 3 funds: 15530 + 450 shares C1
 -- wallet 5 funds: 21200 + 350 shares C1
 INSERT INTO transactions (sell_order_id, buy_order_id, date, shares_amount, share_price) VALUES
-(1, 2, NOW() - INTERVAL '1 hour', 50, 11.00);
+(1, 2, NOW() - INTERVAL '1 day 1 hour', 50, 12.00);
 
 -- wallet 10 wants to buy 50 shares of C1 (to match with the rest od order 1) (cost = 550.00)
 INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id) VALUES

@@ -79,7 +79,7 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     public BigDecimal getWalletFundsById(Integer walletId) {
-        return walletRepository.getFundsByWalletId(SecurityUtils.getAuthenticatedAccountId());
+        return walletRepository.getFundsByWalletId(walletId);
     }
 
     @Override
@@ -124,5 +124,17 @@ public class WalletServiceImpl implements WalletsService {
         );
 
         externalTransferRepository.save(newTransfer);
+    }
+
+    @Override
+    public void deleteWallet(Integer walletId) {
+        Optional<Wallet> wallet = walletRepository.findById(Long.valueOf(walletId));
+        if(wallet.isPresent()){
+            Wallet walletToDelete = wallet.get();
+            walletToDelete.setActive(false);
+            walletRepository.save(walletToDelete);
+        }
+        else
+            throw new IllegalArgumentException("Wallet not found");
     }
 }

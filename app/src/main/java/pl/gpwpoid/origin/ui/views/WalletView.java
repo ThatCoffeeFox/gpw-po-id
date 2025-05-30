@@ -23,6 +23,7 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
+import org.atmosphere.interceptor.AtmosphereResourceStateRecovery;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
@@ -34,6 +35,7 @@ import pl.gpwpoid.origin.ui.views.DTO.TransferDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
@@ -51,11 +53,14 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
     WalletsService walletsService;
 
     private Integer walletId;
+    private Collection<WalletCompanyListItem> walletCompanyListItems;
     private final Grid<WalletCompanyListItem> sharesGrid = new Grid<>();
     private final Grid<TransactionWalletListItem> transactionsGrid = new Grid<>();
     private final Grid<TransferListItem> transfersGrid = new Grid<>();
     private final H3 walletName = new H3();
     private final Span walletFunds = new Span();
+    private final Button deletionButton = new Button("Usuń portfel");
+    private BigDecimal funds;
 
     private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
             "#,##0.00",
@@ -90,7 +95,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
     public void setParameter(BeforeEvent beforeEvent, Integer parameter) {
         this.walletId = parameter;
 
-        Collection<WalletCompanyListItem> walletCompanyListItems = walletsService.getWalletCompanyListForCurrentWallet(walletId);
+        walletCompanyListItems = walletsService.getWalletCompanyListForCurrentWallet(walletId);
         sharesGrid.setItems(walletCompanyListItems);
 
         Collection<TransferListItem> transferListItems = walletsService.getTransferListForCurrentWallet(walletId);
@@ -99,21 +104,36 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         Collection<TransactionWalletListItem> transactionWalletListItems = transactionService.getTransactionsByWalletId(walletId);
         transactionsGrid.setItems(transactionWalletListItems);
 
-        BigDecimal funds = walletsService.getWalletFundsById(walletId);
+        funds = walletsService.getWalletFundsById(walletId);
         walletFunds.add(funds.toString() + " zł");
         String name = walletsService.getWalletNameById(walletId);
         walletName.add(name);
+
+        deletionButton.setEnabled(canDeleteWallet());
     }
 
     private VerticalLayout configureSharesGrid() {
         VerticalLayout gridLayout = new VerticalLayout();
 
-        sharesGrid.addColumn(WalletCompanyListItem::getCompanyName).setHeader("Nazwa").setSortable(true);
-        sharesGrid.addColumn(WalletCompanyListItem::getCompanyCode).setHeader("Kod").setSortable(true);
-        sharesGrid.addColumn(WalletCompanyListItem::getSharePrice).setHeader("Aktualna cena").setSortable(true);
-        sharesGrid.addColumn(WalletCompanyListItem::getChangeInPrice).setHeader("Zmiana");
-        sharesGrid.addColumn(WalletCompanyListItem::getSharesAmount).setHeader("Ilość akcji").setSortable(true);
-        sharesGrid.setMaxWidth("700px");
+        sharesGrid.addColumn(new ComponentRenderer<>(item -> {
+            Button navigationButton = new Button(item.getCompanyName());
+            navigationButton.addClickListener(e -> {
+                String url = "/companies/" + item.getCompanyId();
+                UI.getCurrent().navigate(url);
+            });
+            return navigationButton;
+        })).setHeader("Nazwa").setSortable(true).setAutoWidth(true);
+        sharesGrid.addColumn(WalletCompanyListItem::getCompanyCode).setHeader("Kod").setSortable(true).setAutoWidth(true);
+        sharesGrid.addColumn(WalletCompanyListItem::getCurrentSharePrice).setHeader("Aktualna cena").setSortable(true).setAutoWidth(true);
+        sharesGrid.addColumn(item -> {
+            if(item.getPreviousSharePrice() == null)
+                return "0%";
+            BigDecimal percentage = item.getCurrentSharePrice().divide(item.getPreviousSharePrice(), 10, RoundingMode.HALF_UP)
+                    .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP).add(new BigDecimal("-100"));
+            return percentage + "%";
+        }).setHeader("Zmiana").setSortable(true).setAutoWidth(true);
+        sharesGrid.addColumn(WalletCompanyListItem::getSharesAmount).setHeader("Ilość akcji").setSortable(true).setAutoWidth(true);
+        sharesGrid.setMaxWidth("900px");
 
         gridLayout.add(sharesGrid);
         return gridLayout;
@@ -169,12 +189,38 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
 
     private VerticalLayout configureWalletStatusLayout(){
         VerticalLayout layout = new VerticalLayout();
-        Button tranferButton = new Button("Nowy transfer");
-        tranferButton.addClickListener(event -> openTransferDialog());
+        Button transferButton = new Button("Nowy transfer");
+        transferButton.addClickListener(event -> openTransferDialog());
+
+        deletionButton.setEnabled(false);
+        deletionButton.addClickListener(event -> openDeletionDialog());
 
         walletFunds.add("Dostępne środki: ");
-        layout.add(walletFunds, tranferButton);
+        layout.add(walletFunds, transferButton, deletionButton);
+        layout.setMaxWidth("400px");
         return layout;
+    }
+
+    private boolean canDeleteWallet(){
+        return walletCompanyListItems.isEmpty() && (funds.compareTo(new BigDecimal("0")) == 0);
+    }
+
+    private void openDeletionDialog(){
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Czy na pewno chcesz usunąć ten portfel?");
+        Button confirmButton = new Button("Usuń");
+        confirmButton.addClickListener(e -> {
+            walletsService.deleteWallet(walletId);
+            UI.getCurrent().navigate("/wallets");
+            dialog.close();
+        });
+        Button cancelButton = new Button("Anuluj");
+        cancelButton.addClickListener(e -> dialog.close());
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(confirmButton, cancelButton);
+        dialog.getFooter().add(buttonLayout);
+
+        dialog.open();
     }
 
     private void openTransferDialog() {
