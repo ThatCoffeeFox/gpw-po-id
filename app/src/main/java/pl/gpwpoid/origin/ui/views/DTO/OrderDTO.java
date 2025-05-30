@@ -13,22 +13,22 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class OrderDTO {
     @NotNull(message = "Typ zlecenia jest wymagany")
-    private OrderType orderType;
-
-    @NotNull(message = "Portfel jest wymagany")
-    private WalletDTO wallet;
-
-    @NotNull(message = "Ilość akcji jest wymagana")
-    @Min(value = 1, message = "Ilość akcji musi być większa od 0")
-    private Integer amount;
-
-    @NotNull
-    private Company company;
+    private String orderType;
 
     @Positive(message = "Cena musi być dodatnia")
     @Digits(integer = 17, fraction = 2, message = "Cena może mieć maksymalnie dwa miejsca po przecinku")
-    private BigDecimal price;
+    private BigDecimal sharePrice;
+
+    @NotNull(message = "Ilość akcji jest wymagana")
+    @Min(value = 1, message = "Ilość akcji musi być większa od 0")
+    private Integer sharesAmount;
+
+    @NotNull(message = "Portfel jest wymagany")
+    private Integer walletId;
+
+    @NotNull
+    private Integer companyId;
 
     @Future(message = "Data wygaśnięcia nie może być w przeszłości")
-    private LocalDateTime dateTime;
+    private LocalDateTime orderExpirationDate;
 }

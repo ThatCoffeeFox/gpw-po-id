@@ -7,6 +7,7 @@ import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.keys.AccountInfoId;
+import pl.gpwpoid.origin.ui.views.DTO.ProfileUpdateDTO;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -75,5 +76,39 @@ public class AccountFactory {
         account.getAccountInfos().add(accountInfo);
 
         return account;
+    }
+
+    public AccountInfo createAccountInfo(ProfileUpdateDTO profileUpdateDTO, PostalCodesTowns postalCodesTowns) {
+        if(profileUpdateDTO.getEmail() == null || profileUpdateDTO.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be null or empty");
+        }
+
+        if(profileUpdateDTO.getPesel() == null || profileUpdateDTO.getPesel().isEmpty()) {
+            throw new IllegalArgumentException("Pesel cannot be null or empty");
+        }
+
+        if(profileUpdateDTO.getPhoneNumber() == null || profileUpdateDTO.getPhoneNumber().isEmpty()) {
+            throw new IllegalArgumentException("Phone number cannot be null or empty");
+        }
+
+        if(profileUpdateDTO.getTownId() == null || profileUpdateDTO.getPostalCode() == null) {
+            throw new IllegalArgumentException("Town id cannot be null or empty");
+        }
+
+        AccountInfo accountInfo = new AccountInfo();
+
+        AccountInfoId accountInfoId = new AccountInfoId();
+        accountInfoId.setUpdatedAt(new Date());
+        accountInfo.setId(accountInfoId);
+
+        accountInfo.setEmail(profileUpdateDTO.getEmail());
+        accountInfo.setPesel(profileUpdateDTO.getPesel());
+        accountInfo.setPhoneNumber(profileUpdateDTO.getPhoneNumber());
+        accountInfo.setStreet(profileUpdateDTO.getStreet());
+        accountInfo.setStreetNumber(profileUpdateDTO.getStreetNumber());
+        accountInfo.setApartmentNumber(profileUpdateDTO.getApartmentNumber());
+        accountInfo.setPostalCodesTowns(postalCodesTowns);
+
+        return accountInfo;
     }
 }

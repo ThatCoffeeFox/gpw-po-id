@@ -9,8 +9,8 @@ import pl.gpwpoid.origin.models.keys.TransactionId;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
-
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -22,7 +22,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     WHERE t.buyOrder.company.companyId = :companyId
     ORDER BY t.date DESC
     """)
-
     List<TransactionListItem> findTransactionsByIdAsListItems(@Param("companyId") int companyId, Pageable pageable);
 
     @Query(value = """
@@ -93,4 +92,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                                               @Param("startDate") LocalDateTime startDate,
                                               @Param("endDate") LocalDateTime endDate);
 
+    @Query(value = """
+            SELECT shares_value( :companyId )
+            """, nativeQuery = true)
+    BigDecimal findShareValueByCompanyId(@Param("companyId") Integer companyId);
 }

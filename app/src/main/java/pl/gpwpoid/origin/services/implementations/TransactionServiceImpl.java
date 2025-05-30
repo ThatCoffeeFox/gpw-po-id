@@ -17,7 +17,6 @@ import pl.gpwpoid.origin.services.TransactionService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -44,6 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit) {
         Pageable pageable = PageRequest.of(0,limit);
         return transactionRepository.findTransactionsByIdAsListItems(companyId, pageable);
@@ -53,5 +53,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(readOnly = true)
     public List<OHLCDataItem> getOHLCDataByCompanyId(Integer companyId, LocalDateTime from, LocalDateTime to) {
         return transactionRepository.getOHLCDataByCompanyId(companyId, from, to);
+    }
+  
+    @Transactional(readOnly = true)
+    @Override
+    public BigDecimal getShareValueByCompanyId(Integer companyId){
+        return transactionRepository.findShareValueByCompanyId(companyId);
+
     }
 }

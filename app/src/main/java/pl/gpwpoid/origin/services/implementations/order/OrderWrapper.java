@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services.implementations.order;
 
 import pl.gpwpoid.origin.models.order.Order;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 
@@ -9,10 +10,24 @@ class OrderWrapper{
     private Order order;
 
     private int sharesLeft;
+    private BigDecimal shareMatchingPrice;
+
+
 
     OrderWrapper(Order order){
         this.order = order;
         this.sharesLeft = order.getSharesAmount();
+        this.shareMatchingPrice = order.getSharePrice();
+    }
+
+    OrderWrapper(Order order, int sharesLeft){
+        this.order = order;
+        this.sharesLeft = sharesLeft;
+        this.shareMatchingPrice = order.getSharePrice();
+    }
+
+    void setShareMatchingPrice(BigDecimal shareMatchingPrice){
+        this.shareMatchingPrice = shareMatchingPrice;
     }
 
     Order getOrder(){
@@ -31,6 +46,10 @@ class OrderWrapper{
 
     int getSharesLeft(){
         return this.sharesLeft;
+    }
+
+    BigDecimal getShareMatchingPrice(){
+        return this.shareMatchingPrice;
     }
 }
 
