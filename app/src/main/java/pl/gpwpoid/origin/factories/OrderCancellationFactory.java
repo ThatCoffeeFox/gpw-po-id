@@ -19,8 +19,6 @@ public class OrderCancellationFactory {
 
          orderCancellation.setId(orderCancellationId);
          orderCancellation.setOrder(order);
-
-         order.getCancellations().add(orderCancellation);
          return orderCancellation;
     }
 }

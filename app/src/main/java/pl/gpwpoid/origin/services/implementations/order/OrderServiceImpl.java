@@ -14,6 +14,7 @@ import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderCancellation;
 import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.OrderCancellationRepository;
 import pl.gpwpoid.origin.repositories.OrderRepository;
 import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
@@ -33,6 +34,7 @@ import java.util.concurrent.*;
 @Service
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
+    private final OrderCancellationRepository orderCancellationRepository;
 
     private final OrderFactory orderFactory;
     private final OrderCancellationFactory orderCancellationFactory;
@@ -48,7 +50,7 @@ public class OrderServiceImpl implements OrderService {
     private final ExecutorService orderExecutorService;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository,
+    public OrderServiceImpl(OrderRepository orderRepository, OrderCancellationRepository orderCancellationRepository,
                             OrderFactory orderFactory,
                             OrderCancellationFactory orderCancellationFactory,
                             OrderWrapperFactory orderWrapperFactory,
@@ -58,6 +60,7 @@ public class OrderServiceImpl implements OrderService {
                             @Qualifier("orderExecutorService") ExecutorService orderExecutorService,
                             WalletsService walletsService){
         this.orderRepository = orderRepository;
+        this.orderCancellationRepository = orderCancellationRepository;
 
         this.orderFactory = orderFactory;
         this.orderCancellationFactory = orderCancellationFactory;
@@ -132,13 +135,24 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void cancelOrder(Integer orderId) {
-//        try{
-//            OrderCancellation newOrderCancellation = orderCancellationFactory.createOrderCancellation(orderId);
-//            orderRepository.save(orderId);
-//        }
-//        catch (Exception e){
-//            throw new RuntimeException(e);
-//        }
+
+        Order order = orderRepository.findById(Long.valueOf(orderId))
+                .orElseThrow(() -> new IllegalArgumentException("This order does not exist"));
+
+        if (!order.getWallet().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
+            throw new RuntimeException("You are not an owner of the wallet that the order was made to");
+        }
+
+        if (!order.getCancellations().isEmpty()) {
+            throw new IllegalArgumentException("This order was already canceled");
+        }
+
+        if (order.getOrderExpirationDate() != null && order.getOrderExpirationDate().before(new Date())) {
+            throw new IllegalArgumentException("This order already expired");
+        }
+
+        OrderCancellation cancellation = orderCancellationFactory.createOrderCancellation(order);
+        orderCancellationRepository.save(cancellation); // 💾 save directly
     }
 
     @Override

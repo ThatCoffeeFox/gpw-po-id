@@ -12,9 +12,9 @@ import java.util.Date;
 @Data
 public class ActiveOrderListItem {
     private Integer orderId;
-    private Integer walletId;
+    private String walletName;
     private String orderType;
-    private Integer shareAmount;
+    private Integer sharesAmount;
     private BigDecimal sharePrice;
     private Date orderStartDate;
     private Date orderExpirationDate;

@@ -26,6 +26,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
 
     private final CompanyChart companyChart;
     private final OrderForm orderForm;
+    private final ActiveOrdersGrid activeOrdersGrid;
 
     private Integer companyId;
     private Company company;
@@ -39,6 +40,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         this.transactionService = transactionService;
         this.orderService = orderService;
         this.walletsService = walletsService;
+        this.activeOrdersGrid = new ActiveOrdersGrid(orderService);
         this.orderForm = new OrderForm(orderService, walletsService);
         this.companyChart = new CompanyChart(transactionService);
 
@@ -46,13 +48,14 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         setPadding(true);
         setSpacing(true);
 
-        HorizontalLayout bottomLayout = new HorizontalLayout();
+        VerticalLayout bottomLayout = new VerticalLayout();
         bottomLayout.setWidthFull();
         bottomLayout.setAlignItems(Alignment.START);
 
         if (SecurityUtils.isLoggedIn()) {
             bottomLayout.add(orderForm);
             orderForm.setWidth("50%");
+            bottomLayout.add(activeOrdersGrid);
         } else {
             bottomLayout.setJustifyContentMode(JustifyContentMode.CENTER);
         }
@@ -71,6 +74,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
 
             if (SecurityUtils.isLoggedIn()) {
                 orderForm.setCompanyId(companyId);
+                activeOrdersGrid.updateList();
             }
         } catch (Exception e) {
             Notification.show("Nieprawidłowy adres: " + e.getMessage(),

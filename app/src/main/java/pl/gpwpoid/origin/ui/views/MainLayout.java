@@ -85,6 +85,8 @@ public class MainLayout extends AppLayout {
     private void addDrawerContent() {
         SideNav nav =  new SideNav();
 
+        nav.setWidth(null);
+
         if(accessChecker.hasAccess(AccountsListView.class)) {
             nav.addItem(new SideNavItem("Konta Użytkowników", AccountsListView.class, VaadinIcon.USER_CARD.create()));
         }
