@@ -10,10 +10,12 @@ import pl.gpwpoid.origin.factories.TransactionFactory;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.TransactionRepository;
+import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,5 +47,11 @@ public class TransactionServiceImpl implements TransactionService {
     public Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit) {
         Pageable pageable = PageRequest.of(0,limit);
         return transactionRepository.findTransactionsByIdAsListItems(companyId, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OHLCDataItem> getOHLCDataByCompanyId(Integer companyId, LocalDateTime from, LocalDateTime to) {
+        return transactionRepository.getOHLCDataByCompanyId(companyId, from, to);
     }
 }
