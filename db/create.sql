@@ -252,21 +252,20 @@ CREATE OR REPLACE FUNCTION blocked_shares_in_wallet(arg_wallet_id INTEGER, arg_c
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_value()
-    RETURNS TABLE(company_id INTEGER, shares_value NUMERIC(17,2))
+CREATE OR REPLACE FUNCTION shares_value(arg_company_id INTEGER)
+    RETURNS NUMERIC(17,2)
     AS $$
     BEGIN
-        RETURN QUERY SELECT c.company_id, 
-                COALESCE((SELECT t.share_price
-                    FROM transactions t 
-                    JOIN orders o ON t.sell_order_id = o.order_id
-                    WHERE o.company_id = c.company_id
-                    ORDER BY t.date DESC
-                    LIMIT 1),i.ipo_price)
-                FROM companies c
-                JOIN ipo i ON c.company_id = i.company_id
-                WHERE i.subscription_start = (SELECT MAX(subscription_start) FROM ipo i WHERE c.company_id = i.company_id)
-                ORDER BY 1;
+    RETURN (SELECT COALESCE((SELECT t.share_price 
+                            FROM transactions t
+                            JOIN orders o ON t.sell_order_id = o.order_id
+                            WHERE o.company_id = arg_company_id
+                            ORDER BY t.date DESC LIMIT 1), i.ipo_price)
+                    FROM ipo i
+                    WHERE i.company_id = arg_company_id AND
+                    i.subscription_start = (SELECT subscription_start FROM ipo ii 
+                                            WHERE ii.company_id = arg_company_id 
+                                            ORDER BY 1 DESC LIMIT 1));
     END
 $$ LANGUAGE plpgsql;
 

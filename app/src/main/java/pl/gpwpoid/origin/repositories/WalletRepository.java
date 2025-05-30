@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 
 import java.math.BigDecimal;
@@ -17,32 +18,42 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
             w.name AS name,
             funds_in_wallet(w.wallet_id) AS funds
         FROM wallets w
-        JOIN accounts a ON a.account_id = w.account_id JOIN accounts_info ai ON a.account_id = ai.account_id
-        WHERE ai.email = :email;
+        JOIN accounts a ON a.account_id = w.account_id
+        WHERE a.account_id = :accountId
 """, nativeQuery = true)
-    List<WalletListItem> getWalletListViewForCurrentUser(String email);
+    List<WalletListItem> getWalletListViewForCurrentUser(Integer accountId);
 
     @Query(value = """
         SELECT 
             w.*
         FROM wallets w 
         JOIN accounts a ON a.account_id = w.account_id
-        JOIN accounts_info ai ON a.account_id = ai.account_id
-        WHERE ai.email = :email
+        WHERE a.account_id = :accountId
 """, nativeQuery = true)
-    List<Wallet> getWalletForCurrentUser(String email);
+    List<Wallet> getWalletForCurrentUser(Integer accountId);
 
     @Query(value = """ 
-        SELECT unblocked_funds 
-        FROM ublocked_funds_in_wallets()
-        WHERE wallet_id = :walletId
+        SELECT unblocked_funds_in_waller(:walletId) 
 """, nativeQuery = true)
     BigDecimal getWalletUnblockedFundsById(Integer walletId);
 
     @Query(value = """
-        SELECT s.shares_amount - b.blocked_shares 
-        FROM blocked_shares_in_wallets() b JOIN shares_in_wallets() s ON s.wallet_id = b.wallet_id AND s.company_id = b.company_id
-        WHERE wallet_id = :walletId AND company_id = :companyId
+        SELECT shares_in_wallet(:walletId, :companyId) - blocked_shares_in_wallet(:walletId, :companyId) 
 """, nativeQuery = true)
     Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
+
+    @Query(value = """
+        SELECT 
+            ci.name AS companyName,
+            ci.code AS companyCode,
+            shares_value(ci.company_id) AS sharesValue,
+            shares_in_wallet(:walletId, ci.company_id) AS sharesAmount
+        FROM companies_info ci 
+        WHERE ci.updated_at = (SELECT cii.updated_at FROM companies_info cii WHERE cii.company_id = ci.company_id
+                            ORDER BY cii.updated_at DESC LIMIT 1)
+        AND shares_in_wallet(:walletId, ci.company_id) != 0
+""", nativeQuery = true)
+    List<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
 }
+
+

@@ -232,7 +232,8 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         try{
             loadTransactionListItems();
             loadCompanyDetails();
-            bindFields();
+            if(SecurityUtils.isLoggedIn())
+                bindFields();
         } catch (Exception e){
             showError("Nieprawidłowy adres: " + e.getMessage());
         }
