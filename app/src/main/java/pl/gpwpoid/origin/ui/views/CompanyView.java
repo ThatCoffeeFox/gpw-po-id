@@ -157,7 +157,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
         conf.setPlotOptions(plotOptions);
     }
 
-    private void loadAndRenderCandlestickData() {
+        private void loadAndRenderCandlestickData() {
         if (companyId == null) {
 
             return;

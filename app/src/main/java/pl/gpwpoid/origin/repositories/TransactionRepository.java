@@ -20,7 +20,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     @Query("""
     SELECT new pl.gpwpoid.origin.repositories.views.TransactionListItem(t.date, t.sharesAmount, t.sharePrice)
     FROM Transaction t
-    WHERE t.buyOrder.companyId = :companyId
+    WHERE t.buyOrder.company.id = :companyId
     ORDER BY t.date DESC
     """)
 
