@@ -58,7 +58,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
     private final Grid<TransactionWalletListItem> transactionsGrid = new Grid<>();
     private final Grid<TransferListItem> transfersGrid = new Grid<>();
     private final H3 walletName = new H3();
-    private final Span walletFunds = new Span();
+    private Span walletFunds = new Span();
     private final Button deletionButton = new Button("Usuń portfel");
     private BigDecimal funds;
 
@@ -290,6 +290,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
                 binder.writeBean(transferDTO);
                 walletsService.addTransfer(transferDTO);
                 Notification.show("Wykonano przelew");
+                updateFunds();
                 dialog.close();
             } catch (Exception e){
                     showError(e.getMessage());
@@ -299,6 +300,12 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         cancelTransaction.addClickListener(event -> dialog.close());
 
         dialog.open();
+    }
+
+    private void updateFunds(){
+        BigDecimal newFunds = walletsService.getWalletFundsById(walletId);
+        funds = newFunds;
+        walletFunds = new Span(newFunds.toString() + " zł");
     }
 
     private void showError(String message) {
