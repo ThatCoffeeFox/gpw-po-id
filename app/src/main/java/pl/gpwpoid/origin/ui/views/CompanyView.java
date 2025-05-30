@@ -32,6 +32,7 @@ import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
+import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
@@ -353,6 +354,7 @@ public class CompanyView extends HorizontalLayout implements HasUrlParameter<Int
             loadCompanyDetails();
             if(SecurityUtils.isLoggedIn())
                 bindFields();
+            loadAndRenderCandlestickData();
         } catch (Exception e){
             showError("Nieprawidłowy adres: " + e.getMessage());
         }
