@@ -68,8 +68,4 @@ public final class SecurityUtils {
 
         Optional.ofNullable(VaadinSession.getCurrent()).ifPresent(VaadinSession::close);
     }
-
-    public static Account getAuthenticatedAccount() {
-        return null;
-    }
 }

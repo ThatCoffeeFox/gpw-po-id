@@ -24,6 +24,7 @@ import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.lang.Integer;
+import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.time.ZoneId;
 import java.util.*;
@@ -35,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderFactory orderFactory;
     private final OrderCancellationFactory orderCancellationFactory;
+    private final OrderWrapperFactory orderWrapperFactory;
 
     private final CompanyService companyService;
     private final TransactionService transactionService;
@@ -49,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderServiceImpl(OrderRepository orderRepository,
                             OrderFactory orderFactory,
                             OrderCancellationFactory orderCancellationFactory,
+                            OrderWrapperFactory orderWrapperFactory,
                             CompanyService companyService,
                             TransactionService transactionService,
                             ConcurrentMap<Integer,BlockingQueue<Order>> companyIdOrderQueue,
@@ -58,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
 
         this.orderFactory = orderFactory;
         this.orderCancellationFactory = orderCancellationFactory;
+        this.orderWrapperFactory = orderWrapperFactory;
 
         this.companyService = companyService;
         this.transactionService = transactionService;
@@ -70,6 +74,21 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    private boolean hasEnoughFoundsOrShares(OrderDTO orderDTO){
+        if(orderDTO.getOrderType().equals("buy")){
+            BigDecimal foundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
+            if(orderDTO.getSharePrice() == null) {
+                return foundsInWallet.compareTo(BigDecimal.ZERO) > 0;
+            }
+            BigDecimal foundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
+            return foundsInWallet.compareTo(foundsNeeded) >= 0;
+        } else if (orderDTO.getOrderType().equals("sell")) {
+            Integer sharesInWallet = walletsService.getWalletUnblockedSharesAmount(orderDTO.getWalletId(), orderDTO.getCompanyId());
+            return sharesInWallet.compareTo(orderDTO.getSharesAmount()) >= 0;
+        }
+        return false;
+    };
+
 
     @Override
     @Transactional
@@ -80,9 +99,13 @@ public class OrderServiceImpl implements OrderService {
         Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWalletId());
 
         if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-//        if (!wallet.get().getAccount().equals(SecurityUtils.getAuthenticatedAccount())){
-//            throw new AccessDeniedException("You are not an owner of the wallet");
-//        }
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+            throw new AccessDeniedException("You are not an owner of the wallet");
+        }
+        if(!hasEnoughFoundsOrShares(orderDTO)){
+            throw new RuntimeException("You don't have enough shares/founds");
+        }
+
 
 
         Order order = orderFactory.createOrder(orderDTO, wallet.get(), company.get());
@@ -137,6 +160,7 @@ public class OrderServiceImpl implements OrderService {
                                 getActiveSellOrderWrappersByCompanyId(companyId),
                                 transactionService.getShareValueByCompanyId(companyId),
                                 transactionService,
+                                orderWrapperFactory,
                                 companyIdOrderQueue))
         );
     }
@@ -157,11 +181,7 @@ public class OrderServiceImpl implements OrderService {
         OrderType orderType = new OrderType();
         orderType.setOrderType("buy");
         Optional<Company> company = companyService.getCompanyById(companyId);
-        return projections.stream().map(activeOrderProjection -> {
-            return new OrderWrapper(
-                    orderFactory.createOrder(activeOrderProjection, orderType),
-                    activeOrderProjection.getSharesLeft());
-        }).toList();
+        return projections.stream().map(orderWrapperFactory::createBuyOrderWrapper).toList();
     }
 
 
@@ -170,10 +190,6 @@ public class OrderServiceImpl implements OrderService {
         OrderType orderType = new OrderType();
         orderType.setOrderType("sell");
         Optional<Company> company = companyService.getCompanyById(companyId);
-        return projections.stream().map(activeOrderProjection -> {
-            return new OrderWrapper(
-                    orderFactory.createOrder(activeOrderProjection, orderType),
-                    activeOrderProjection.getSharesLeft());
-        }).toList();
+        return projections.stream().map(orderWrapperFactory::createSellOrderWrapper).toList();
     }
 }

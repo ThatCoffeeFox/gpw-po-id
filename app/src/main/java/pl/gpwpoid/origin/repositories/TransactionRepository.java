@@ -24,9 +24,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     List<TransactionListItem> findTransactionsByIdAsListItems(@Param("companyId") int companyId, Pageable pageable);
 
     @Query(value = """
-            SELECT shares_value
-            FROM shares_value()
-            WHERE company_id = :companyId
+            SELECT shares_value( :companyId )
             """, nativeQuery = true)
     BigDecimal findShareValueByCompanyId(@Param("companyId") Integer companyId);
 }

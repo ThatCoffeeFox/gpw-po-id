@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services;
 
+import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
@@ -19,4 +20,5 @@ public interface WalletsService {
     BigDecimal getWalletUnblockedFundsById(Integer walletId);
     Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
     Collection<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
+    BigDecimal getWalletUnblockedFoundsBeforeMarketBuyOrder(Integer orderId);
 }

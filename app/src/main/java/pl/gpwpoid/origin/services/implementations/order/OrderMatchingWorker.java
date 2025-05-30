@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
-import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.services.TransactionService;
 
@@ -9,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentMap;
 
 public class OrderMatchingWorker implements Runnable {
     private final int companyId;
@@ -16,6 +16,9 @@ public class OrderMatchingWorker implements Runnable {
     private final PriorityQueue<OrderWrapper> sellQueue;
     private final TransactionService transactionService;
     private final Map<Integer, BlockingQueue<Order>> companyIdOrderQueue;
+
+    private final OrderWrapperFactory orderWrapperFactory;
+
     private BigDecimal recentTransactionSharePrice;
 
     OrderMatchingWorker(int companyId,
@@ -23,21 +26,22 @@ public class OrderMatchingWorker implements Runnable {
                         List<OrderWrapper> activeSellOrders,
                         BigDecimal recentTransactionSharePrice,
                         TransactionService transactionService,
-                        Map<Integer, BlockingQueue<Order>> companyIdOrderQueue){
+                        OrderWrapperFactory orderWrapperFactory,
+                        ConcurrentMap<Integer,BlockingQueue<Order>> companyIdOrderQueue){
         this.companyId = companyId;
         this.buyQueue = new PriorityQueue<>(new BuyComparator() );
         this.sellQueue = new PriorityQueue<>(new SellComparator());
         this.recentTransactionSharePrice = recentTransactionSharePrice;
         this.transactionService = transactionService;
+        this.orderWrapperFactory = orderWrapperFactory;
         this.companyIdOrderQueue = companyIdOrderQueue;
 
         if(activeBuyOrders != null) this.buyQueue.addAll(activeBuyOrders);
         if(activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
     }
     private boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder){
-        return buyOrder.getOrder().getSharePrice() == null ||
-                sellOrder.getOrder().getSharePrice() == null ||
-                (sellOrder.getOrder().getSharePrice().compareTo(buyOrder.getOrder().getSharePrice()) <= 0);
+        return sellOrder.getOrder().getSharePrice() == null ||
+                (sellOrder.getOrder().getSharePrice().compareTo(buyOrder.getShareMatchingPrice()) <= 0);
     }
 
     private BigDecimal getSharePrice(OrderWrapper buyOrder, OrderWrapper sellOrder){
@@ -78,6 +82,7 @@ public class OrderMatchingWorker implements Runnable {
                     transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
                     buyOrder.tradeShares(sharesAmount);
                     sellOrder.tradeShares(sharesAmount);
+                    recentTransactionSharePrice = sharePrice;
                 }
                 catch (Exception e){
                     throw new RuntimeException("Transaction failed", e);
@@ -86,10 +91,10 @@ public class OrderMatchingWorker implements Runnable {
             try{
                 Order order = companyIdOrderQueue.get(companyId).take();
                 if("sell".equals(order.getOrderType().getOrderType())){
-                    sellQueue.add(new OrderWrapper(order));
+                    sellQueue.add(orderWrapperFactory.createOrderWrapper(order));
                 }
                 if("buy".equals(order.getOrderType().getOrderType())){
-                    buyQueue.add(new OrderWrapper(order));
+                    buyQueue.add(orderWrapperFactory.createOrderWrapper(order));
                 }
             }
             catch (InterruptedException e){
