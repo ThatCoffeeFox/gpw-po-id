@@ -15,7 +15,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 
-@Route("wallets")
+@Route(value = "wallets", layout =  MainLayout.class)
 @PageTitle("Lista portfeli")
 @PermitAll
 public class WalletsListView extends VerticalLayout {

@@ -12,7 +12,7 @@ import pl.gpwpoid.origin.services.CompanyService;
 import java.util.Collection;
 
 
-@Route("companies")
+@Route(value = "companies", layout =  MainLayout.class)
 @PageTitle("Companies list")
 @AnonymousAllowed
 public class CompaniesListView extends VerticalLayout {

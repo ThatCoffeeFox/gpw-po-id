@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -22,7 +23,7 @@ public class OrderMatchingConfig {
     }
 
     @Bean(destroyMethod = "shutdown")
-    public ExecutorService orderExecutorService(ThreadPoolTaskExecutor taskExecutor) {
+    public ExecutorService orderExecutorService(@Qualifier("taskExecutor") ThreadPoolTaskExecutor taskExecutor) {
 
         return taskExecutor.getThreadPoolExecutor();
     }
