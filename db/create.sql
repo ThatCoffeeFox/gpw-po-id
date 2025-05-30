@@ -122,7 +122,8 @@ CREATE TABLE external_transfers(
   wallet_id INTEGER NOT NULL REFERENCES wallets,
   type transfer_type NOT NULL,
   date TIMESTAMP NOT NULL DEFAULT current_timestamp,
-  amount NUMERIC(17,2) NOT NULL CHECK(amount > 0)
+  amount NUMERIC(17,2) NOT NULL CHECK(amount > 0),
+  account_number VARCHAR(26) NOT NULL
 );
 
 CREATE TABLE order_types (

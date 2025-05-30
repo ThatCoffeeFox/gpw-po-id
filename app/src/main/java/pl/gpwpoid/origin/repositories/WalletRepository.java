@@ -54,6 +54,11 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
         AND shares_in_wallet(:walletId, ci.company_id) != 0
 """, nativeQuery = true)
     List<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
+
+    @Query(value = """
+        SELECT funds_in_wallet(:walletId)
+""", nativeQuery = true)
+    BigDecimal getFundsByWalletId(Integer walletId);
 }
 
 

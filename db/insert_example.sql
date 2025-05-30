@@ -43,27 +43,27 @@ INSERT INTO wallets (account_id, name) VALUES
 -- wallet 8: 21780
 -- wallet 9: 34650
 -- wallet 10: 27720
-INSERT INTO external_transfers (wallet_id, type, amount, date) VALUES
-(1, 'deposit', 50000.00, NOW() - INTERVAL '50 days'),
-(2, 'deposit', 100000.00, NOW() - INTERVAL '50 days'),
-(3, 'deposit', 20000.00, NOW() - INTERVAL '40 days'),
-(4, 'deposit', 15000.00, NOW() - INTERVAL '40 days'),
-(5, 'deposit', 25000.00, NOW() - INTERVAL '40 days'),
-(6, 'deposit', 18000.00, NOW() - INTERVAL '40 days'),
-(7, 'deposit', 30000.00, NOW() - INTERVAL '30 days'),
-(8, 'deposit', 22000.00, NOW() - INTERVAL '30 days'),
-(9, 'deposit', 35000.00, NOW() - INTERVAL '30 days'),
-(10, 'deposit', 28000.00, NOW() - INTERVAL '30 days'),
-(1, 'withdrawal', 500.00, NOW() - INTERVAL '40 days'),
-(2, 'withdrawal', 100.00, NOW() - INTERVAL '40 days'),
-(3, 'withdrawal', 20.00, NOW() - INTERVAL '30 days'),
-(4, 'withdrawal', 150.00, NOW() - INTERVAL '30 days'),
-(5, 'withdrawal', 250.00, NOW() - INTERVAL '30 days'),
-(6, 'withdrawal', 180.00, NOW() - INTERVAL '30 days'),
-(7, 'withdrawal', 300.00, NOW() - INTERVAL '20 days'),
-(8, 'withdrawal', 220.00, NOW() - INTERVAL '20 days'),
-(9, 'withdrawal', 350.00, NOW() - INTERVAL '20 days'),
-(10, 'withdrawal', 280.00, NOW() - INTERVAL '20 days');
+INSERT INTO external_transfers (wallet_id, type, amount, date, account_number) VALUES
+(1, 'deposit', 50000.00, NOW() - INTERVAL '50 days', '00000000000000000000000000'),
+(2, 'deposit', 100000.00, NOW() - INTERVAL '50 days', '00000000000000000000000000'),
+(3, 'deposit', 20000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(4, 'deposit', 15000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(5, 'deposit', 25000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(6, 'deposit', 18000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(7, 'deposit', 30000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(8, 'deposit', 22000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(9, 'deposit', 35000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(10, 'deposit', 28000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(1, 'withdrawal', 500.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(2, 'withdrawal', 100.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(3, 'withdrawal', 20.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(4, 'withdrawal', 150.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(5, 'withdrawal', 250.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(6, 'withdrawal', 180.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(7, 'withdrawal', 300.00, NOW() - INTERVAL '20 days', '00000000000000000000000000'),
+(8, 'withdrawal', 220.00, NOW() - INTERVAL '20 days', '00000000000000000000000000'),
+(9, 'withdrawal', 350.00, NOW() - INTERVAL '20 days', '00000000000000000000000000'),
+(10, 'withdrawal', 280.00, NOW() - INTERVAL '20 days', '00000000000000000000000000');
 
 -- 6. Companies
 INSERT INTO companies DEFAULT VALUES;

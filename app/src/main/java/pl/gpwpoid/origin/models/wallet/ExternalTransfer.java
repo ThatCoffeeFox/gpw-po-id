@@ -1,10 +1,13 @@
 package pl.gpwpoid.origin.models.wallet;
 
+import ch.qos.logback.classic.pattern.DateConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.math.BigDecimal;
@@ -31,7 +34,8 @@ public class ExternalTransfer {
     private Wallet wallet;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, columnDefinition = "transfer_type", updatable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "type", nullable = false, updatable = false)
     private TransferType type;
 
     @Column(name = "date", nullable = false, columnDefinition = "TIMESTAMP DEFAULT current_timestamp", updatable = false)
@@ -41,4 +45,7 @@ public class ExternalTransfer {
     @Positive
     @Column(name = "amount", nullable = false, precision = 17, scale = 2, updatable = false)
     private BigDecimal amount;
+
+    @Column(name = "account_number", nullable = false, updatable = false)
+    private String accountNumber;
 }
