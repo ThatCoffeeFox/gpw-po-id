@@ -59,6 +59,12 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
         SELECT funds_in_wallet(:walletId)
 """, nativeQuery = true)
     BigDecimal getFundsByWalletId(Integer walletId);
+
+    @Query(value = """
+        SELECT w.name
+        FROM wallets w WHERE w.wallet_id = :walletId
+""", nativeQuery = true)
+    String getWalletNameById(Integer walletId);
 }
 
 

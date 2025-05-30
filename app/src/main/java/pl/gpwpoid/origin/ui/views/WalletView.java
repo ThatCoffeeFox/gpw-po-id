@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -16,7 +17,6 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
@@ -35,11 +35,12 @@ import java.util.Date;
 
 @Route(value = "wallets", layout = MainLayout.class)
 @RolesAllowed({"user", "admin"})
-public class WalletView extends HorizontalLayout implements HasUrlParameter<Integer> {
+public class WalletView extends VerticalLayout implements HasUrlParameter<Integer> {
     WalletsService walletsService;
 
     private Integer walletId;
     private final Grid<WalletCompanyListItem> grid = new Grid<>();
+    private final H3 walletName = new H3();
     private final Span walletFunds = new Span();
 
     @Autowired
@@ -51,9 +52,12 @@ public class WalletView extends HorizontalLayout implements HasUrlParameter<Inte
             setPadding(true);
             setSpacing(true);
 
-            VerticalLayout gridLayout = configureGrid();
-            VerticalLayout transferLayout = configureWalletStatusLayout();
-            add(gridLayout, transferLayout);
+            HorizontalLayout Layout1 = new HorizontalLayout(configureGrid(), configureWalletStatusLayout());
+            Layout1.setSizeFull();
+            Layout1.setPadding(true);
+            Layout1.setSpacing(true);
+            HorizontalLayout Layout2 = new HorizontalLayout();
+            add(walletName,Layout1);
         }
     }
 
@@ -62,6 +66,10 @@ public class WalletView extends HorizontalLayout implements HasUrlParameter<Inte
         this.walletId = parameter;
         Collection<WalletCompanyListItem> walletCompanyListItems = walletsService.getWalletCompanyListForCurrentWallet(walletId);
         grid.setItems(walletCompanyListItems);
+        BigDecimal funds = walletsService.getWalletFundsById(walletId);
+        walletFunds.add(funds.toString() + " zł");
+        String name = walletsService.getWalletNameById(walletId);
+        walletName.add(name);
     }
 
     private VerticalLayout configureGrid() {
@@ -82,6 +90,7 @@ public class WalletView extends HorizontalLayout implements HasUrlParameter<Inte
         Button tranferButton = new Button("Nowy transfer");
         tranferButton.addClickListener(event -> openTransferDialog());
 
+        walletFunds.add("Dostępne środki: ");
         layout.add(walletFunds, tranferButton);
         return layout;
     }

@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.models.wallet;
 
-import ch.qos.logback.classic.pattern.DateConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.math.BigDecimal;
 import java.util.Date;

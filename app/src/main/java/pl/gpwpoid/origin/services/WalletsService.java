@@ -12,12 +12,12 @@ import java.util.Optional;
 
 public interface WalletsService {
     void addWallet(WalletDTO walletDTO);
-    Collection<Wallet> getWallets();
     Collection<WalletListItem> getWalletListViewForCurrentUser();
-    Collection<WalletDTO> getWalletDTOForCurrentUser();
     Collection<Wallet> getWalletForCurrentUser();
     Optional<Wallet> getWalletById(Integer walletId);
     BigDecimal getWalletUnblockedFundsById(Integer walletId);
+    BigDecimal getWalletFundsById(Integer walletId);
+    String getWalletNameById(Integer walletId);
     Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
     Collection<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
     void addTransfer(TransferDTO transferDTO);

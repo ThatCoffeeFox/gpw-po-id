@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.services.implementations;
 
-import com.vaadin.flow.component.notification.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,22 +54,9 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Wallet> getWallets() {
-        return walletRepository.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Collection<WalletListItem> getWalletListViewForCurrentUser() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
         return walletRepository.getWalletListViewForCurrentUser(accountId);
-    }
-
-    @Override
-    public Collection<WalletDTO> getWalletDTOForCurrentUser() {
-        Integer accountId = SecurityUtils.getAuthenticatedAccountId();
-        List<Wallet> wallets = walletRepository.getWalletForCurrentUser(accountId);
-        return wallets.stream().map(wallet -> new WalletDTO(wallet.getWalletId(), wallet.getName())).collect(Collectors.toList());
     }
 
     @Override
@@ -91,6 +77,16 @@ public class WalletServiceImpl implements WalletsService {
     }
 
     @Override
+    public BigDecimal getWalletFundsById(Integer walletId) {
+        return walletRepository.getFundsByWalletId(SecurityUtils.getAuthenticatedAccountId());
+    }
+
+    @Override
+    public String getWalletNameById(Integer walletId) {
+        return walletRepository.getWalletNameById(walletId);
+    }
+
+    @Override
     public Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId) {
         return walletRepository.getWalletUnblockedSharesAmount(walletId, companyId);
     }
@@ -103,7 +99,7 @@ public class WalletServiceImpl implements WalletsService {
     @Override
     public void addTransfer(TransferDTO transferDTO) {
         Optional<Wallet> wallet = walletRepository.findById(Long.valueOf(transferDTO.getWalletId()));
-        if(!wallet.isPresent()) {
+        if(wallet.isEmpty()) {
             throw new IllegalArgumentException("Wallet not found");
         }
 
