@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.ui.views;
 
 
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -17,71 +18,152 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
+import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
+import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
+import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.TransferDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Locale;
 
 
 @Route(value = "wallets", layout = MainLayout.class)
 @RolesAllowed({"user", "admin"})
 public class WalletView extends VerticalLayout implements HasUrlParameter<Integer> {
+    private final TransactionService transactionService;
     WalletsService walletsService;
 
     private Integer walletId;
-    private final Grid<WalletCompanyListItem> grid = new Grid<>();
+    private final Grid<WalletCompanyListItem> sharesGrid = new Grid<>();
+    private final Grid<TransactionWalletListItem> transactionsGrid = new Grid<>();
+    private final Grid<TransferListItem> transfersGrid = new Grid<>();
     private final H3 walletName = new H3();
     private final Span walletFunds = new Span();
 
+    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
+            "#,##0.00",
+            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
+    );
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
     @Autowired
-    public WalletView(WalletsService walletsService) {
+    public WalletView(WalletsService walletsService, TransactionService transactionService) {
         this.walletsService = walletsService;
+        this.transactionService = transactionService;
 
         if(SecurityUtils.isLoggedIn()) {
             setSizeFull();
             setPadding(true);
             setSpacing(true);
 
-            HorizontalLayout Layout1 = new HorizontalLayout(configureGrid(), configureWalletStatusLayout());
+            HorizontalLayout Layout1 = new HorizontalLayout(configureSharesGrid(), configureWalletStatusLayout());
             Layout1.setSizeFull();
             Layout1.setPadding(true);
             Layout1.setSpacing(true);
-            HorizontalLayout Layout2 = new HorizontalLayout();
-            add(walletName,Layout1);
+            HorizontalLayout Layout2 = new HorizontalLayout(configureTransfersGrid(), configureTransactionsGrid());
+            Layout2.setSizeFull();
+            Layout2.setPadding(true);
+            Layout2.setSpacing(true);
+            add(walletName,Layout1,Layout2);
         }
     }
 
     @Override
     public void setParameter(BeforeEvent beforeEvent, Integer parameter) {
         this.walletId = parameter;
+
         Collection<WalletCompanyListItem> walletCompanyListItems = walletsService.getWalletCompanyListForCurrentWallet(walletId);
-        grid.setItems(walletCompanyListItems);
+        sharesGrid.setItems(walletCompanyListItems);
+
+        Collection<TransferListItem> transferListItems = walletsService.getTransferListForCurrentWallet(walletId);
+        transfersGrid.setItems(transferListItems);
+
+        Collection<TransactionWalletListItem> transactionWalletListItems = transactionService.getTransactionsByWalletId(walletId);
+        transactionsGrid.setItems(transactionWalletListItems);
+
         BigDecimal funds = walletsService.getWalletFundsById(walletId);
         walletFunds.add(funds.toString() + " zł");
         String name = walletsService.getWalletNameById(walletId);
         walletName.add(name);
     }
 
-    private VerticalLayout configureGrid() {
+    private VerticalLayout configureSharesGrid() {
         VerticalLayout gridLayout = new VerticalLayout();
 
-        grid.addColumn(WalletCompanyListItem::getCompanyName).setHeader("Nazwa").setSortable(true);
-        grid.addColumn(WalletCompanyListItem::getCompanyCode).setHeader("Kod").setSortable(true);
-        grid.addColumn(WalletCompanyListItem::getSharePrice).setHeader("Aktualna cena").setSortable(true); //TODO: aktualizacja w czasie rzeczywistym
-        grid.addColumn(WalletCompanyListItem::getSharesAmount).setHeader("Ilość akcji").setSortable(true);
-        grid.setMaxWidth("700px");
+        sharesGrid.addColumn(WalletCompanyListItem::getCompanyName).setHeader("Nazwa").setSortable(true);
+        sharesGrid.addColumn(WalletCompanyListItem::getCompanyCode).setHeader("Kod").setSortable(true);
+        sharesGrid.addColumn(WalletCompanyListItem::getSharePrice).setHeader("Aktualna cena").setSortable(true);
+        sharesGrid.addColumn(WalletCompanyListItem::getChangeInPrice).setHeader("Zmiana");
+        sharesGrid.addColumn(WalletCompanyListItem::getSharesAmount).setHeader("Ilość akcji").setSortable(true);
+        sharesGrid.setMaxWidth("700px");
 
-        gridLayout.add(grid);
+        gridLayout.add(sharesGrid);
+        return gridLayout;
+    }
+
+    private VerticalLayout configureTransactionsGrid() {
+        VerticalLayout gridLayout = new VerticalLayout();
+
+        transactionsGrid.addColumn(item -> {
+            if(item.getOrderType().equals("sell"))
+                return "sprzedaż";
+            if(item.getOrderType().equals("buy"))
+                return "Kupno";
+            return null;
+        }).setHeader("Typ").setSortable(true).setAutoWidth(true);
+        transactionsGrid.addColumn(item -> FUNDS_FORMATTER.format(item.getAmount()) + " zł").setHeader("Kwota transakcji").setSortable(true).setAutoWidth(true);
+        transactionsGrid.addColumn(item -> {
+            if(item.getDate() == null)
+                return null;
+            LocalDateTime date = item.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            return date.format(DATE_FORMATTER);
+        }).setHeader("Data").setSortable(true).setAutoWidth(true);
+        transactionsGrid.addColumn(TransactionWalletListItem::getSharesAmount).setHeader("Ilość akcji").setSortable(true).setAutoWidth(true);
+        transactionsGrid.addColumn(new ComponentRenderer<>(item -> {
+            Button navigationButton = new Button(item.getCompanyCode());
+            navigationButton.addClickListener(e -> {
+                String url = "/companies/" + item.getCompanyId();
+                UI.getCurrent().navigate(url);
+            });
+            return navigationButton;
+        })).setHeader("Firma").setSortable(true).setAutoWidth(true);
+        transactionsGrid.setMaxWidth("700px");
+
+        gridLayout.add(transactionsGrid);
+        return gridLayout;
+    }
+
+    private VerticalLayout configureTransfersGrid() {
+        VerticalLayout gridLayout = new VerticalLayout();
+
+        transfersGrid.addColumn(item -> FUNDS_FORMATTER.format(item.getAmount()) + " zł").setHeader("Kwota").setSortable(true).setAutoWidth(true);
+        transfersGrid.addColumn(item ->{
+            if(item.getDate() == null)
+                return null;
+            LocalDateTime date = item.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            return date.format(DATE_FORMATTER);
+        }).setHeader("Data").setSortable(true).setAutoWidth(true);
+        transfersGrid.addColumn(TransferListItem::getAccountNumber).setHeader("Konto").setSortable(true).setAutoWidth(true);
+
+        gridLayout.add(transfersGrid);
         return gridLayout;
     }
 

@@ -11,6 +11,7 @@ import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.TransactionRepository;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
+import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
@@ -45,5 +46,10 @@ public class TransactionServiceImpl implements TransactionService {
     public Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit) {
         Pageable pageable = PageRequest.of(0,limit);
         return transactionRepository.findTransactionsByIdAsListItems(companyId, pageable);
+    }
+
+    @Override
+    public Collection<TransactionWalletListItem> getTransactionsByWalletId(int walletId) {
+        return transactionRepository.getTransactionsByWalletId(walletId);
     }
 }

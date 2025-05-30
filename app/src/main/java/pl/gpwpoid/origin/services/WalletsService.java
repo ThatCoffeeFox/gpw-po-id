@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.services;
 
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.ui.views.DTO.TransferDTO;
@@ -20,5 +21,6 @@ public interface WalletsService {
     String getWalletNameById(Integer walletId);
     Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
     Collection<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
+    Collection<TransferListItem> getTransferListForCurrentWallet(Integer walletId);
     void addTransfer(TransferDTO transferDTO);
 }

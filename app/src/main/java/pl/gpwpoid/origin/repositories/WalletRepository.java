@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 
@@ -47,6 +48,7 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
             ci.name AS companyName,
             ci.code AS companyCode,
             shares_value(ci.company_id) AS sharesValue,
+                AS changeInPrice,
             shares_in_wallet(:walletId, ci.company_id) AS sharesAmount
         FROM companies_info ci 
         WHERE ci.updated_at = (SELECT cii.updated_at FROM companies_info cii WHERE cii.company_id = ci.company_id
@@ -65,6 +67,16 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
         FROM wallets w WHERE w.wallet_id = :walletId
 """, nativeQuery = true)
     String getWalletNameById(Integer walletId);
+
+    @Query(value = """
+        SELECT 
+            t.date AS date,
+            CASE WHEN t.type = 'withdrawal' THEN -t.amount ELSE t.amount END AS amount,
+            t.account_number AS accountNumber
+            FROM external_transfers t
+            WHERE t.wallet_id = :walletId
+""", nativeQuery = true)
+    List<TransferListItem> getTransferListForCurrentWallet(Integer walletId);
 }
 
 

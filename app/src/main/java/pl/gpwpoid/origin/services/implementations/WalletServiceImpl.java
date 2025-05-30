@@ -10,6 +10,7 @@ import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.ExternalTransferRepository;
 import pl.gpwpoid.origin.repositories.WalletRepository;
+import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.AccountService;
@@ -94,6 +95,11 @@ public class WalletServiceImpl implements WalletsService {
     @Override
     public Collection<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId) {
         return walletRepository.getWalletCompanyListForCurrentWallet(walletId);
+    }
+
+    @Override
+    public Collection<TransferListItem> getTransferListForCurrentWallet(Integer walletId) {
+        return walletRepository.getTransferListForCurrentWallet(walletId);
     }
 
     @Override
