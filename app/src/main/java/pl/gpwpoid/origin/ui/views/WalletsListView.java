@@ -1,27 +1,42 @@
 package pl.gpwpoid.origin.ui.views;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.renderer.NumberRenderer;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.BeanValidationBinder;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.WalletsService;
+import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.*;
 
 @Route(value = "wallets", layout =  MainLayout.class)
 @PageTitle("Lista portfeli")
-@PermitAll
-public class WalletsListView extends VerticalLayout {
+@RolesAllowed({"user","admin"})
+public class WalletsListView extends HorizontalLayout {
     private final WalletsService walletsService;
     private final Grid<WalletListItem> grid = new Grid<>();
+
+    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
+            "#,##0.00",
+            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
+    );
 
     public WalletsListView(WalletsService walletsService) {
         this.walletsService = walletsService;
@@ -29,8 +44,62 @@ public class WalletsListView extends VerticalLayout {
         setSizeFull();
 
         configureGrid();
-        add(grid);
+        VerticalLayout addWalletLayout = configureAddWalletButton();
+        add(grid, addWalletLayout);
         loadWalletListItems();
+    }
+
+    private VerticalLayout configureAddWalletButton(){
+        Button addWalletButton = new Button("Dodaj portfel", VaadinIcon.PLUS.create());
+        addWalletButton.addClickListener(e -> openAddWalletDialog());
+
+        VerticalLayout addWalletLayout = new VerticalLayout();
+        addWalletLayout.add(addWalletButton);
+        return addWalletLayout;
+    }
+
+    private void openAddWalletDialog() {
+        WalletDTO walletDTO = new WalletDTO();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Nowy portfel");
+
+        TextField walletName = new TextField("Nazwa portfela");
+        walletName.setRequiredIndicatorVisible(true);
+        walletName.setErrorMessage("Nazwa nie może być pusta");
+
+        Button saveWalletButton = new Button("Zapisz", VaadinIcon.CHECK.create());
+        saveWalletButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Anuluj");
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+        VerticalLayout addWalletLayout = new VerticalLayout(walletName);
+        dialog.add(addWalletLayout);
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(saveWalletButton, cancelButton);
+        buttonLayout.setJustifyContentMode(JustifyContentMode.CENTER);
+        dialog.getFooter().add(buttonLayout);
+
+        Binder<WalletDTO> binder = new BeanValidationBinder<>(WalletDTO.class);
+        binder.forField(walletName).bind("walletName");
+        binder.setBean(walletDTO);
+
+        saveWalletButton.addClickListener(e -> {
+            try{
+                if(SecurityUtils.isLoggedIn())
+                    walletDTO.setAccountId(SecurityUtils.getAuthenticatedAccountId());
+                binder.writeBean(walletDTO);
+                walletsService.addWallet(walletDTO);
+                loadWalletListItems();
+                dialog.close();
+            } catch (ValidationException ex){
+                Notification.show(ex.getMessage());
+            }
+        });
+
+        cancelButton.addClickListener(e -> dialog.close());
+
+        dialog.open();
     }
 
     private void configureGrid() {
@@ -38,9 +107,10 @@ public class WalletsListView extends VerticalLayout {
 
         grid.addColumn(WalletListItem::getName).setHeader("Nazwa portfela").setSortable(true);
 
-        NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("pl","PL"));
-
-        grid.addColumn(new NumberRenderer<>(WalletListItem::getFunds, currency, "brak"))
+        grid.addColumn(
+                wallet -> {
+                    return FUNDS_FORMATTER.format(wallet.getFunds()) + " zł";
+                })
                 .setHeader("Dostępne fundusze")
                 .setTextAlign(ColumnTextAlign.END).setSortable(true);
 
