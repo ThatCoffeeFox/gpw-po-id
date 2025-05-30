@@ -33,7 +33,7 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
     List<Wallet> getWalletForCurrentUser(Integer accountId);
 
     @Query(value = """ 
-        SELECT unblocked_funds_in_waller(:walletId) 
+        SELECT unblocked_funds_in_wallet(:walletId) 
 """, nativeQuery = true)
     BigDecimal getWalletUnblockedFundsById(Integer walletId);
 
@@ -41,6 +41,11 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
         SELECT shares_in_wallet(:walletId, :companyId) - blocked_shares_in_wallet(:walletId, :companyId) 
 """, nativeQuery = true)
     Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
+
+    @Query(value = """
+            SELECT unblocked_founds_before_market_buy_order( :orderId )
+            """, nativeQuery = true)
+    BigDecimal getWalletUnblockedFoundsBeforeMarketBuyOrder(Integer orderId);
 
     @Query(value = """
         SELECT 
@@ -55,5 +60,3 @@ public interface WalletRepository extends JpaRepository<Wallet,Long> {
 """, nativeQuery = true)
     List<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
 }
-
-

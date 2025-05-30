@@ -176,32 +176,32 @@ CREATE TABLE subscriptions (
   shares_assigned INTEGER CHECK (shares_assigned >= 0)
 );
 
-CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER)
+CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_date TIMESTAMP DEFAULT current_timestamp)
     RETURNS NUMERIC(17,2)
     AS $$
     BEGIN
         RETURN (SELECT COALESCE(SUM(et.amount),0) 
                     FROM external_transfers et 
-                    WHERE et.wallet_id = arg_wallet_id AND type = 'deposit') --wplacone na konto
+                    WHERE et.wallet_id = arg_wallet_id AND type = 'deposit' AND date < arg_before_date) --wplacone na konto
                 - (SELECT COALESCE(SUM(et.amount),0) 
                     FROM external_transfers et
-                    WHERE et.wallet_id = arg_wallet_id AND type = 'withdrawal') --wyplacone z konta
+                    WHERE et.wallet_id = arg_wallet_id AND type = 'withdrawal'AND date < arg_before_date) --wyplacone z konta
                 + (SELECT COALESCE(SUM(t.share_price*t.shares_amount),0) 
                     FROM transactions t 
                     JOIN orders o ON t.sell_order_id = o.order_id 
-                    WHERE o.wallet_id = arg_wallet_id) --pieniadze ze sprzedanych akcji
+                    WHERE o.wallet_id = arg_wallet_id AND t.date < arg_before_date) --pieniadze ze sprzedanych akcji
                 - (SELECT COALESCE(SUM(t.share_price*t.shares_amount),0) 
                     FROM transactions t 
                     JOIN orders o ON t.buy_order_id = o.order_id 
-                    WHERE o.wallet_id = arg_wallet_id) --pieniadze wydane na akcje
+                    WHERE o.wallet_id = arg_wallet_id AND t.date < arg_before_date) --pieniadze wydane na akcje
                 - (SELECT COALESCE(SUM(s.shares_assigned*i.ipo_price),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON i.ipo_id = s.ipo_id 
-                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL) --pieniadze wydane na zakonczone zapisy
+                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL AND i.subscription_end < arg_before_date) --pieniadze wydane na zakonczone zapisy
                 - (SELECT COALESCE(SUM(s.shares_amount*i.ipo_price),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON i.ipo_id = s.ipo_id 
-                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NULL); --pieniadze wydane na trwajace zapisy
+                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NULL  AND s.date < arg_before_date); --pieniadze wydane na trwajace zapisy
     END
 $$ LANGUAGE plpgsql;
 
@@ -444,7 +444,7 @@ CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
     EXECUTE PROCEDURE is_valid_cancellation();
 
 CREATE OR REPLACE VIEW active_buy_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount
     FROM orders o
     JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'buy' 
@@ -453,7 +453,7 @@ CREATE OR REPLACE VIEW active_buy_orders AS
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
 
 CREATE OR REPLACE VIEW active_sell_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount
     FROM orders o
     JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'sell'
@@ -478,4 +478,30 @@ CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)
     END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION unblocked_founds_before_market_buy_order(arg_order_id INTEGER)--assumes that it is market buy order
+    RETURNS NUMERIC(17,2)
+    AS $$
+    DECLARE
+    before_date TIMESTAMP;
+    arg_wallet_id INTEGER;
+    BEGIN 
+        SELECT o.order_start_date INTO before_date
+        FROM orders o
+        WHERE o.order_id = arg_order_id;
+        SELECT o.wallet_id INTO arg_wallet_id
+        FROM orders o
+        WHERE o.order_id = arg_order_id;
+        RETURN CASE 
+                WHEN (SELECT COUNT(*) - COUNT(share_price)
+                        FROM active_buy_orders abo
+                        WHERE abo.wallet_id = arg_wallet_id AND abo.order_start_date < before_date) != 0
+                THEN 0
+                ELSE funds_in_wallet(arg_wallet_id, before_date) - 
+                (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
+                    FROM orders o
+                    WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy' AND o.order_start_date < before_date)
+            END;
+    END;
+$$ LANGUAGE plpgsql;
 COMMIT;

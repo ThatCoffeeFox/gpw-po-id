@@ -86,4 +86,9 @@ public class WalletServiceImpl implements WalletsService {
     public Collection<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId) {
         return walletRepository.getWalletCompanyListForCurrentWallet(walletId);
     }
+
+    @Override
+    public BigDecimal getWalletUnblockedFoundsBeforeMarketBuyOrder(Integer orderId) {
+        return walletRepository.getWalletUnblockedFoundsBeforeMarketBuyOrder(orderId);
+    }
 }

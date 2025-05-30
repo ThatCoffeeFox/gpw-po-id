@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services;
 
+import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
@@ -15,4 +16,7 @@ public interface TransactionService {
 
     Collection<Transaction> getTransactions();
     Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit);
+
+    @Transactional(readOnly = true)
+    public BigDecimal getShareValueByCompanyId(Integer companyId);
 }
