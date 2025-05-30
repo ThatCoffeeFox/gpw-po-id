@@ -16,6 +16,7 @@ import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.OrderRepository;
 import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
+import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
@@ -26,7 +27,6 @@ import pl.gpwpoid.origin.utils.SecurityUtils;
 import java.lang.Integer;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -131,14 +131,19 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void cancelOrder(Order order) {
-        try{
-            OrderCancellation newOrderCancellation = orderCancellationFactory.createOrderCancellation(order);
-            orderRepository.save(order);
-        }
-        catch (Exception e){
-            throw new RuntimeException(e);
-        }
+    public void cancelOrder(Integer orderId) {
+//        try{
+//            OrderCancellation newOrderCancellation = orderCancellationFactory.createOrderCancellation(orderId);
+//            orderRepository.save(orderId);
+//        }
+//        catch (Exception e){
+//            throw new RuntimeException(e);
+//        }
+    }
+
+    @Override
+    public List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount() {
+        return List.of();
     }
 
     @Override

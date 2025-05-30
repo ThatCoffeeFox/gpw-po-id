@@ -444,7 +444,7 @@ CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
     EXECUTE PROCEDURE is_valid_cancellation();
 
 CREATE OR REPLACE VIEW active_buy_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount, o.order_type
     FROM orders o
     JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'buy' 
@@ -453,7 +453,7 @@ CREATE OR REPLACE VIEW active_buy_orders AS
     AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
 
 CREATE OR REPLACE VIEW active_sell_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount, o.order_type
     FROM orders o
     JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
     WHERE o.order_type = 'sell'
