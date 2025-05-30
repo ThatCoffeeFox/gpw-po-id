@@ -3,7 +3,6 @@ package pl.gpwpoid.origin.factories;
 import org.springframework.stereotype.Component;
 import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.wallet.Wallet;
-import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 
 @Component
 public class WalletFactory {

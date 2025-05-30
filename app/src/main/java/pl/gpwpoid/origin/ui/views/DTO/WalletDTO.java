@@ -1,12 +1,10 @@
 package pl.gpwpoid.origin.ui.views.DTO;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import pl.gpwpoid.origin.models.account.Account;
 
 @Data
 @NoArgsConstructor
