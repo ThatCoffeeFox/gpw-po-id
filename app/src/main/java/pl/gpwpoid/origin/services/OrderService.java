@@ -1,22 +1,23 @@
 package pl.gpwpoid.origin.services;
 
 import org.springframework.transaction.annotation.Transactional;
-import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
-import pl.gpwpoid.origin.models.order.OrderType;
-import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
-import java.math.BigDecimal;
+import java.nio.file.AccessDeniedException;
 import java.util.Collection;
-import java.util.Date;
+import java.util.List;
 
 
 public interface OrderService {
 
-    void addOrder(OrderDTO orderDTO);
+    void addOrder(OrderDTO orderDTO) throws AccessDeniedException;
 
-    void cancelOrder(Order order);
+    @Transactional
+    void cancelOrder(Integer orderId);
+
+    List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount();
 
     Collection<Order> getOrders();
 
