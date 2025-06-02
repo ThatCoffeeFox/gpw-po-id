@@ -55,22 +55,9 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Wallet> getWallets() {
-        return walletRepository.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Collection<WalletListItem> getWalletListViewForCurrentUser() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
         return walletRepository.getWalletListViewForCurrentUser(accountId);
-    }
-
-    @Override
-    public Collection<WalletDTO> getWalletDTOForCurrentUser() {
-        Integer accountId = SecurityUtils.getAuthenticatedAccountId();
-        List<Wallet> wallets = walletRepository.getWalletForCurrentUser(accountId);
-        return wallets.stream().map(wallet -> new WalletDTO(wallet.getWalletId(), wallet.getName())).collect(Collectors.toList());
     }
 
     @Override
