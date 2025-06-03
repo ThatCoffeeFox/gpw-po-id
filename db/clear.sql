@@ -34,8 +34,6 @@ DROP TRIGGER IF EXISTS prevent_update_on_order_cancellations_trigger ON order_ca
 
 DROP TRIGGER IF EXISTS prevent_update_on_transactions_trigger ON transactions;
 
-DROP TRIGGER IF EXISTS prevent_update_on_subscriptions_trigger ON subscriptions;
-
 DROP TYPE IF EXISTS user_role CASCADE;
 
 DROP TYPE IF EXISTS transfer_type CASCADE;

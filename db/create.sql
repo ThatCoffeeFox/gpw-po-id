@@ -591,9 +591,4 @@ CREATE OR REPLACE TRIGGER prevent_update_on_transactions_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_update_on_immutable_table();
 
-CREATE OR REPLACE TRIGGER prevent_update_on_subscriptions_trigger
-    BEFORE UPDATE ON subscriptions
-    FOR EACH ROW
-    EXECUTE PROCEDURE prevent_update_on_immutable_table();
-
 COMMIT;

@@ -8,12 +8,12 @@ INSERT INTO postal_codes (postal_code) VALUES ('00-002') ON CONFLICT (postal_cod
 INSERT INTO postal_codes_towns (postal_code, town_id) VALUES ('00-002', 35803) ON CONFLICT (postal_code, town_id) DO NOTHING;
 
 -- Section 1: Add Funds to Wallets (ensure ample funds for high volume)
-INSERT INTO external_transfers (wallet_id, type, amount, date)
-SELECT gs.id, 'deposit', 200000 + (RANDOM()*100000)::INT, NOW() - INTERVAL '95 days' - (gs.id * INTERVAL '12 hours')
+INSERT INTO external_transfers (wallet_id, type, amount, date, account_number)
+SELECT gs.id, 'deposit', 200000 + (RANDOM()*100000)::INT, NOW() - INTERVAL '95 days' - (gs.id * INTERVAL '12 hours'), '00000000000000000000000000'
 FROM generate_series(1,10) AS gs(id);
 -- Add a second wave of deposits for very active wallets
-INSERT INTO external_transfers (wallet_id, type, amount, date)
-SELECT gs.id, 'deposit', 150000 + (RANDOM()*50000)::INT, NOW() - INTERVAL '60 days' - (gs.id * INTERVAL '12 hours')
+INSERT INTO external_transfers (wallet_id, type, amount, date, account_number)
+SELECT gs.id, 'deposit', 150000 + (RANDOM()*50000)::INT, NOW() - INTERVAL '60 days' - (gs.id * INTERVAL '12 hours'), '00000000000000000000000000'
 FROM generate_series(1,10) AS gs(id) WHERE gs.id % 2 = 0;
 
 
@@ -46,8 +46,8 @@ DECLARE
     v_price_buy NUMERIC(17,2);
     v_company_id INT;
     v_counter INT;
-    v_num_orders_per_type INT := 4000;
-    v_num_transactions_target_per_company INT := 1000;
+    v_num_orders_per_type INT := 100;
+    v_num_transactions_target_per_company INT := 50;
     v_current_shares INT;
     v_available_funds NUMERIC(17,2);
 
