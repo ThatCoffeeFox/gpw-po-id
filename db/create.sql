@@ -76,7 +76,8 @@ CREATE TABLE wallets (
   wallet_id    SERIAL PRIMARY KEY,
   account_id   INTEGER NOT NULL
     REFERENCES accounts(account_id) ON DELETE CASCADE,
-  name         VARCHAR(128) NOT NULL
+  name         VARCHAR(128) NOT NULL,
+  active       BOOLEAN NOT NULL
 );
 
 CREATE TABLE companies (
@@ -122,7 +123,8 @@ CREATE TABLE external_transfers(
   wallet_id INTEGER NOT NULL REFERENCES wallets,
   type transfer_type NOT NULL,
   date TIMESTAMP NOT NULL DEFAULT current_timestamp,
-  amount NUMERIC(17,2) NOT NULL CHECK(amount > 0)
+  amount NUMERIC(17,2) NOT NULL CHECK(amount > 0),
+  account_number VARCHAR(26) NOT NULL
 );
 
 CREATE TABLE order_types (
@@ -266,6 +268,18 @@ CREATE OR REPLACE FUNCTION shares_value(arg_company_id INTEGER)
                     i.subscription_start = (SELECT subscription_start FROM ipo ii 
                                             WHERE ii.company_id = arg_company_id 
                                             ORDER BY 1 DESC LIMIT 1));
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION shares_value_last_day(arg_company_id INTEGER)
+    RETURNS NUMERIC(17,2)
+    AS $$
+    BEGIN
+    RETURN (SELECT t.share_price
+            FROM transactions t JOIN orders o ON t.sell_order_id = o.order_id
+            WHERE t.date < CURRENT_DATE AND o.company_id = arg_company_id
+            ORDER BY t.date DESC
+            LIMIT 1);
     END
 $$ LANGUAGE plpgsql;
 
@@ -485,19 +499,19 @@ CREATE OR REPLACE FUNCTION unblocked_founds_before_market_buy_order(arg_order_id
     DECLARE
     before_date TIMESTAMP;
     arg_wallet_id INTEGER;
-    BEGIN 
+    BEGIN
         SELECT o.order_start_date INTO before_date
         FROM orders o
         WHERE o.order_id = arg_order_id;
         SELECT o.wallet_id INTO arg_wallet_id
         FROM orders o
         WHERE o.order_id = arg_order_id;
-        RETURN CASE 
+        RETURN CASE
                 WHEN (SELECT COUNT(*) - COUNT(share_price)
                         FROM active_buy_orders abo
                         WHERE abo.wallet_id = arg_wallet_id AND abo.order_start_date < before_date) != 0
                 THEN 0
-                ELSE funds_in_wallet(arg_wallet_id, before_date) - 
+                ELSE funds_in_wallet(arg_wallet_id, before_date) -
                 (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
                     FROM orders o
                     WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy' AND o.order_start_date < before_date)

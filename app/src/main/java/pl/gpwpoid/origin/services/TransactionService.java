@@ -5,6 +5,7 @@ import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
 import pl.gpwpoid.origin.repositories.views.TransactionListItem;
+import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ public interface TransactionService {
 
     Collection<Transaction> getTransactions();
     Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit);
+    Collection<TransactionWalletListItem> getTransactionsByWalletId(int walletId);
     List<OHLCDataItem> getOHLCDataByCompanyId(Integer companyId, LocalDateTime from, LocalDateTime to);
 
     @Transactional(readOnly = true)

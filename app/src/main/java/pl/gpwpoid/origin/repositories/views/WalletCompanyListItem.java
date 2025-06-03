@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 public class WalletCompanyListItem {
     String companyName;
     String companyCode;
-    BigDecimal sharePrice;
+    BigDecimal currentSharePrice;
+    BigDecimal previousSharePrice;
     Integer sharesAmount;
+    Integer companyId;
 }

@@ -20,17 +20,17 @@ INSERT INTO accounts_info (account_id, updated_at, email, password, first_name, 
     (5, NOW() - INTERVAL '2 days', 'user4@example.com', '$2a$10$TQxTW8484W8ZzNFs0/G8Q..5PrJw8jq1ABQecsbTHH18/YEAwTs4K', 'UserFourFirst', NULL, 'UserFourLast', 35803, '00-002', '1', '1', 'a', '+48555666777', '03250282422');
 
 -- 4. Wallets (2 per account)
-INSERT INTO wallets (account_id, name) VALUES
-(1, 'Admin Main Wallet'),
-(1, 'Admin Investment Wallet'),
-(2, 'User1 Primary Wallet'),
-(2, 'User1 Trading Wallet'),
-(3, 'User2 Cash Wallet'),
-(3, 'User2 Stock Wallet'),
-(4, 'User3 General Wallet'),
-(4, 'User3 IPO Wallet'),
-(5, 'User4 Savings Wallet'),
-(5, 'User4 Market Wallet');
+INSERT INTO wallets (account_id, name, active) VALUES
+(1, 'Admin Main Wallet', true),
+(1, 'Admin Investment Wallet', true),
+(2, 'User1 Primary Wallet', true),
+(2, 'User1 Trading Wallet', true),
+(3, 'User2 Cash Wallet', true),
+(3, 'User2 Stock Wallet', true),
+(4, 'User3 General Wallet', true),
+(4, 'User3 IPO Wallet', true),
+(5, 'User4 Savings Wallet', true),
+(5, 'User4 Market Wallet', true);
 
 -- 5. External Transfers
 -- wallet 1: 49500
@@ -43,27 +43,27 @@ INSERT INTO wallets (account_id, name) VALUES
 -- wallet 8: 21780
 -- wallet 9: 34650
 -- wallet 10: 27720
-INSERT INTO external_transfers (wallet_id, type, amount, date) VALUES
-(1, 'deposit', 50000.00, NOW() - INTERVAL '50 days'),
-(2, 'deposit', 100000.00, NOW() - INTERVAL '50 days'),
-(3, 'deposit', 20000.00, NOW() - INTERVAL '40 days'),
-(4, 'deposit', 15000.00, NOW() - INTERVAL '40 days'),
-(5, 'deposit', 25000.00, NOW() - INTERVAL '40 days'),
-(6, 'deposit', 18000.00, NOW() - INTERVAL '40 days'),
-(7, 'deposit', 30000.00, NOW() - INTERVAL '30 days'),
-(8, 'deposit', 22000.00, NOW() - INTERVAL '30 days'),
-(9, 'deposit', 35000.00, NOW() - INTERVAL '30 days'),
-(10, 'deposit', 28000.00, NOW() - INTERVAL '30 days'),
-(1, 'withdrawal', 500.00, NOW() - INTERVAL '40 days'),
-(2, 'withdrawal', 100.00, NOW() - INTERVAL '40 days'),
-(3, 'withdrawal', 20.00, NOW() - INTERVAL '30 days'),
-(4, 'withdrawal', 150.00, NOW() - INTERVAL '30 days'),
-(5, 'withdrawal', 250.00, NOW() - INTERVAL '30 days'),
-(6, 'withdrawal', 180.00, NOW() - INTERVAL '30 days'),
-(7, 'withdrawal', 300.00, NOW() - INTERVAL '20 days'),
-(8, 'withdrawal', 220.00, NOW() - INTERVAL '20 days'),
-(9, 'withdrawal', 350.00, NOW() - INTERVAL '20 days'),
-(10, 'withdrawal', 280.00, NOW() - INTERVAL '20 days');
+INSERT INTO external_transfers (wallet_id, type, amount, date, account_number) VALUES
+(1, 'deposit', 50000.00, NOW() - INTERVAL '50 days', '00000000000000000000000000'),
+(2, 'deposit', 100000.00, NOW() - INTERVAL '50 days', '00000000000000000000000000'),
+(3, 'deposit', 20000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(4, 'deposit', 15000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(5, 'deposit', 25000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(6, 'deposit', 18000.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(7, 'deposit', 30000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(8, 'deposit', 22000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(9, 'deposit', 35000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(10, 'deposit', 28000.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(1, 'withdrawal', 500.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(2, 'withdrawal', 100.00, NOW() - INTERVAL '40 days', '00000000000000000000000000'),
+(3, 'withdrawal', 20.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(4, 'withdrawal', 150.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(5, 'withdrawal', 250.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(6, 'withdrawal', 180.00, NOW() - INTERVAL '30 days', '00000000000000000000000000'),
+(7, 'withdrawal', 300.00, NOW() - INTERVAL '20 days', '00000000000000000000000000'),
+(8, 'withdrawal', 220.00, NOW() - INTERVAL '20 days', '00000000000000000000000000'),
+(9, 'withdrawal', 350.00, NOW() - INTERVAL '20 days', '00000000000000000000000000'),
+(10, 'withdrawal', 280.00, NOW() - INTERVAL '20 days', '00000000000000000000000000');
 
 -- 6. Companies
 INSERT INTO companies DEFAULT VALUES;
@@ -155,7 +155,7 @@ INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiratio
 -- wallet 3 funds: 15530 + 450 shares C1
 -- wallet 5 funds: 21200 + 350 shares C1
 INSERT INTO transactions (sell_order_id, buy_order_id, date, shares_amount, share_price) VALUES
-(1, 2, NOW() - INTERVAL '1 hour', 50, 11.00);
+(1, 2, NOW() - INTERVAL '1 day 1 hour', 50, 12.00);
 
 -- wallet 10 wants to buy 50 shares of C1 (to match with the rest od order 1) (cost = 550.00)
 INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id) VALUES
