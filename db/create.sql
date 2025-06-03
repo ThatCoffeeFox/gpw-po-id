@@ -294,6 +294,69 @@ CREATE OR REPLACE FUNCTION tradable_companies()
             END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE VIEW active_buy_orders AS
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount, o.order_type
+    FROM orders o
+    JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
+    WHERE o.order_type = 'buy' 
+    AND sl.shares_left > 0 
+    AND (o.order_expiration_date IS NULL OR order_expiration_date > current_timestamp)
+    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
+
+CREATE OR REPLACE VIEW active_sell_orders AS
+    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount, o.order_type
+    FROM orders o
+    JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
+    WHERE o.order_type = 'sell'
+    AND sl.shares_left > 0
+    AND (o.order_expiration_date IS NULL OR order_expiration_date > current_timestamp)
+    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
+
+CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)
+    RETURNS NUMERIC(17,2)
+    AS $$
+    BEGIN
+        RETURN CASE 
+                    WHEN (SELECT COUNT(*) - COUNT(share_price)
+                            FROM active_buy_orders abo
+                            WHERE abo.wallet_id = arg_wallet_id) != 0
+                    THEN 0
+                    ELSE funds_in_wallet(arg_wallet_id) - 
+                    (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
+                        FROM orders o
+                        WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy')
+                END;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION unblocked_founds_before_market_buy_order(arg_order_id INTEGER)--assumes that it is market buy order
+    RETURNS NUMERIC(17,2)
+    AS $$
+    DECLARE
+    before_date TIMESTAMP;
+    arg_wallet_id INTEGER;
+    BEGIN
+        SELECT o.order_start_date INTO before_date
+        FROM orders o
+        WHERE o.order_id = arg_order_id;
+        SELECT o.wallet_id INTO arg_wallet_id
+        FROM orders o
+        WHERE o.order_id = arg_order_id;
+        RETURN CASE
+                WHEN (SELECT COUNT(*) - COUNT(share_price)
+                        FROM active_buy_orders abo
+                        WHERE abo.wallet_id = arg_wallet_id AND abo.order_start_date < before_date) != 0
+                THEN 0
+                ELSE funds_in_wallet(arg_wallet_id, before_date) -
+                (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
+                    FROM orders o
+                    WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy' AND o.order_start_date < before_date)
+            END;
+    END;
+$$ LANGUAGE plpgsql;
+
+--data validation triggers
+
 CREATE OR REPLACE FUNCTION check_accounts_info()
     RETURNS TRIGGER
     AS $$
@@ -302,8 +365,13 @@ CREATE OR REPLACE FUNCTION check_accounts_info()
         no_of_updates INTEGER;
     BEGIN
         SELECT COUNT(*) INTO no_of_diff_accounts
-        FROM accounts_info
-        WHERE pesel = NEW.pesel AND account_id != NEW.account_id;
+        FROM accounts_info ai
+        WHERE ai.pesel = NEW.pesel 
+            AND ai.account_id != NEW.account_id
+            AND ai.updated_at = (SELECT aii.updated_at FROM accounts_info aii 
+                                WHERE aii.account_id = ai.account_id 
+                                ORDER BY aii.updated_at DESC 
+                                LIMIT 1);
         IF no_of_diff_accounts != 0 THEN
             SELECT COUNT(*) INTO no_of_updates
             FROM accounts_info
@@ -457,65 +525,70 @@ CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE is_valid_cancellation();
 
-CREATE OR REPLACE VIEW active_buy_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount, o.order_type
-    FROM orders o
-    JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
-    WHERE o.order_type = 'buy' 
-    AND sl.shares_left > 0 
-    AND (o.order_expiration_date IS NULL OR order_expiration_date > current_timestamp)
-    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
+--triggers preventing updates
 
-CREATE OR REPLACE VIEW active_sell_orders AS
-    SELECT o.order_id, sl.shares_left, o.order_start_date, o.order_expiration_date, o.share_price, o.wallet_id, o.company_id, o.shares_amount, o.order_type
-    FROM orders o
-    JOIN shares_left_in_orders() sl ON o.order_id = sl.order_id
-    WHERE o.order_type = 'sell'
-    AND sl.shares_left > 0
-    AND (o.order_expiration_date IS NULL OR order_expiration_date > current_timestamp)
-    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc);
-
-CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)
-    RETURNS NUMERIC(17,2)
+CREATE OR REPLACE FUNCTION prevent_update_on_immutable_table()
+    RETURNS TRIGGER
     AS $$
     BEGIN
-        RETURN CASE 
-                    WHEN (SELECT COUNT(*) - COUNT(share_price)
-                            FROM active_buy_orders abo
-                            WHERE abo.wallet_id = arg_wallet_id) != 0
-                    THEN 0
-                    ELSE funds_in_wallet(arg_wallet_id) - 
-                    (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
-                        FROM orders o
-                        WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy')
-                END;
-    END;
+        RAISE EXCEPTION 'table %.% is immutable', TG_TABLE_SCHEMA, TG_TABLE_NAME;
+        RETURN NULL;
+    END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE TRIGGER prevent_update_on_accounts_trigger
+    BEFORE UPDATE ON accounts
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
 
-CREATE OR REPLACE FUNCTION unblocked_founds_before_market_buy_order(arg_order_id INTEGER)--assumes that it is market buy order
-    RETURNS NUMERIC(17,2)
-    AS $$
-    DECLARE
-    before_date TIMESTAMP;
-    arg_wallet_id INTEGER;
-    BEGIN
-        SELECT o.order_start_date INTO before_date
-        FROM orders o
-        WHERE o.order_id = arg_order_id;
-        SELECT o.wallet_id INTO arg_wallet_id
-        FROM orders o
-        WHERE o.order_id = arg_order_id;
-        RETURN CASE
-                WHEN (SELECT COUNT(*) - COUNT(share_price)
-                        FROM active_buy_orders abo
-                        WHERE abo.wallet_id = arg_wallet_id AND abo.order_start_date < before_date) != 0
-                THEN 0
-                ELSE funds_in_wallet(arg_wallet_id, before_date) -
-                (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
-                    FROM orders o
-                    WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy' AND o.order_start_date < before_date)
-            END;
-    END;
-$$ LANGUAGE plpgsql;
+CREATE OR REPLACE TRIGGER prevent_update_on_accounts_info_trigger
+    BEFORE UPDATE ON accounts_info
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_companies_trigger
+    BEFORE UPDATE ON companies
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_companies_info_trigger
+    BEFORE UPDATE ON companies_info
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_ipo_trigger
+    BEFORE UPDATE ON ipo
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_companies_status_trigger
+    BEFORE UPDATE ON companies_status
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_external_transfers_trigger
+    BEFORE UPDATE ON external_transfers
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_order_types_trigger
+    BEFORE UPDATE ON order_types
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_orders_trigger
+    BEFORE UPDATE ON orders
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_order_cancellations_trigger
+    BEFORE UPDATE ON order_cancellations
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
+CREATE OR REPLACE TRIGGER prevent_update_on_transactions_trigger
+    BEFORE UPDATE ON transactions
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_update_on_immutable_table();
+
 COMMIT;
