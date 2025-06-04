@@ -53,10 +53,6 @@ public class ActiveOrdersGrid extends VerticalLayout {
                 .setSortable(true)
                 .setAutoWidth(true);
 
-        DateTimeFormatter dateFormatter = DateTimeFormatter
-                .ofPattern("dd.MM.yyyy")
-                .withZone(ZoneId.systemDefault());
-
         grid.addColumn(ActiveOrderListItem::getOrderStartDate)
                 .setHeader("Data złożenia")
                 .setSortable(true)
