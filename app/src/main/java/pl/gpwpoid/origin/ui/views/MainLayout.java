@@ -103,6 +103,10 @@ public class MainLayout extends AppLayout {
             nav.addItem(new SideNavItem("Mój Profil", ProfileView.class, VaadinIcon.USER.create()));
         }
 
+        if(accessChecker.hasAccess(SubscriptionView.class)){
+            nav.addItem(new SideNavItem("Zapisy", SubscriptionView.class, VaadinIcon.CALENDAR.create()));
+        }
+
         addToDrawer(nav);
     }
 }

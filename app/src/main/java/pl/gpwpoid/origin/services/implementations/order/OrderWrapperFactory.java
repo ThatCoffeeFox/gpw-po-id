@@ -9,6 +9,7 @@ import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.services.WalletsService;
 
+import java.math.BigDecimal;
 @Component
 public class OrderWrapperFactory {
     private final WalletsService walletsService;
@@ -29,7 +30,7 @@ public class OrderWrapperFactory {
     OrderWrapper createOrderWrapper(Order order) {
         OrderWrapper orderWrapper = new OrderWrapper(order);
         if (order.getOrderType().getOrderType().equals("buy") && order.getSharePrice() == null) {
-            orderWrapper.setShareMatchingPrice(walletsService.getWalletUnblockedFoundsBeforeMarketBuyOrder(order.getOrderId()));
+            orderWrapper.setShareMatchingPrice(walletsService.getWalletUnblockedFoundsBeforeMarketBuyOrder(order.getOrderId()).divide(BigDecimal.valueOf(order.getSharesAmount())));
         }
         return orderWrapper;
     }

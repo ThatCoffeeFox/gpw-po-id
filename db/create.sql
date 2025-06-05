@@ -175,7 +175,7 @@ CREATE TABLE subscriptions (
   wallet_id       INTEGER REFERENCES wallets(wallet_id),
   date            TIMESTAMP NOT NULL DEFAULT current_date,
   shares_amount   INTEGER NOT NULL CHECK (shares_amount > 0),
-  shares_assigned INTEGER CHECK (shares_assigned >= 0)
+  shares_assigned INTEGER CHECK (shares_assigned IS NULL OR shares_assigned >= 0)
 );
 
 CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_date TIMESTAMP DEFAULT current_timestamp)
