@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services;
 
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
+import pl.gpwpoid.origin.repositories.DTO.ActiveOrderDTO;
 import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
@@ -24,4 +25,6 @@ public interface OrderService {
     void startOrderMatching(int companyId);
 
     void stopOrderMatching(int companyId);
+
+    List<ActiveOrderDTO> getActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException;
 }

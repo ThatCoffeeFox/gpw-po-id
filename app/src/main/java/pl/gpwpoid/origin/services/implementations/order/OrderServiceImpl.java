@@ -14,6 +14,7 @@ import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.OrderCancellation;
 import pl.gpwpoid.origin.models.order.OrderType;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.DTO.ActiveOrderDTO;
 import pl.gpwpoid.origin.repositories.OrderCancellationRepository;
 import pl.gpwpoid.origin.repositories.OrderRepository;
 import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
@@ -80,10 +81,12 @@ public class OrderServiceImpl implements OrderService {
     private boolean hasEnoughFoundsOrShares(OrderDTO orderDTO){
         if(orderDTO.getOrderType().equals("buy")){
             BigDecimal foundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
+            System.out.println(foundsInWallet);
             if(orderDTO.getSharePrice() == null) {
                 return foundsInWallet.compareTo(BigDecimal.ZERO) > 0;
             }
             BigDecimal foundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
+            System.out.println(foundsNeeded);
             return foundsInWallet.compareTo(foundsNeeded) >= 0;
         } else if (orderDTO.getOrderType().equals("sell")) {
             Integer sharesInWallet = walletsService.getWalletUnblockedSharesAmount(orderDTO.getWalletId(), orderDTO.getCompanyId());
@@ -105,11 +108,12 @@ public class OrderServiceImpl implements OrderService {
         if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
+        if(!orderDTO.getOrderType().equals("buy") && !orderDTO.getOrderType().equals("sell")){
+            throw new IllegalArgumentException("Order type has to be 'buy' or 'sell'");
+        }
         if(!hasEnoughFoundsOrShares(orderDTO)){
             throw new RuntimeException("You don't have enough shares/founds");
         }
-
-
 
         Order order = orderFactory.createOrder(orderDTO, wallet.get(), company.get());
 
@@ -196,6 +200,21 @@ public class OrderServiceImpl implements OrderService {
             future.cancel(true);
         }
         companyOrderMatcherFutures.remove(companyId);
+    }
+
+    @Override
+    public List<ActiveOrderDTO> getActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException {
+        if(companyService.getCompanyById(companyId).isEmpty()){
+            throw new EntityNotFoundException("This company does not exist");
+        }
+
+        Optional<Wallet> wallet = walletsService.getWalletById(walletId);
+        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+            throw new AccessDeniedException("You are not an owner of the wallet");
+        }
+
+        return orderRepository.findActiveOrderDTOListByWalletIdCompanyId(walletId, companyId);
     }
 
 

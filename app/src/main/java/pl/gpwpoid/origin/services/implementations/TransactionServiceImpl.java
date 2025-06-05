@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.services.implementations;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,8 +12,9 @@ import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.TransactionRepository;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
-import pl.gpwpoid.origin.repositories.views.TransactionListItem;
+import pl.gpwpoid.origin.repositories.views.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
+import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
@@ -25,10 +27,13 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionFactory transactionFactory;
 
+    private final CompanyService companyService;
+
     @Autowired
-    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory){
+    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, CompanyService companyService){
         this.transactionRepository = transactionRepository;
         this.transactionFactory = transactionFactory;
+        this.companyService = companyService;
     }
 
     @Override
@@ -44,11 +49,18 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionRepository.findAll();
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit) {
-        Pageable pageable = PageRequest.of(0,limit);
-        return transactionRepository.findTransactionsByIdAsListItems(companyId, pageable);
+    @Override
+    public List<TransactionDTO> getCompanyTransactionDTOListByCompanyId(Integer companyId, Integer limit) {
+        if(limit <= 0){
+            throw new IllegalArgumentException("Limit has to be positive");
+        }
+
+        if(companyService.getCompanyById(companyId).isEmpty()){
+            throw new EntityNotFoundException("This company does not exist");
+        }
+
+        return transactionRepository.findTransactionDTOListByCompanyId(companyId, limit);
     }
 
     @Override
