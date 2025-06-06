@@ -13,6 +13,8 @@ public interface AccountService {
 
     void updateAccount(ProfileUpdateDTO profileUpdateDTO);
 
+    void updatePassword(String email, String password);
+
     void deleteAccountById(Long id);
 
     Collection<Account> getAccounts();

@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.ui.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -151,8 +152,10 @@ public class ProfileView extends VerticalLayout {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> saveProfile());
         cancelButton.addClickListener(e -> loadUserData());
+        Button resetPassword = new Button("Reset Password", e -> UI.getCurrent().navigate(ResetPasswordView.class));
+        resetPassword.addClassName("reset-password");
 
-        HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
+        HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton, resetPassword);
         buttonLayout.setSpacing(true);
         return buttonLayout;
     }
