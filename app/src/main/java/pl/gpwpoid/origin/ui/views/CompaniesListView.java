@@ -12,7 +12,7 @@ import pl.gpwpoid.origin.services.CompanyService;
 import java.util.Collection;
 
 
-@Route(value = "companies", layout =  MainLayout.class)
+@Route(value = "companies", layout = MainLayout.class)
 @PageTitle("Companies list")
 @AnonymousAllowed
 public class CompaniesListView extends VerticalLayout {
@@ -38,7 +38,7 @@ public class CompaniesListView extends VerticalLayout {
 
         grid.addItemClickListener(event -> {
             CompanyListItem item = event.getItem();
-            if(item != null) {
+            if (item != null) {
                 UI.getCurrent().navigate("companies/" + item.getCompanyId());
             }
         });

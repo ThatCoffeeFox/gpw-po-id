@@ -81,12 +81,10 @@ public class OrderServiceImpl implements OrderService {
     private boolean hasEnoughFoundsOrShares(OrderDTO orderDTO){
         if(orderDTO.getOrderType().equals("buy")){
             BigDecimal foundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
-            System.out.println(foundsInWallet);
             if(orderDTO.getSharePrice() == null) {
                 return foundsInWallet.compareTo(BigDecimal.ZERO) > 0;
             }
             BigDecimal foundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
-            System.out.println(foundsNeeded);
             return foundsInWallet.compareTo(foundsNeeded) >= 0;
         } else if (orderDTO.getOrderType().equals("sell")) {
             Integer sharesInWallet = walletsService.getWalletUnblockedSharesAmount(orderDTO.getWalletId(), orderDTO.getCompanyId());
@@ -114,6 +112,8 @@ public class OrderServiceImpl implements OrderService {
         if(!hasEnoughFoundsOrShares(orderDTO)){
             throw new RuntimeException("You don't have enough shares/founds");
         }
+
+
 
         Order order = orderFactory.createOrder(orderDTO, wallet.get(), company.get());
 

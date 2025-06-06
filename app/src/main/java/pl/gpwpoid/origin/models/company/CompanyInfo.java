@@ -2,11 +2,11 @@ package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import pl.gpwpoid.origin.models.keys.CompanyInfoId;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
+import pl.gpwpoid.origin.models.keys.CompanyInfoId;
 
 @Entity
 @Table(name = "companies_info")

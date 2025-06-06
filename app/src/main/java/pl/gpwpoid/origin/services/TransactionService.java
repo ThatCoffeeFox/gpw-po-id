@@ -24,8 +24,9 @@ public interface TransactionService {
     List<TransactionDTO> getCompanyTransactionDTOListByCompanyId(Integer companyId, Integer limit);
 
     Collection<TransactionWalletListItem> getTransactionsByWalletId(int walletId);
+
     List<OHLCDataItem> getOHLCDataByCompanyId(Integer companyId, LocalDateTime from, LocalDateTime to);
 
     @Transactional(readOnly = true)
-    public BigDecimal getShareValueByCompanyId(Integer companyId);
+    BigDecimal getShareValueByCompanyId(Integer companyId);
 }

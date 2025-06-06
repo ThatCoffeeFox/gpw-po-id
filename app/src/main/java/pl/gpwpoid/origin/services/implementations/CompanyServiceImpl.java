@@ -15,10 +15,10 @@ import java.util.Optional;
 @Service
 public class CompanyServiceImpl implements CompanyService {
 
-    private CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
     @Autowired
-    public CompanyServiceImpl(CompanyRepository companyRepository){
+    public CompanyServiceImpl(CompanyRepository companyRepository) {
         this.companyRepository = companyRepository;
     }
 

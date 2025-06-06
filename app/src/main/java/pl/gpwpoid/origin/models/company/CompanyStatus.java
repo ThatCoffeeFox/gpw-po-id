@@ -1,9 +1,9 @@
 package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import pl.gpwpoid.origin.models.keys.CompanyStatusId;
 
 @Entity

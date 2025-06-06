@@ -10,9 +10,9 @@ public class WalletFactory {
             Account account,
             String name
     ) {
-        if(account == null)
+        if (account == null)
             throw new IllegalArgumentException("account cannot be null");
-        if(name == null)
+        if (name == null)
             throw new IllegalArgumentException("name cannot be null");
 
         Wallet wallet = new Wallet();

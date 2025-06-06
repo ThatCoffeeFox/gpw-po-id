@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.factories.ExternalTransferFactory;
 import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.factories.WalletFactory;
-import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.DTO.WalletCompanyDTO;
@@ -68,7 +67,7 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Wallet> getWalletForCurrentUser(){
+    public Collection<Wallet> getWalletForCurrentUser() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
         return walletRepository.getWalletForCurrentUser(accountId);
     }
@@ -116,13 +115,13 @@ public class WalletServiceImpl implements WalletsService {
     @Override
     public void addTransfer(TransferDTO transferDTO) {
         Optional<Wallet> wallet = walletRepository.findById(Long.valueOf(transferDTO.getWalletId()));
-        if(wallet.isEmpty()) {
+        if (wallet.isEmpty()) {
             throw new IllegalArgumentException("Wallet not found");
         }
 
-        if(transferDTO.getTransferType().equals(ExternalTransfer.TransferType.withdrawal)){
+        if (transferDTO.getTransferType().equals(ExternalTransfer.TransferType.withdrawal)) {
             BigDecimal funds = walletRepository.getFundsByWalletId(transferDTO.getWalletId());
-            if(funds.compareTo(transferDTO.getFunds()) < 0)
+            if (funds.compareTo(transferDTO.getFunds()) < 0)
                 throw new IllegalArgumentException("Funds exceeded");
         }
 
@@ -140,12 +139,11 @@ public class WalletServiceImpl implements WalletsService {
     @Override
     public void deleteWallet(Integer walletId) {
         Optional<Wallet> wallet = walletRepository.findById(Long.valueOf(walletId));
-        if(wallet.isPresent()){
+        if (wallet.isPresent()) {
             Wallet walletToDelete = wallet.get();
             walletToDelete.setActive(false);
             walletRepository.save(walletToDelete);
-        }
-        else
+        } else
             throw new IllegalArgumentException("Wallet not found");
     }
 

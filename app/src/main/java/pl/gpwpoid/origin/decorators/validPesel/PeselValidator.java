@@ -9,7 +9,8 @@ public class PeselValidator implements ConstraintValidator<ValidPesel, String> {
     private static final int PESEL_LENGTH = 11;
 
     @Override
-    public void initialize(ValidPesel constraintAnnotation) {}
+    public void initialize(ValidPesel constraintAnnotation) {
+    }
 
     @Override
     public boolean isValid(String pesel, ConstraintValidatorContext context) {

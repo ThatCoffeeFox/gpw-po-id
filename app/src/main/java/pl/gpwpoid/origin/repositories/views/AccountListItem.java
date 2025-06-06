@@ -3,7 +3,6 @@ package pl.gpwpoid.origin.repositories.views;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import pl.gpwpoid.origin.models.account.Account;
 
 @AllArgsConstructor
 @NoArgsConstructor

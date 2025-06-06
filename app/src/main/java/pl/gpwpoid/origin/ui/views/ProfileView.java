@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.ui.views;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -15,13 +14,10 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
-import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.Town;
-import pl.gpwpoid.origin.repositories.views.AccountAuthItem;
 import pl.gpwpoid.origin.services.AccountService;
 import pl.gpwpoid.origin.services.AddressService;
 import pl.gpwpoid.origin.ui.views.DTO.ProfileUpdateDTO;
@@ -29,7 +25,6 @@ import pl.gpwpoid.origin.utils.ExtendedUserDetails;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Optional;
 
 @Route(value = "profile", layout = MainLayout.class)
@@ -41,7 +36,7 @@ public class ProfileView extends VerticalLayout {
     private final AddressService addressService;
 
     private final Binder<ProfileUpdateDTO> binder = new Binder<>(ProfileUpdateDTO.class);
-    private ProfileUpdateDTO currentProfileData = new ProfileUpdateDTO();
+    private final ProfileUpdateDTO currentProfileData = new ProfileUpdateDTO();
 
 
     private final TextField firstNameField = new TextField("Imię");
