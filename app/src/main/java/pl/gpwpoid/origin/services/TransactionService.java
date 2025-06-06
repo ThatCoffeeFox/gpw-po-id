@@ -8,6 +8,7 @@ import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;

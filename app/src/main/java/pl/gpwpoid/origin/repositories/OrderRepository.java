@@ -50,5 +50,4 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         ORDER BY order_start_date ASC
         """, nativeQuery = true)
     List<ActiveOrderListItem> findActiveOrdersByAccountId(@Param("accountId") Integer accountId);
-
 }

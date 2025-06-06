@@ -4,21 +4,25 @@ import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.*;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import org.springframework.stereotype.Component;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
 import pl.gpwpoid.origin.services.TransactionService;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CompanyChart extends VerticalLayout {
     private final Chart candlestickChart = new Chart(ChartType.CANDLESTICK);
     private final H3 chartHeader = new H3("Historia cen akcji");
     private final TransactionService transactionService;
+
+    
+    
+    private static final ZoneId SERVER_ZONE_ID = ZoneId.systemDefault();
 
     public CompanyChart(TransactionService transactionService) {
         this.transactionService = transactionService;
@@ -32,6 +36,11 @@ public class CompanyChart extends VerticalLayout {
 
     private void configureChart() {
         Configuration conf = candlestickChart.getConfiguration();
+
+        Time time = new Time();
+        time.setUseUTC(false);
+        conf.setTime(time);
+
         conf.setTitle("Wykres świecowy");
 
         XAxis xAxis = new XAxis();
@@ -54,54 +63,102 @@ public class CompanyChart extends VerticalLayout {
         conf.setPlotOptions(new PlotOptionsCandlestick());
     }
 
+    
+    private LocalDateTime toLocalDateTime(Timestamp timestamp) {
+        return timestamp.toLocalDateTime();
+    }
+
+    
+    private LocalDateTime toLocalDateTime(Number number) {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(number.longValue()), SERVER_ZONE_ID);
+    }
+
     public void loadAndRenderData(Integer companyId) {
         if (companyId == null) {
             return;
         }
 
         Configuration conf = candlestickChart.getConfiguration();
-        conf.setSeries(new ArrayList<>());
+        LocalDateTime now = LocalDateTime.now();
+        
+        LocalDateTime thirtyMinutesAgo = now.minus(30, ChronoUnit.MINUTES);
 
-        List<OHLCDataItem> ohlcDataList = transactionService.getOHLCDataByCompanyId(
+        
+        
+        List<OHLCDataItem> rawDataFromDb = transactionService.getOHLCDataByCompanyId(
                 companyId,
-                LocalDateTime.now().minusDays(90),
-                LocalDateTime.now()
+                thirtyMinutesAgo.atZone(SERVER_ZONE_ID).toLocalDateTime(),
+                now.atZone(SERVER_ZONE_ID).toLocalDateTime()
         );
 
-        if (ohlcDataList == null || ohlcDataList.isEmpty()) {
+        if (rawDataFromDb == null || rawDataFromDb.isEmpty()) {
             chartHeader.setText("Historia cen akcji (brak danych)");
-            candlestickChart.setVisible(false);
+            conf.setSeries(Collections.emptyList());
             candlestickChart.drawChart();
             return;
         }
 
-        candlestickChart.setVisible(true);
         chartHeader.setText("Historia cen akcji");
 
-        DataSeries dataSeries = new DataSeries("Cena Akcji");
+        
+        Map<LocalDateTime, OhlcItem> candleMap = rawDataFromDb.stream()
+                .collect(Collectors.toMap(
+                        data -> toLocalDateTime(data.getTimestamp()).truncatedTo(ChronoUnit.MINUTES),
+                        data -> {
+                            OhlcItem item = new OhlcItem();
+                            
+                            item.setX(data.getTimestamp().toInstant());
+                            item.setOpen(data.getOpen());
+                            item.setHigh(data.getHigh());
+                            item.setLow(data.getLow());
+                            item.setClose(data.getClose());
+                            return item;
+                        },
+                        (existing, replacement) -> existing
+                ));
 
-        for (OHLCDataItem data : ohlcDataList) {
-            if (data.getTimestamp() == null || data.getOpen() == null ||
-                    data.getHigh() == null || data.getLow() == null || data.getClose() == null) {
-                continue;
+        List<OhlcItem> finalCandles = new ArrayList<>();
+
+        OhlcItem lastAvailableCandle = rawDataFromDb.stream()
+                .min(Comparator.comparing(OHLCDataItem::getTimestamp))
+                .map(d -> candleMap.get(toLocalDateTime(d.getTimestamp()).truncatedTo(ChronoUnit.MINUTES)))
+                .orElse(null);
+
+        if (lastAvailableCandle == null) {
+            conf.setSeries(Collections.emptyList());
+            candlestickChart.drawChart();
+            return;
+        }
+
+        
+        LocalDateTime firstMinute = toLocalDateTime(lastAvailableCandle.getX()).truncatedTo(ChronoUnit.MINUTES);
+        LocalDateTime currentMinute = firstMinute;
+        LocalDateTime endMinute = now.truncatedTo(ChronoUnit.MINUTES);
+
+        while (!currentMinute.isAfter(endMinute)) {
+            if (candleMap.containsKey(currentMinute)) {
+                lastAvailableCandle = candleMap.get(currentMinute);
+                finalCandles.add(lastAvailableCandle);
+            } else {
+                OhlcItem flatCandle = new OhlcItem();
+                
+                flatCandle.setX(currentMinute.atZone(SERVER_ZONE_ID).toInstant());
+                Number lastClose = lastAvailableCandle.getClose();
+                flatCandle.setOpen(lastClose);
+                flatCandle.setHigh(lastClose);
+                flatCandle.setLow(lastClose);
+                flatCandle.setClose(lastClose);
+                finalCandles.add(flatCandle);
             }
-            OhlcItem item = new OhlcItem();
-            Instant instant = data.getTimestamp().toInstant();
-            item.setX(instant);
-            item.setOpen(data.getOpen());
-            item.setHigh(data.getHigh());
-            item.setLow(data.getLow());
-            item.setClose(data.getClose());
-            dataSeries.add(item);
+            currentMinute = currentMinute.plus(1, ChronoUnit.MINUTES);
         }
 
-        if (!dataSeries.getData().isEmpty()) {
-            conf.addSeries(dataSeries);
-        } else {
-            chartHeader.setText("Historia cen akcji (niekompletne dane)");
-            candlestickChart.setVisible(false);
+        DataSeries newDataSeries = new DataSeries("Cena Akcji");
+        for (OhlcItem item : finalCandles) {
+            newDataSeries.add(item);
         }
 
+        conf.setSeries(newDataSeries);
         candlestickChart.drawChart();
     }
 }

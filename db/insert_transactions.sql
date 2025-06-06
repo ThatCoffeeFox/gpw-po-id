@@ -1,205 +1,163 @@
 \encoding UTF8
 
-BEGIN;
-
--- Prerequisite: Ensure town and postal code from sample data exist
-INSERT INTO towns (town_id, name) VALUES (35803, 'Warszawa') ON CONFLICT (town_id) DO NOTHING;
-INSERT INTO postal_codes (postal_code) VALUES ('00-002') ON CONFLICT (postal_code) DO NOTHING;
-INSERT INTO postal_codes_towns (postal_code, town_id) VALUES ('00-002', 35803) ON CONFLICT (postal_code, town_id) DO NOTHING;
-
--- Section 1: Add Funds to Wallets (ensure ample funds for high volume)
-INSERT INTO external_transfers (wallet_id, type, amount, date, account_number)
-SELECT gs.id, 'deposit', 200000 + (RANDOM()*100000)::INT, NOW() - INTERVAL '95 days' - (gs.id * INTERVAL '12 hours'), '00000000000000000000000000'
-FROM generate_series(1,10) AS gs(id);
--- Add a second wave of deposits for very active wallets
-INSERT INTO external_transfers (wallet_id, type, amount, date, account_number)
-SELECT gs.id, 'deposit', 150000 + (RANDOM()*50000)::INT, NOW() - INTERVAL '60 days' - (gs.id * INTERVAL '12 hours'), '00000000000000000000000000'
-FROM generate_series(1,10) AS gs(id) WHERE gs.id % 2 = 0;
-
-
--- Section 2: Distribute IPO Shares (ensure ample shares for selling)
-INSERT INTO subscriptions (ipo_id, wallet_id, date, shares_amount, shares_assigned)
-SELECT 1, gs.id, NOW() - INTERVAL '100 days' - (gs.id * INTERVAL '1 day'), 500 + (RANDOM()*500)::INT, 400 + (RANDOM()*400)::INT
-FROM generate_series(1,10) AS gs(id) WHERE gs.id IN (3,4,5,6,8,10)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO subscriptions (ipo_id, wallet_id, date, shares_amount, shares_assigned)
-SELECT 2, gs.id, NOW() - INTERVAL '110 days' - (gs.id * INTERVAL '1 day'), 600 + (RANDOM()*600)::INT, 500 + (RANDOM()*500)::INT
-FROM generate_series(1,10) AS gs(id) WHERE gs.id IN (1,7,10)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO subscriptions (ipo_id, wallet_id, date, shares_amount, shares_assigned)
-SELECT 5, gs.id, NOW() - INTERVAL '96 days' - (gs.id * INTERVAL '1 day'), 300 + (RANDOM()*300)::INT, 250 + (RANDOM()*250)::INT
-FROM generate_series(1,10) AS gs(id) WHERE gs.id IN (1,2,4)
-ON CONFLICT DO NOTHING;
-
-
 DO $$
 DECLARE
-    v_order_id_sell INT;
-    v_order_id_buy INT;
-    v_wallet_id_seller INT;
-    v_wallet_id_buyer INT;
-    v_shares_to_sell INT;
-    v_shares_to_buy INT;
-    v_price_sell NUMERIC(17,2);
-    v_price_buy NUMERIC(17,2);
+    -- =================================================================================
+    -- KONFIGURACJA
+    -- =================================================================================
+    v_total_orders_to_generate INT := 50;
+    v_tradable_companies INT[] := ARRAY[1, 2, 4]; -- ID spółek, którymi można handlować
+    v_user_wallets INT[] := ARRAY[3, 4, 5, 6, 7, 8, 9, 10]; -- Portfele, które będą handlować
+
+    v_shares_per_ipo_subscription INT := 10000; -- Ile akcji dostaje każdy portfel w IPO
+    v_funds_deposit_amount NUMERIC(17, 2) := 500000.00; -- Jaki depozyt dostaje każdy portfel
+
+    -- Zmienne pętli i pomocnicze
+    i INT;
     v_company_id INT;
-    v_counter INT;
-    v_num_orders_per_type INT := 100;
-    v_num_transactions_target_per_company INT := 50;
-    v_current_shares INT;
-    v_available_funds NUMERIC(17,2);
+    v_wallet_id INT;
+    v_ipo_id INT;
+    v_ipo_price NUMERIC(17, 2);
 
-    v_random_day_offset INT;
-    v_random_hour_offset INT;
-    v_random_minute_offset INT;
-    v_generated_order_start_date TIMESTAMP;
-    v_sell_order_start_ts TIMESTAMP;
-    v_buy_order_start_ts TIMESTAMP;
-    v_transaction_base_ts TIMESTAMP;
-    v_generated_transaction_date TIMESTAMP;
-    v_order_expiration_date TIMESTAMP;
+    v_order_type VARCHAR;
+    v_shares_amount INT;
+    v_share_price NUMERIC(17, 2);
+    v_available_shares INT;
+    v_available_funds NUMERIC(17, 2);
+    v_max_shares_to_buy INT;
+    v_potential_sellers INT[];
+    v_base_price NUMERIC(17, 2);
 
-    v_companies_to_trade INT[] := ARRAY[1];
-    v_company_ipo_end_date TIMESTAMP;
-    v_base_price NUMERIC(17,2);
-    v_price_spread NUMERIC(17,2);
 BEGIN
+    RAISE NOTICE '--- ETAP 1: PRZYGOTOWANIE DANYCH (SEEDING) ---';
 
-    FOREACH v_company_id IN ARRAY v_companies_to_trade
+    -- =================================================================================
+    -- 1B. Zasilanie portfeli w środki pieniężne
+    -- =================================================================================
+    RAISE NOTICE '-> Zasilanie portfeli w środki poprzez External Transfers...';
+    FOREACH v_wallet_id IN ARRAY v_user_wallets
     LOOP
-        RAISE NOTICE '--------------------------------------------------------------------';
-        RAISE NOTICE 'Symulacja handlu dla Firmy ID % ... Cel transakcji: %', v_company_id, v_num_transactions_target_per_company;
-        RAISE NOTICE '--------------------------------------------------------------------';
+        INSERT INTO external_transfers (wallet_id, type, amount, date, account_number)
+        VALUES (v_wallet_id, 'deposit', v_funds_deposit_amount, NOW() - INTERVAL '1 day', '99999999999999999999999999');
+        RAISE NOTICE '  -> Portfel ID: % zasilony kwotą: %', v_wallet_id, v_funds_deposit_amount;
+    END LOOP;
 
-        SELECT MAX(i.subscription_end) INTO v_company_ipo_end_date
-        FROM ipo i
-        WHERE i.company_id = v_company_id;
+    -- =================================================================================
+    -- 1A. Tworzenie IPO i przyznawanie akcji portfelom
+    -- =================================================================================
+    RAISE NOTICE '-> Tworzenie IPO i subskrypcji, aby zasilić portfele w akcje...';
+    FOREACH v_company_id IN ARRAY v_tradable_companies
+    LOOP
+        -- Ustal cenę IPO dla danej spółki
+        SELECT
+            CASE v_company_id
+                WHEN 1 THEN 10.00
+                WHEN 2 THEN 5.00
+                WHEN 4 THEN 20.00
+            END
+        INTO v_ipo_price;
 
-        IF v_company_ipo_end_date IS NULL THEN
-            v_company_ipo_end_date := NOW() - INTERVAL '365 days';
-            RAISE WARNING 'Brak danych IPO dla firmy %, zakładam, że była handlowalna od roku.', v_company_id;
+        RAISE NOTICE '  -> Tworzenie IPO dla spółki ID: %, cena: %', v_company_id, v_ipo_price;
+        
+        -- Stwórz zakończone IPO
+        INSERT INTO ipo (company_id, payment_wallet_id, shares_amount, ipo_price, subscription_start, subscription_end)
+        VALUES (v_company_id, 1, 1000000, v_ipo_price, NOW() - INTERVAL '10 days', NOW() - INTERVAL '5 days')
+        RETURNING ipo_id INTO v_ipo_id;
+        
+        -- Upewnij się, że spółka jest oznaczona jako 'tradable' po zakończeniu IPO
+        INSERT INTO companies_status (company_id, date, tradable)
+        VALUES (v_company_id, NOW() - INTERVAL '4 days', TRUE)
+        ON CONFLICT DO NOTHING;
+
+        -- Przypisz akcje z tego IPO do każdego z portfeli użytkowników
+        FOREACH v_wallet_id IN ARRAY v_user_wallets
+        LOOP
+            INSERT INTO subscriptions (ipo_id, wallet_id, date, shares_amount, shares_assigned)
+            VALUES (v_ipo_id, v_wallet_id, NOW() - INTERVAL '7 days', v_shares_per_ipo_subscription, v_shares_per_ipo_subscription);
+        END LOOP;
+        
+        RAISE NOTICE '     Spółka ID: % - akcje przyznane % portfelom.', v_company_id, array_length(v_user_wallets, 1);
+    END LOOP;
+
+
+    RAISE NOTICE '--- ETAP 2: GENEROWANIE ZLECEŃ HANDLOWYCH ---';
+    FOR i IN 1..v_total_orders_to_generate LOOP
+        -- Losuj typ zlecenia
+        IF random() < 0.5 THEN
+            v_order_type := 'sell';
+        ELSE
+            v_order_type := 'buy';
         END IF;
 
-        IF v_company_id = 1 THEN v_base_price := 10.50; v_price_spread := 0.50;
-        ELSIF v_company_id = 2 THEN v_base_price := 5.20; v_price_spread := 0.30;
-        ELSIF v_company_id = 4 THEN v_base_price := 19.80; v_price_spread := 0.70;
-        ELSE v_base_price := 15.00; v_price_spread := 1.00; END IF;
+        -- Losuj spółkę
+        v_company_id := v_tradable_companies[1 + floor(random() * array_length(v_tradable_companies, 1))];
+        
+        -- Ustaw bazową cenę dla spółki (nieco wyższą niż cena IPO)
+        SELECT
+            CASE v_company_id
+                WHEN 1 THEN 11.50
+                WHEN 2 THEN 6.20
+                WHEN 4 THEN 20.80
+            END
+        INTO v_base_price;
 
-        RAISE NOTICE 'Generowanie % zleceń sprzedaży dla Firmy ID % (od %)...', v_num_orders_per_type, v_company_id, v_company_ipo_end_date;
-        FOR v_counter IN 1..v_num_orders_per_type LOOP
-            IF v_counter % 500 = 0 THEN RAISE NOTICE '  Wygenerowano % zleceń sprzedaży dla C%', v_counter, v_company_id; END IF;
+        -- =================================================================================
+        -- Logika dla ZLECENIA SPRZEDAŻY (SELL)
+        -- =================================================================================
+        IF v_order_type = 'sell' THEN
+            SELECT array_agg(w.wallet_id) INTO v_potential_sellers
+            FROM wallets w
+            WHERE w.wallet_id = ANY(v_user_wallets)
+              AND shares_in_wallet(w.wallet_id, v_company_id) > 0;
 
-            IF v_company_id = 1 THEN SELECT wallet_id INTO v_wallet_id_seller FROM (VALUES (3),(4),(5),(6),(8),(10)) AS s(wallet_id) ORDER BY RANDOM() LIMIT 1;
-            ELSIF v_company_id = 2 THEN SELECT wallet_id INTO v_wallet_id_seller FROM (VALUES (1),(7),(10)) AS s(wallet_id) ORDER BY RANDOM() LIMIT 1;
-            ELSIF v_company_id = 4 THEN SELECT wallet_id INTO v_wallet_id_seller FROM (VALUES (1),(2),(4)) AS s(wallet_id) ORDER BY RANDOM() LIMIT 1;
-            ELSE SELECT gs INTO v_wallet_id_seller FROM generate_series(1,10) gs ORDER BY RANDOM() LIMIT 1; END IF;
+            IF array_length(v_potential_sellers, 1) IS NULL THEN
+                i := i - 1; CONTINUE;
+            END IF;
 
-            v_current_shares := shares_in_wallet(v_wallet_id_seller, v_company_id) - blocked_shares_in_wallet(v_wallet_id_seller, v_company_id);
-            IF v_current_shares < 2 THEN CONTINUE; END IF;
+            v_wallet_id := v_potential_sellers[1 + floor(random() * array_length(v_potential_sellers, 1))];
+            v_available_shares := shares_in_wallet(v_wallet_id, v_company_id) - blocked_shares_in_wallet(v_wallet_id, v_company_id);
+            
+            IF v_available_shares <= 0 THEN
+                i := i - 1; CONTINUE;
+            END IF;
 
-            v_shares_to_sell := GREATEST(1, LEAST(v_current_shares - 1, (RANDOM()*5 + 1)::INT));
-            v_price_sell := ROUND((v_base_price + (RANDOM() * v_price_spread * 2) - v_price_spread)::NUMERIC, 2);
+            v_shares_amount := 1 + floor(random() * LEAST(v_available_shares, 500)); -- Sprzedaj do 500 akcji
+            v_share_price := round(v_base_price + (random() * 2 - 0.5)::numeric, 2);
 
-            v_random_day_offset := (RANDOM() * 89)::INT;
-            v_generated_order_start_date := date_trunc('day',NOW()) - (v_random_day_offset * INTERVAL '1 day') + ((RANDOM()*23)::INT * INTERVAL '1 hour') + ((RANDOM()*59)::INT * INTERVAL '1 minute');
-            IF v_generated_order_start_date < v_company_ipo_end_date THEN v_generated_order_start_date := v_company_ipo_end_date + INTERVAL '1 hour' + (RANDOM() * INTERVAL '7 days'); END IF;
-            IF v_generated_order_start_date >= NOW() THEN v_generated_order_start_date := NOW() - INTERVAL '2 hours'; END IF;
-            v_order_expiration_date := v_generated_order_start_date + INTERVAL '20 days';
+            RAISE NOTICE 'SELL: Wallet %, Company %, Shares: %, Price: % (Available Shares: %)', 
+                         v_wallet_id, v_company_id, v_shares_amount, v_share_price, v_available_shares;
 
-            BEGIN
-                INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id)
-                VALUES ('sell', v_shares_to_sell, v_generated_order_start_date, v_order_expiration_date, v_price_sell, v_wallet_id_seller, v_company_id);
-            EXCEPTION WHEN OTHERS THEN
-                -- RAISE DEBUG USUNIĘTE
-            END;
-        END LOOP;
+        -- =================================================================================
+        -- Logika dla ZLECENIA KUPNA (BUY)
+        -- =================================================================================
+        ELSE -- v_order_type = 'buy'
+            v_wallet_id := v_user_wallets[1 + floor(random() * array_length(v_user_wallets, 1))];
+            v_share_price := round(v_base_price + (random() * 0.5 - 1)::numeric, 2);
+            v_available_funds := unblocked_funds_in_wallet(v_wallet_id);
+            
+            IF v_available_funds < v_share_price THEN
+                i := i - 1; CONTINUE;
+            END IF;
 
-        RAISE NOTICE 'Generowanie % zleceń kupna dla Firmy ID % (od %)...', v_num_orders_per_type, v_company_id, v_company_ipo_end_date;
-        FOR v_counter IN 1..v_num_orders_per_type LOOP
-            IF v_counter % 500 = 0 THEN RAISE NOTICE '  Wygenerowano % zleceń kupna dla C%', v_counter, v_company_id; END IF;
-            SELECT gs INTO v_wallet_id_buyer FROM generate_series(1,10) gs ORDER BY RANDOM() LIMIT 1;
+            v_max_shares_to_buy := floor(v_available_funds / v_share_price);
 
-            v_shares_to_buy := (RANDOM()*5 + 1)::INT;
-            v_price_buy := ROUND((v_base_price - (RANDOM() * v_price_spread * 2) + v_price_spread)::NUMERIC, 2);
+            IF v_max_shares_to_buy <= 0 THEN
+                i := i - 1; CONTINUE;
+            END IF;
 
-            IF random() < 0.1 THEN v_price_buy := ROUND((v_base_price + (RANDOM() * v_price_spread * 0.5))::NUMERIC, 2); END IF;
+            v_shares_amount := 1 + floor(random() * LEAST(v_max_shares_to_buy, 500)); -- Kup do 500 akcji
 
-            v_available_funds := unblocked_funds_in_wallet(v_wallet_id_buyer);
-            IF v_available_funds < v_shares_to_buy * v_price_buy THEN CONTINUE; END IF;
+            RAISE NOTICE 'BUY:  Wallet %, Company %, Shares: %, Price: % (Available Funds: %, Max Shares: %)', 
+                         v_wallet_id, v_company_id, v_shares_amount, v_share_price, v_available_funds, v_max_shares_to_buy;
 
-            v_random_day_offset := (RANDOM() * 89)::INT;
-            v_generated_order_start_date := date_trunc('day',NOW()) - (v_random_day_offset * INTERVAL '1 day') + ((RANDOM()*23)::INT * INTERVAL '1 hour') + ((RANDOM()*59)::INT * INTERVAL '1 minute');
-            IF v_generated_order_start_date < v_company_ipo_end_date THEN v_generated_order_start_date := v_company_ipo_end_date + INTERVAL '1 hour' + (RANDOM() * INTERVAL '7 days'); END IF;
-            IF v_generated_order_start_date >= NOW() THEN v_generated_order_start_date := NOW() - INTERVAL '1 hour'; END IF;
-            v_order_expiration_date := v_generated_order_start_date + INTERVAL '20 days';
+        END IF;
 
-            BEGIN
-                INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id)
-                VALUES ('buy', v_shares_to_buy, v_generated_order_start_date, v_order_expiration_date, v_price_buy, v_wallet_id_buyer, v_company_id);
-            EXCEPTION WHEN OTHERS THEN
-                -- RAISE DEBUG USUNIĘTE
-            END;
-        END LOOP;
+        -- Wstaw poprawne zlecenie do bazy danych
+        INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id)
+        VALUES (v_order_type, v_shares_amount, NOW() - (random() * INTERVAL '60 minutes'), NOW() + INTERVAL '7 days', v_share_price, v_wallet_id, v_company_id);
 
-        RAISE NOTICE 'Generowanie transakcji dla Firmy ID %...', v_company_id;
-        DECLARE
-            v_successful_transactions INT := 0;
-            v_attempt_counter INT := 0;
-            v_max_attempts INT := v_num_transactions_target_per_company * 5;
-            v_tx_price NUMERIC(17,2);
-        BEGIN
-            WHILE v_successful_transactions < v_num_transactions_target_per_company AND v_attempt_counter < v_max_attempts LOOP
-                v_attempt_counter := v_attempt_counter + 1;
-                IF v_attempt_counter % 200 = 0 THEN RAISE NOTICE '  Próba transakcji #% dla C% (udanych: %)', v_attempt_counter, v_company_id, v_successful_transactions; END IF;
-
-                SELECT abo.order_id, abo.wallet_id, abo.shares_left, abo.share_price, abo.order_start_date
-                INTO v_order_id_buy, v_wallet_id_buyer, v_shares_to_buy, v_price_buy, v_buy_order_start_ts
-                FROM active_buy_orders abo
-                WHERE abo.company_id = v_company_id AND abo.share_price IS NOT NULL AND abo.order_start_date < NOW()
-                ORDER BY abo.share_price DESC, abo.order_start_date ASC
-                LIMIT 1;
-
-                IF NOT FOUND THEN RAISE NOTICE 'Brak aktywnych zleceń kupna. Kończenie prób.'; EXIT; END IF;
-
-                SELECT aso.order_id, aso.wallet_id, aso.shares_left, aso.share_price, aso.order_start_date
-                INTO v_order_id_sell, v_wallet_id_seller, v_shares_to_sell, v_price_sell, v_sell_order_start_ts
-                FROM active_sell_orders aso
-                WHERE aso.company_id = v_company_id AND aso.share_price IS NOT NULL AND aso.order_start_date < NOW()
-                  AND aso.share_price <= v_price_buy
-                  AND aso.wallet_id != v_wallet_id_buyer
-                  AND aso.order_start_date < (SELECT o.order_expiration_date FROM orders o WHERE o.order_id = v_order_id_buy)
-                  AND v_buy_order_start_ts < aso.order_expiration_date
-                ORDER BY aso.share_price ASC, aso.order_start_date ASC
-                LIMIT 1;
-
-                IF NOT FOUND THEN CONTINUE; END IF;
-
-                DECLARE
-                    tx_shares INT := LEAST(v_shares_to_buy, v_shares_to_sell);
-                BEGIN
-                    IF tx_shares > 0 THEN
-                        v_tx_price := v_price_buy;
-
-                        v_transaction_base_ts := GREATEST(v_sell_order_start_ts, v_buy_order_start_ts);
-                        v_generated_transaction_date := v_transaction_base_ts + (INTERVAL '1 minute' * (1 + (RANDOM() * 1439)::INT));
-                        IF v_generated_transaction_date >= NOW() THEN v_generated_transaction_date := NOW() - INTERVAL '10 seconds'; END IF;
-                        IF v_generated_transaction_date <= v_transaction_base_ts THEN v_generated_transaction_date := v_transaction_base_ts + INTERVAL '10 seconds'; END IF;
-                        v_generated_transaction_date := LEAST(v_generated_transaction_date, NOW() - INTERVAL '10 seconds');
-
-                        INSERT INTO transactions (sell_order_id, buy_order_id, date, shares_amount, share_price)
-                        VALUES (v_order_id_sell, v_order_id_buy, v_generated_transaction_date, tx_shares, v_tx_price);
-                        v_successful_transactions := v_successful_transactions + 1;
-                    END IF;
-                EXCEPTION WHEN OTHERS THEN
-                    -- RAISE DEBUG USUNIĘTE
-                END;
-            END LOOP;
-            RAISE NOTICE 'Dla Firmy ID % utworzono % transakcji (cel: %). Prób: %.', v_company_id, v_successful_transactions, v_num_transactions_target_per_company, v_attempt_counter;
-        END;
-        RAISE NOTICE 'Symulacja handlu dla Firmy ID % zakończona.', v_company_id;
     END LOOP;
-END $$;
 
-COMMIT;
+    RAISE NOTICE '--- Zakończono generowanie % zleceń. ---', v_total_orders_to_generate;
+END;
+$$ LANGUAGE plpgsql;

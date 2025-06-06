@@ -1,16 +1,16 @@
 package pl.gpwpoid.origin.ui.views.company;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.shared.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.company.Company;
-import pl.gpwpoid.origin.services.CompanyService;
-import pl.gpwpoid.origin.services.OrderService;
-import pl.gpwpoid.origin.services.TransactionService;
-import pl.gpwpoid.origin.services.WalletsService;
+import pl.gpwpoid.origin.services.*;
 import pl.gpwpoid.origin.ui.views.MainLayout;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
@@ -23,6 +23,8 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     private final OrderService orderService;
     private final TransactionService transactionService;
     private final WalletsService walletsService;
+    private final ChartUpdateBroadcaster broadcaster;
+    private Registration broadcasterRegistration;
 
     private final CompanyChart companyChart;
     private final OrderForm orderForm;
@@ -35,7 +37,8 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     public CompanyView(CompanyService companyService,
                        TransactionService transactionService,
                        OrderService orderService,
-                       WalletsService walletsService){
+                       WalletsService walletsService,
+                       ChartUpdateBroadcaster broadcaster){
         this.companyService = companyService;
         this.transactionService = transactionService;
         this.orderService = orderService;
@@ -43,6 +46,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         this.activeOrdersGrid = new ActiveOrdersGrid(orderService);
         this.orderForm = new OrderForm(orderService, walletsService);
         this.companyChart = new CompanyChart(transactionService);
+        this.broadcaster = broadcaster;
 
         setSizeFull();
         setPadding(true);
@@ -70,7 +74,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         this.companyId = parameter;
         try {
             loadCompanyDetails();
-            companyChart.loadAndRenderData(companyId);
+            updateChart();
 
             if (SecurityUtils.isLoggedIn()) {
                 orderForm.setCompanyId(companyId);
@@ -81,6 +85,33 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
                     4000, Notification.Position.MIDDLE);
         }
     }
+
+    private void updateChart() {
+        companyChart.loadAndRenderData(companyId);
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        if(companyId != null){
+            broadcasterRegistration = broadcaster.register(companyId, id -> {
+                attachEvent.getUI().access(() -> {
+                    Notification.show("Aktualizacja danych spółki...", 1000, Notification.Position.BOTTOM_STRETCH);
+                    updateChart();
+                });
+            });
+        }
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        if (broadcasterRegistration != null) {
+            broadcasterRegistration.remove();
+            broadcasterRegistration = null;
+        }
+        super.onDetach(detachEvent);
+    }
+
 
     private void loadCompanyDetails() {
         if (companyId != null) {
