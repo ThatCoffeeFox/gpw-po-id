@@ -32,7 +32,7 @@ public class ApiControler {
     }
 
     @PostMapping("/order")
-    public ResponseEntity<String> addOrder(@RequestBody OrderDTO orderDTO){
+    public ResponseEntity<?> addOrder(@RequestBody OrderDTO orderDTO){
         try{
             orderService.addOrder(orderDTO);
             return ResponseEntity.ok().build();
@@ -43,7 +43,7 @@ public class ApiControler {
     }
 
     @DeleteMapping("/order/{orderId}")
-    public ResponseEntity<String> cancelOrder(@PathVariable Integer orderId){
+    public ResponseEntity<?> cancelOrder(@PathVariable Integer orderId){
         try {
             orderService.cancelOrder(orderId);
             return ResponseEntity.ok().build();

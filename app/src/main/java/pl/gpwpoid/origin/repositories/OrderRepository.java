@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.order.Order;
+import pl.gpwpoid.origin.repositories.DTO.ActiveOrderDTO;
 import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
 
@@ -51,4 +52,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         """, nativeQuery = true)
     List<ActiveOrderListItem> findActiveOrdersByAccountId(@Param("accountId") Integer accountId);
 
+    @Query(value = """
+    SELECT order_id, order_type, shares_amount, share_price, order_start_date, order_expiration_date
+    FROM (
+        SELECT abo.order_id, abo.order_expiration_date, abo.order_type, abo.shares_amount, abo.share_price, abo.order_start_date
+        FROM active_buy_orders abo
+        WHERE abo.wallet_id = :walletId AND abo.company_id = :companyId
+
+        UNION ALL
+
+        SELECT aso.order_id, aso.order_expiration_date, aso.order_type, aso.shares_amount, aso.share_price, aso.order_start_date
+        FROM active_sell_orders aso
+        WHERE aso.wallet_id = :walletId AND aso.company_id = :companyId
+    ) combined_orders
+    ORDER BY order_start_date ASC
+    """, nativeQuery = true)
+    List<ActiveOrderDTO> findActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId);
 }
