@@ -34,8 +34,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final CompanyService companyService;
 
     @Autowired
-    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, ChartUpdateBroadcaster broadcaster) {
-    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, CompanyService companyService){
+    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, CompanyService companyService,  ChartUpdateBroadcaster broadcaster){
         this.transactionRepository = transactionRepository;
         this.transactionFactory = transactionFactory;
         this.broadcaster = broadcaster;
