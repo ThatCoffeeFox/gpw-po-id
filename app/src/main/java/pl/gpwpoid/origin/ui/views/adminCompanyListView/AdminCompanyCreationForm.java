@@ -62,6 +62,7 @@ public class AdminCompanyCreationForm extends VerticalLayout {
 
     private void bindFields(){
         binder.forField(name).bind("companyName");
+        name.setRequiredIndicatorVisible(true);
         binder.forField(code).bind("companyCode");
         binder.forField(town)
                 .asRequired("Miasto jest wymagane")

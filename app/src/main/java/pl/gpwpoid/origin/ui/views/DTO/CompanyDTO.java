@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.ui.views.DTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class CompanyDTO {
 
     @NotBlank(message = "Kod jest wymagany")
     @Size(min = 3, max = 3, message = "Kod musi mieć 3 znaki")
+    @Pattern(regexp = "[A-Z]{3}", message = "Kod musi składać się z 3 wielkich liter")
     private String companyCode;
 
     @NotNull(message = "Miasto jest wymagane")
