@@ -23,7 +23,6 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
-import org.atmosphere.interceptor.AtmosphereResourceStateRecovery;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
@@ -74,7 +73,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         this.walletsService = walletsService;
         this.transactionService = transactionService;
 
-        if(SecurityUtils.isLoggedIn()) {
+        if (SecurityUtils.isLoggedIn()) {
             setSizeFull();
             setPadding(true);
             setSpacing(true);
@@ -87,7 +86,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
             Layout2.setSizeFull();
             Layout2.setPadding(true);
             Layout2.setSpacing(true);
-            add(walletName,Layout1,Layout2);
+            add(walletName, Layout1, Layout2);
         }
     }
 
@@ -126,7 +125,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         sharesGrid.addColumn(WalletCompanyListItem::getCompanyCode).setHeader("Kod").setSortable(true).setAutoWidth(true);
         sharesGrid.addColumn(WalletCompanyListItem::getCurrentSharePrice).setHeader("Aktualna cena").setSortable(true).setAutoWidth(true);
         sharesGrid.addColumn(item -> {
-            if(item.getPreviousSharePrice() == null)
+            if (item.getPreviousSharePrice() == null)
                 return "0%";
             BigDecimal percentage = item.getCurrentSharePrice().divide(item.getPreviousSharePrice(), 10, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP).add(new BigDecimal("-100"));
@@ -143,15 +142,15 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         VerticalLayout gridLayout = new VerticalLayout();
 
         transactionsGrid.addColumn(item -> {
-            if(item.getOrderType().equals("sell"))
+            if (item.getOrderType().equals("sell"))
                 return "sprzedaż";
-            if(item.getOrderType().equals("buy"))
+            if (item.getOrderType().equals("buy"))
                 return "Kupno";
             return null;
         }).setHeader("Typ").setSortable(true).setAutoWidth(true);
         transactionsGrid.addColumn(item -> FUNDS_FORMATTER.format(item.getAmount()) + " zł").setHeader("Kwota transakcji").setSortable(true).setAutoWidth(true);
         transactionsGrid.addColumn(item -> {
-            if(item.getDate() == null)
+            if (item.getDate() == null)
                 return null;
             LocalDateTime date = item.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             return date.format(DATE_FORMATTER);
@@ -175,8 +174,8 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         VerticalLayout gridLayout = new VerticalLayout();
 
         transfersGrid.addColumn(item -> FUNDS_FORMATTER.format(item.getAmount()) + " zł").setHeader("Kwota").setSortable(true).setAutoWidth(true);
-        transfersGrid.addColumn(item ->{
-            if(item.getDate() == null)
+        transfersGrid.addColumn(item -> {
+            if (item.getDate() == null)
                 return null;
             LocalDateTime date = item.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             return date.format(DATE_FORMATTER);
@@ -187,7 +186,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         return gridLayout;
     }
 
-    private VerticalLayout configureWalletStatusLayout(){
+    private VerticalLayout configureWalletStatusLayout() {
         VerticalLayout layout = new VerticalLayout();
         Button transferButton = new Button("Nowy transfer");
         transferButton.addClickListener(event -> openTransferDialog());
@@ -201,11 +200,11 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         return layout;
     }
 
-    private boolean canDeleteWallet(){
+    private boolean canDeleteWallet() {
         return walletCompanyListItems.isEmpty() && (funds.compareTo(new BigDecimal("0")) == 0);
     }
 
-    private void openDeletionDialog(){
+    private void openDeletionDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Czy na pewno chcesz usunąć ten portfel?");
         Button confirmButton = new Button("Usuń");
@@ -241,10 +240,10 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         transferType.setRequiredIndicatorVisible(true);
         transferType.setItems(ExternalTransfer.TransferType.deposit, ExternalTransfer.TransferType.withdrawal);
         transferType.setItemLabelGenerator(
-                type ->{
-                    if(type.equals(ExternalTransfer.TransferType.withdrawal))
+                type -> {
+                    if (type.equals(ExternalTransfer.TransferType.withdrawal))
                         return "Wypłata";
-                    if(type.equals(ExternalTransfer.TransferType.deposit))
+                    if (type.equals(ExternalTransfer.TransferType.deposit))
                         return "Wpłata";
                     return null;
                 }
@@ -269,22 +268,22 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         binder.forField(accountNumberField).bind("accountNumber");
         binder.forField(funds)
                 .withConverter(doubleValue -> {
-                    if (doubleValue == null)
-                        return null;
-                    return BigDecimal.valueOf(doubleValue);
-                },
+                            if (doubleValue == null)
+                                return null;
+                            return BigDecimal.valueOf(doubleValue);
+                        },
                         bigDecimal -> {
-                    if(bigDecimal == null)
-                        return null;
-                    return bigDecimal.doubleValue();
-                },
+                            if (bigDecimal == null)
+                                return null;
+                            return bigDecimal.doubleValue();
+                        },
                         "Nieprawidłowa kwota")
                 .bind("funds");
         binder.forField(transferType).bind("transferType");
         binder.setBean(transferDTO);
 
         saveTransferButton.addClickListener(event -> {
-            try{
+            try {
                 transferDTO.setWalletId(walletId);
                 transferDTO.setTransferDate(new Date());
                 binder.writeBean(transferDTO);
@@ -292,8 +291,8 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
                 Notification.show("Wykonano przelew");
                 updateFunds();
                 dialog.close();
-            } catch (Exception e){
-                    showError(e.getMessage());
+            } catch (Exception e) {
+                showError(e.getMessage());
             }
         });
 
@@ -302,7 +301,7 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         dialog.open();
     }
 
-    private void updateFunds(){
+    private void updateFunds() {
         BigDecimal newFunds = walletsService.getWalletFundsById(walletId);
         funds = newFunds;
         walletFunds = new Span(newFunds.toString() + " zł");

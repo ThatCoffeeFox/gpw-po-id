@@ -15,15 +15,15 @@ public class ExternalTransferFactory {
             Wallet wallet,
             Date date,
             String accountNumber) {
-        if(transferType == null)
+        if (transferType == null)
             throw new IllegalArgumentException("transferType cannot be null");
-        if(amount.compareTo(BigDecimal.valueOf(0)) <= 0)
+        if (amount.compareTo(BigDecimal.valueOf(0)) <= 0)
             throw new IllegalArgumentException("amount must be greater than 0");
-        if(wallet == null)
+        if (wallet == null)
             throw new IllegalArgumentException("wallet cannot be null");
-        if(date == null)
+        if (date == null)
             throw new IllegalArgumentException("date cannot be null");
-        if(accountNumber == null)
+        if (accountNumber == null)
             throw new IllegalArgumentException("accountNumber cannot be null");
 
         ExternalTransfer externalTransfer = new ExternalTransfer();

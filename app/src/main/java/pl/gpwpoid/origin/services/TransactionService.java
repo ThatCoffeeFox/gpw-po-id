@@ -19,10 +19,13 @@ public interface TransactionService {
                         BigDecimal sharePrice);
 
     Collection<Transaction> getTransactions();
+
     Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit);
+
     Collection<TransactionWalletListItem> getTransactionsByWalletId(int walletId);
+
     List<OHLCDataItem> getOHLCDataByCompanyId(Integer companyId, LocalDateTime from, LocalDateTime to);
 
     @Transactional(readOnly = true)
-    public BigDecimal getShareValueByCompanyId(Integer companyId);
+    BigDecimal getShareValueByCompanyId(Integer companyId);
 }

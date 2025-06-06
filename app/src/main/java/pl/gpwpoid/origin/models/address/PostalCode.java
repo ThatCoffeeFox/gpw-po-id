@@ -2,8 +2,10 @@ package pl.gpwpoid.origin.models.address;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
-import lombok.*;
-import pl.gpwpoid.origin.models.address.PostalCodesTowns;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Objects;
 import java.util.Set;

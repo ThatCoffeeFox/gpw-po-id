@@ -5,15 +5,13 @@ import com.vaadin.flow.server.VaadinSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import pl.gpwpoid.origin.models.account.Account;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 public final class SecurityUtils {
-    private SecurityUtils() {}
+    private SecurityUtils() {
+    }
 
     public static Optional<ExtendedUserDetails> getAuthenticatedUser() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
@@ -23,7 +21,7 @@ public final class SecurityUtils {
         }
 
         Authentication authentication = securityContext.getAuthentication();
-        if(authentication == null) {
+        if (authentication == null) {
             return Optional.empty();
         }
 
@@ -36,14 +34,14 @@ public final class SecurityUtils {
     }
 
     public static String getAuthenticatedEmail() {
-        if(getAuthenticatedUser().isEmpty()) {
+        if (getAuthenticatedUser().isEmpty()) {
             return null;
         }
         return getAuthenticatedUser().get().getUsername();
     }
 
     public static Integer getAuthenticatedAccountId() {
-        if(getAuthenticatedUser().isEmpty()) {
+        if (getAuthenticatedUser().isEmpty()) {
             return null;
         }
         return getAuthenticatedUser().get().getAccountId();
@@ -53,8 +51,8 @@ public final class SecurityUtils {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return
                 authentication != null
-                && authentication.isAuthenticated()
-                && !(authentication.getPrincipal() instanceof String
+                        && authentication.isAuthenticated()
+                        && !(authentication.getPrincipal() instanceof String
                         && authentication.getPrincipal().equals("anonymousUser"));
     }
 

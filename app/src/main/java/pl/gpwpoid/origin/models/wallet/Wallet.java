@@ -1,11 +1,10 @@
 package pl.gpwpoid.origin.models.wallet;
 
 import jakarta.persistence.*;
-import pl.gpwpoid.origin.models.account.Account;
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.company.IPO;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Subscription;

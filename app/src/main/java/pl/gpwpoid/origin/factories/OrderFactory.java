@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.factories;
 
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Component;
 import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.order.Order;
@@ -10,10 +9,8 @@ import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
-
+import java.util.Date;
 
 
 @Component
@@ -25,23 +22,23 @@ public class OrderFactory {
                               Wallet wallet,
                               Company company,
                               Date orderStartDate,
-                              Date orderExpirationDate){
-        if(orderType == null){
+                              Date orderExpirationDate) {
+        if (orderType == null) {
             throw new IllegalArgumentException("Order type cannot be null");
         }
-        if(shares_amount <= 0){
+        if (shares_amount <= 0) {
             throw new IllegalArgumentException("Shares amount has to be grater than zero");
         }
-        if(sharePrice != null && sharePrice.compareTo(BigDecimal.valueOf(0)) <= 0){
-            throw  new IllegalArgumentException("Share price has to be null or greater than zero");
+        if (sharePrice != null && sharePrice.compareTo(BigDecimal.valueOf(0)) <= 0) {
+            throw new IllegalArgumentException("Share price has to be null or greater than zero");
         }
-        if(wallet == null){
+        if (wallet == null) {
             throw new IllegalArgumentException("Wallet cannot be null");
         }
-        if(company == null){
+        if (company == null) {
             throw new IllegalArgumentException("Company cannot be null");
         }
-        if(orderStartDate == null){
+        if (orderStartDate == null) {
             throw new IllegalArgumentException("Order Start Date cannot be null");
         }
         if (orderExpirationDate != null && orderExpirationDate.before(new Date())) {
@@ -50,7 +47,7 @@ public class OrderFactory {
     }
 
 
-    public Order createOrder(ActiveOrderProjection activeOrderProjection, OrderType orderType){
+    public Order createOrder(ActiveOrderProjection activeOrderProjection, OrderType orderType) {
         Wallet wallet = new Wallet();
         wallet.setWalletId(activeOrderProjection.getWalletId());
 
@@ -80,7 +77,8 @@ public class OrderFactory {
     }
 
     public Order createOrder(OrderDTO orderDTO, Wallet wallet, Company company) {
-        if(!(orderDTO.getOrderType().equals("buy") || orderDTO.getOrderType().equals("sell"))) throw new IllegalArgumentException("Order type has to be buy/sell");
+        if (!(orderDTO.getOrderType().equals("buy") || orderDTO.getOrderType().equals("sell")))
+            throw new IllegalArgumentException("Order type has to be buy/sell");
         OrderType orderType = new OrderType();
         orderType.setOrderType(orderDTO.getOrderType());
         Date orderStartDate = new Date();
