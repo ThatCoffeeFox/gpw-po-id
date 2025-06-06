@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
@@ -28,4 +29,7 @@ public interface TransactionService {
 
     @Transactional(readOnly = true)
     BigDecimal getShareValueByCompanyId(Integer companyId);
+
+    @Transactional(readOnly = true)
+    List<TransactionWalletListItem> getTransactionsByCompanyAndUser(int companyId, int userId, Pageable pageable);
 }

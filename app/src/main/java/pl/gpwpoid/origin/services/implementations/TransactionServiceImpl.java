@@ -43,8 +43,6 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.save(newTransaction);
 
         Integer companyId = buyOrder.getCompany().getCompanyId();
-
-        // Użyj TransactionSynchronizationManager, aby wywołać broadcast PO zatwierdzeniu transakcji
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -81,5 +79,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public BigDecimal getShareValueByCompanyId(Integer companyId) {
         return transactionRepository.findShareValueByCompanyId(companyId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<TransactionWalletListItem> getTransactionsByCompanyAndUser(int companyId, int userId, Pageable pageable) {
+        return transactionRepository.findByCompanyAndUser(companyId, userId, pageable);
     }
 }
