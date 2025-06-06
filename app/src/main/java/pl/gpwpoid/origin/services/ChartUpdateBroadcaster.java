@@ -1,7 +1,8 @@
 package pl.gpwpoid.origin.services;
 
-import org.springframework.stereotype.Service;
 import com.vaadin.flow.shared.Registration;
+import org.springframework.stereotype.Service;
+
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;

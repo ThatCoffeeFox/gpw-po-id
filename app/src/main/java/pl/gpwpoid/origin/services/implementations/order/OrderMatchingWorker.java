@@ -27,77 +27,72 @@ public class OrderMatchingWorker implements Runnable {
                         BigDecimal recentTransactionSharePrice,
                         TransactionService transactionService,
                         OrderWrapperFactory orderWrapperFactory,
-                        ConcurrentMap<Integer,BlockingQueue<Order>> companyIdOrderQueue){
+                        ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue) {
         this.companyId = companyId;
-        this.buyQueue = new PriorityQueue<>(new BuyComparator() );
+        this.buyQueue = new PriorityQueue<>(new BuyComparator());
         this.sellQueue = new PriorityQueue<>(new SellComparator());
         this.recentTransactionSharePrice = recentTransactionSharePrice;
         this.transactionService = transactionService;
         this.orderWrapperFactory = orderWrapperFactory;
         this.companyIdOrderQueue = companyIdOrderQueue;
 
-        if(activeBuyOrders != null) this.buyQueue.addAll(activeBuyOrders);
-        if(activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
+        if (activeBuyOrders != null) this.buyQueue.addAll(activeBuyOrders);
+        if (activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
     }
-    private boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder){
+
+    private boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder) {
         return sellOrder.getOrder().getSharePrice() == null ||
                 (sellOrder.getOrder().getSharePrice().compareTo(buyOrder.getShareMatchingPrice()) <= 0);
     }
 
-    private BigDecimal getSharePrice(OrderWrapper buyOrder, OrderWrapper sellOrder){
-        if(buyOrder.getOrder().getSharePrice() == null && sellOrder.getOrder().getSharePrice() == null){
+    private BigDecimal getSharePrice(OrderWrapper buyOrder, OrderWrapper sellOrder) {
+        if (buyOrder.getOrder().getSharePrice() == null && sellOrder.getOrder().getSharePrice() == null) {
             return this.recentTransactionSharePrice;
-        }
-        else if(buyOrder.getOrder().getSharePrice() == null){
+        } else if (buyOrder.getOrder().getSharePrice() == null) {
             return sellOrder.getOrder().getSharePrice();
-        }
-        else if(sellOrder.getOrder().getSharePrice() == null){
+        } else if (sellOrder.getOrder().getSharePrice() == null) {
             return buyOrder.getOrder().getSharePrice();
-        }
-        else if(buyOrder.getOrder().getOrderStartDate().compareTo(sellOrder.getOrder().getOrderStartDate()) < 0) {
+        } else if (buyOrder.getOrder().getOrderStartDate().compareTo(sellOrder.getOrder().getOrderStartDate()) < 0) {
             return buyOrder.getOrder().getSharePrice();
-        }
-        else {
+        } else {
             return sellOrder.getOrder().getSharePrice();
         }
     }
 
     @Override
     public void run() {
-        while(!Thread.interrupted()){
-            while(!(buyQueue.isEmpty() || sellQueue.isEmpty())){//matching loop
-                OrderWrapper buyOrder =  buyQueue.peek(), sellOrder = sellQueue.peek();
-                if(!buyOrder.isValid()){
+        while (!Thread.interrupted()) {
+            while (!(buyQueue.isEmpty() || sellQueue.isEmpty())) {//matching loop
+                OrderWrapper buyOrder = buyQueue.peek(), sellOrder = sellQueue.peek();
+                if (!buyOrder.isValid()) {
                     buyQueue.poll();
                     continue;
                 }
-                if(!sellOrder.isValid()){
+                if (!sellOrder.isValid()) {
                     sellQueue.poll();
                     continue;
                 }
-                if(!canMatchOrders(buyOrder, sellOrder))break;
+                if (!canMatchOrders(buyOrder, sellOrder)) break;
                 BigDecimal sharePrice = getSharePrice(buyOrder, sellOrder);
-                int sharesAmount = Math.min(buyOrder.getSharesLeft(),  sellOrder.getSharesLeft());
-                try{
+                int sharesAmount = Math.min(buyOrder.getSharesLeft(), sellOrder.getSharesLeft());
+                try {
                     transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
                     buyOrder.tradeShares(sharesAmount);
                     sellOrder.tradeShares(sharesAmount);
                     recentTransactionSharePrice = sharePrice;
-                }
-                catch (Exception e){
+                } catch (Exception e) {
                     throw new RuntimeException("Transaction failed", e);
                 }
             }
-            try{
+            try {
                 Order order = companyIdOrderQueue.get(companyId).take();
-                if("sell".equals(order.getOrderType().getOrderType())){
+                if ("sell".equals(order.getOrderType().getOrderType())) {
                     sellQueue.add(orderWrapperFactory.createOrderWrapper(order));
                 }
-                if("buy".equals(order.getOrderType().getOrderType())){
+                if ("buy".equals(order.getOrderType().getOrderType())) {
                     buyQueue.add(orderWrapperFactory.createOrderWrapper(order));
                 }
-            }
-            catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }

@@ -1,11 +1,11 @@
 package pl.gpwpoid.origin.ui.views.company;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.renderer.LocalDateRenderer;
 import com.vaadin.flow.data.renderer.NumberRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;

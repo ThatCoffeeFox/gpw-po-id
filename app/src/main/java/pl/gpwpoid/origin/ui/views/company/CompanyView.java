@@ -3,9 +3,10 @@ package pl.gpwpoid.origin.ui.views.company;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.*;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.shared.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
                        TransactionService transactionService,
                        OrderService orderService,
                        WalletsService walletsService,
-                       ChartUpdateBroadcaster broadcaster){
+                       ChartUpdateBroadcaster broadcaster) {
         this.companyService = companyService;
         this.transactionService = transactionService;
         this.orderService = orderService;
@@ -93,7 +94,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        if(companyId != null){
+        if (companyId != null) {
             broadcasterRegistration = broadcaster.register(companyId, id -> {
                 attachEvent.getUI().access(() -> {
                     Notification.show("Aktualizacja danych spółki...", 1000, Notification.Position.BOTTOM_STRETCH);

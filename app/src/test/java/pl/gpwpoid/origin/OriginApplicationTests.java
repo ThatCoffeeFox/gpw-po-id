@@ -9,23 +9,23 @@ import pl.gpwpoid.origin.repositories.PostalCodeTownRepository;
 @SpringBootTest
 class OriginApplicationTests {
 
-	@Test
-	void checkPasswordEncryption() {
-		PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-		System.out.println(passwordEncoder.encode("funadmin"));
-		System.out.println(passwordEncoder.encode("funuser1"));
-		System.out.println(passwordEncoder.encode("funuser2"));
-		System.out.println(passwordEncoder.encode("funuser3"));
-		System.out.println(passwordEncoder.encode("funuser4"));
-	}
+    @Test
+    void checkPasswordEncryption() {
+        PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        System.out.println(passwordEncoder.encode("funadmin"));
+        System.out.println(passwordEncoder.encode("funuser1"));
+        System.out.println(passwordEncoder.encode("funuser2"));
+        System.out.println(passwordEncoder.encode("funuser3"));
+        System.out.println(passwordEncoder.encode("funuser4"));
+    }
 
-	@Test
-	void checkPostalCodeQuery() {
-		PostalCodeTownRepository postalCodeTownRepository;
-	}
+    @Test
+    void checkPostalCodeQuery() {
+        PostalCodeTownRepository postalCodeTownRepository;
+    }
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

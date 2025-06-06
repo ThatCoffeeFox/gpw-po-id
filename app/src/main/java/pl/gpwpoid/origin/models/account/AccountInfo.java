@@ -3,10 +3,13 @@ package pl.gpwpoid.origin.models.account;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import pl.gpwpoid.origin.decorators.validPesel.ValidPesel;
-import pl.gpwpoid.origin.models.keys.AccountInfoId;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
+import pl.gpwpoid.origin.models.keys.AccountInfoId;
 
 import java.util.Objects;
 

@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CompanyService {
-    public List<Integer> getTradableCompaniesId();
-    public List<CompanyListItem> getCompaniesViewList();
-    public CompanyListItem getCompanyItemById(int companyId);
-    public Optional<Company> getCompanyById(int companyId);
+    List<Integer> getTradableCompaniesId();
+
+    List<CompanyListItem> getCompaniesViewList();
+
+    CompanyListItem getCompanyItemById(int companyId);
+
+    Optional<Company> getCompanyById(int companyId);
 }

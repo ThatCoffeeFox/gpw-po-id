@@ -2,11 +2,11 @@ package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.models.order.Subscription;
+import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.math.BigDecimal;
 import java.util.Date;

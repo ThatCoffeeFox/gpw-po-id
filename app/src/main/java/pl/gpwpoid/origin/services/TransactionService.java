@@ -8,7 +8,6 @@ import pl.gpwpoid.origin.repositories.views.TransactionListItem;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -20,10 +19,13 @@ public interface TransactionService {
                         BigDecimal sharePrice);
 
     Collection<Transaction> getTransactions();
+
     Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit);
+
     Collection<TransactionWalletListItem> getTransactionsByWalletId(int walletId);
+
     List<OHLCDataItem> getOHLCDataByCompanyId(Integer companyId, LocalDateTime from, LocalDateTime to);
 
     @Transactional(readOnly = true)
-    public BigDecimal getShareValueByCompanyId(Integer companyId);
+    BigDecimal getShareValueByCompanyId(Integer companyId);
 }

@@ -6,9 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pl.gpwpoid.origin.repositories.TransactionRepository;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 @Service
 public class ChartPulsarService {
@@ -22,7 +20,7 @@ public class ChartPulsarService {
         this.transactionRepository = transactionRepository;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 30000)
     public void pulseCharts() {
         log.trace("Uruchamianie pulsara wykresów...");
         LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
