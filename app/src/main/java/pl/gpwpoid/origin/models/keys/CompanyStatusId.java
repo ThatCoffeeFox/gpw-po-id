@@ -23,6 +23,7 @@ public class CompanyStatusId implements Serializable {
     @Column(name = "date", columnDefinition = "TIMESTAMP DEFAULT current_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

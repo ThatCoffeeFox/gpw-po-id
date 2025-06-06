@@ -2,15 +2,16 @@ package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import pl.gpwpoid.origin.models.keys.CompanyInfoId;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "companies_info")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompanyInfo {
@@ -44,4 +45,17 @@ public class CompanyInfo {
 
     @Column(name = "apartment_number", length = 8)
     private String apartmentNumber;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CompanyInfo that = (CompanyInfo) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.ui.views.adminCompanyListView.AdminCompanyListView;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 @AnonymousAllowed
@@ -105,6 +106,10 @@ public class MainLayout extends AppLayout {
 
         if(accessChecker.hasAccess(SubscriptionView.class)){
             nav.addItem(new SideNavItem("Zapisy", SubscriptionView.class, VaadinIcon.CALENDAR.create()));
+        }
+
+        if(accessChecker.hasAccess(AdminCompanyListView.class)){
+            nav.addItem(new SideNavItem("AdminFirmy", AdminCompanyListView.class, VaadinIcon.ARCHIVE.create()));
         }
 
         addToDrawer(nav);
