@@ -5,7 +5,7 @@ DECLARE
     -- =================================================================================
     -- KONFIGURACJA
     -- =================================================================================
-    v_total_orders_to_generate INT := 1000;
+    v_total_orders_to_generate INT := 50;
     v_tradable_companies INT[] := ARRAY[1, 2, 4]; -- ID spółek, którymi można handlować
     v_user_wallets INT[] := ARRAY[3, 4, 5, 6, 7, 8, 9, 10]; -- Portfele, które będą handlować
 

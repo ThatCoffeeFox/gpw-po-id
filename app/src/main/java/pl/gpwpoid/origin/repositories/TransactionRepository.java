@@ -37,8 +37,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                         t.date AS transaction_time,
                         t.share_price,
                         o.company_id,
-                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('minute', t.date) ORDER BY t.date ASC) as rn_asc,
-                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('minute', t.date) ORDER BY t.date DESC) as rn_desc
+                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('second', t.date) ORDER BY t.date ASC) as rn_asc,
+                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('second', t.date) ORDER BY t.date DESC) as rn_desc
                     FROM
                         transactions t
                     JOIN
@@ -50,19 +50,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                 ),
                 DailyAggregates AS (
                     SELECT
-                        DATE_TRUNC('minute', ct.transaction_time) AS ohlc_date,
+                        DATE_TRUNC('second', ct.transaction_time) AS ohlc_date,
                         ct.company_id,
                         MAX(ct.share_price) AS high_price,
                         MIN(ct.share_price) AS low_price
                     FROM
                         CompanyTransactions ct
                     GROUP BY
-                        DATE_TRUNC('minute', ct.transaction_time),
+                        DATE_TRUNC('second', ct.transaction_time),
                         ct.company_id
                 ),
                 OpenPrices AS (
                     SELECT
-                        DATE_TRUNC('minute', ct.transaction_time) AS ohlc_date,
+                        DATE_TRUNC('second', ct.transaction_time) AS ohlc_date,
                         ct.company_id,
                         ct.share_price AS open_price
                     FROM
@@ -72,7 +72,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                 ),
                 ClosePrices AS (
                     SELECT
-                        DATE_TRUNC('minute', ct.transaction_time) AS ohlc_date,
+                        DATE_TRUNC('second', ct.transaction_time) AS ohlc_date,
                         ct.company_id,
                         ct.share_price AS close_price
                     FROM
