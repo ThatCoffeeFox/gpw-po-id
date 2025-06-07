@@ -244,7 +244,7 @@ CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_dat
                 + (SELECT COALESCE(SUM(s.shares_assigned*i.ipo_price),0)
                     FROM subscriptions s
                     JOIN ipo i ON i.ipo_id = s.ipo_id
-                    WHERE i.payment_wallet_id = arg_wallet_id AND i.subscription_end < arg_before_date AND i,processed = true); --pieniadze otrzymane z zakonczonych zapisow
+                    WHERE i.payment_wallet_id = arg_wallet_id AND i.subscription_end < arg_before_date AND i.processed = true); --pieniadze otrzymane z zakonczonych zapisow
     END
 $$ LANGUAGE plpgsql;
 
