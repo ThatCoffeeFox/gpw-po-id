@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public enum ChartTimeRange {
+    FIVE_MINUTES("5m", 5, ChronoUnit.MINUTES, ChronoUnit.SECONDS, 5),
     THIRTY_MINUTES("30m", 30, ChronoUnit.MINUTES, ChronoUnit.SECONDS, 30),
     ONE_HOUR("1h", 1, ChronoUnit.HOURS, ChronoUnit.MINUTES, 1),
     ONE_DAY("1d", 1, ChronoUnit.DAYS, ChronoUnit.MINUTES, 24),

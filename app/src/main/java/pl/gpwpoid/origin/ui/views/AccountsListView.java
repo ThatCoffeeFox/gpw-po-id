@@ -12,7 +12,7 @@ import pl.gpwpoid.origin.services.AccountService;
 
 import java.util.Collection;
 
-@Route(value = "accounts", layout = MainLayout.class)
+@Route(value = "admin/accounts", layout = MainLayout.class)
 @PageTitle("Lista Kont")
 @RolesAllowed("admin")
 public class AccountsListView extends VerticalLayout {
