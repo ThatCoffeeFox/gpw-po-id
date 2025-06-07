@@ -124,4 +124,44 @@ public class AccountServiceImpl implements AccountService {
 
         return accountRepository.findAccountInfoById(id.longValue());
     }
+
+    @Override
+    @Transactional
+    public void updatePassword(String email, String password) {
+        if(email == null || password == null) {
+            throw new IllegalArgumentException("Email or password null");
+        }
+
+        Account account = accountRepository.findAccountByEmail(email).orElse(null);
+
+        if(account != null) {
+            AccountInfo latestInfo = accountRepository.findAccountInfoById(account.getAccountId().longValue());
+            if(latestInfo == null) {
+                throw  new NullPointerException("Nie znaleziono account");
+            }
+
+            ProfileUpdateDTO profileUpdateDTO = new ProfileUpdateDTO(
+                    account.getAccountId(),
+                    latestInfo.getEmail(),
+                    latestInfo.getPostalCodesTowns().getTown().getTownId(),
+                    latestInfo.getPostalCodesTowns().getPostalCode().getPostalCode(),
+                    latestInfo.getStreet(),
+                    latestInfo.getStreetNumber(),
+                    latestInfo.getApartmentNumber(),
+                    latestInfo.getPhoneNumber(),
+                    latestInfo.getPesel()
+            );
+
+            AccountInfo newInfo = accountFactory.createAccountInfo(profileUpdateDTO, latestInfo.getPostalCodesTowns());
+            newInfo.setAccount(account);
+            newInfo.setPassword(passwordEncoder.encode(password));
+            newInfo.setFirstName(latestInfo.getFirstName());
+            newInfo.setLastName(latestInfo.getLastName());
+            newInfo.setSecondaryName(latestInfo.getSecondaryName());
+
+            account.getAccountInfos().add(newInfo);
+            accountRepository.save(account);
+        }
+
+    }
 }

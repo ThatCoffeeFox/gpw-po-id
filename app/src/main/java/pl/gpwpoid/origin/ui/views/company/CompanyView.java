@@ -30,6 +30,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     private final CompanyChart companyChart;
     private final OrderForm orderForm;
     private final ActiveOrdersGrid activeOrdersGrid;
+    private final CompanyUserTransactionsGrid transactionsGrid;
 
     private Integer companyId;
     private Company company;
@@ -48,6 +49,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         this.orderForm = new OrderForm(orderService, walletsService);
         this.companyChart = new CompanyChart(transactionService);
         this.broadcaster = broadcaster;
+        this.transactionsGrid = new CompanyUserTransactionsGrid(transactionService, walletsService);
 
         setSizeFull();
         setPadding(true);
@@ -58,7 +60,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         bottomLayout.setAlignItems(Alignment.START);
 
         if (SecurityUtils.isLoggedIn()) {
-            bottomLayout.add(orderForm);
+            bottomLayout.add(orderForm, transactionsGrid);
             orderForm.setWidth("50%");
             bottomLayout.add(activeOrdersGrid);
         } else {
@@ -79,6 +81,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
 
             if (SecurityUtils.isLoggedIn()) {
                 orderForm.setCompanyId(companyId);
+                transactionsGrid.setCompanyId(companyId);
                 activeOrdersGrid.updateList();
             }
         } catch (Exception e) {
@@ -91,6 +94,10 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         companyChart.loadAndRenderData(companyId);
     }
 
+    private void updateTransactionsGrid() {
+        transactionsGrid.refresh();
+    }
+
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -99,6 +106,9 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
                 attachEvent.getUI().access(() -> {
                     Notification.show("Aktualizacja danych spółki...", 1000, Notification.Position.BOTTOM_STRETCH);
                     updateChart();
+                    if(SecurityUtils.isLoggedIn()) {
+                        updateTransactionsGrid();
+                    }
                 });
             });
         }

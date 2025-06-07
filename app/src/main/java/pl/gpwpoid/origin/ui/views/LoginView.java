@@ -1,5 +1,7 @@
 package pl.gpwpoid.origin.ui.views;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -26,7 +28,11 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         login.setAction("login");
 
-        add(new H1("GPW"), login);
+        Button resetPassword = new Button("Reset Password", e -> UI.getCurrent().navigate(ResetPasswordView.class));
+        resetPassword.addClassName("reset-password");
+        resetPassword.setWidthFull();
+
+        add(new H1("GPW"), login, resetPassword);
     }
 
     @Override
