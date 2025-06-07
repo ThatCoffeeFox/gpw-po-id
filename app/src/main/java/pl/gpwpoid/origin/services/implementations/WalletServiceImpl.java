@@ -58,8 +58,8 @@ public class WalletServiceImpl implements WalletsService {
     }
 
     @Override
-    public WalletListItem getWalletListItemById(Integer walletId) {
-        return walletRepository.getWalletListItemById(walletId);
+    public WalletListItem getWalletListItemById(Integer walletListItemId) {
+        return walletRepository.getWalletListItemById(walletListItemId);
     }
 
     @Override
