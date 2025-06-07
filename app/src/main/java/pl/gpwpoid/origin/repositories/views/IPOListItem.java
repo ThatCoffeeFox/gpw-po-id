@@ -23,7 +23,4 @@ public class IPOListItem {
     private BigDecimal ipoPrice;
     private Date subscriptionStart;
     private Date subscriptionEnd;
-
-
-
 }

@@ -60,9 +60,13 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<WalletListItem> getWalletListViewForCurrentUser() {
-        Integer accountId = SecurityUtils.getAuthenticatedAccountId();
-        return walletRepository.getWalletListViewForCurrentUser(accountId);
+    public Collection<WalletListItem> getWalletListViewByAccountId(Integer accountId) {
+        return walletRepository.getWalletListViewByAccountId(accountId);
+    }
+
+    @Override
+    public WalletListItem getWalletListItemById(Integer walletListItemId) {
+        return walletRepository.getWalletListItemById(walletListItemId);
     }
 
     @Override

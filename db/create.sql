@@ -4,7 +4,7 @@ BEGIN;
 
 /*
 #############################################################
-                 DATABASE STRUCTURE CREATION
+                 DATABASE STRUCTURE CREATION                 
 #############################################################
 */
 
@@ -119,7 +119,9 @@ CREATE TABLE ipo(
   shares_amount        INTEGER NOT NULL CHECK(shares_amount > 0),    -- The amount of shares to be emmited
   ipo_price            NUMERIC(17,2) NOT NULL CHECK (ipo_price > 0), -- The base value of the newly emitted shares
   subscription_start   TIMESTAMP NOT NULL,
-  subscription_end     TIMESTAMP NOT NULL CHECK (subscription_start < subscription_end)
+  subscription_end     TIMESTAMP NOT NULL CHECK (subscription_start < subscription_end),
+  processed BOOLEAN NOT NULL DEFAULT false
+  CHECK (subscription_start < subscription_end)
 );
 
 -- This table holds the information about the history of company's tradable status --
@@ -234,11 +236,15 @@ CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_dat
                 - (SELECT COALESCE(SUM(s.shares_assigned*i.ipo_price),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON i.ipo_id = s.ipo_id 
-                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL AND i.subscription_end < arg_before_date) --pieniadze wydane na zakonczone zapisy
+                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL AND i.subscription_end < arg_before_date AND i.processed = true) --pieniadze wydane na zakonczone zapisy
                 - (SELECT COALESCE(SUM(s.shares_amount*i.ipo_price),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON i.ipo_id = s.ipo_id 
-                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NULL  AND s.date < arg_before_date); --pieniadze wydane na trwajace zapisy
+                    WHERE s.wallet_id = arg_wallet_id AND i.subscription_end > arg_before_date AND s.date < arg_before_date) --pieniadze wydane na trwajace zapisy
+                + (SELECT COALESCE(SUM(s.shares_assigned*i.ipo_price),0)
+                    FROM subscriptions s
+                    JOIN ipo i ON i.ipo_id = s.ipo_id
+                    WHERE i.payment_wallet_id = arg_wallet_id AND i.subscription_end < arg_before_date AND i,processed = true); --pieniadze otrzymane z zakonczonych zapisow
     END
 $$ LANGUAGE plpgsql;
 
@@ -278,7 +284,11 @@ CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_i
                 + (SELECT COALESCE(SUM(s.shares_assigned),0) 
                     FROM subscriptions s 
                     JOIN ipo i ON s.ipo_id = i.ipo_id
-                    WHERE s.wallet_id = arg_wallet_id AND s.shares_assigned IS NOT NULL AND i.company_id = arg_company_id)::INTEGER; --akcje kupione w trakcie emisji
+                    WHERE s.wallet_id = arg_wallet_id AND i.processed = true AND i.company_id = arg_company_id)::INTEGER --akcje kupione w trakcie emisji
+                + (SELECT i.shares_amount - COALESCE(SUM(s.shares_assigned),0)
+                    FROM subscriptions s
+                    JOIN ipo i ON s.ipo_id = i.ipo_id
+                    WHERE i.payment_wallet_id = arg_wallet_id AND i.company_id = arg_company_id AND i.processed = true); --akcje pozostale po emisji
     END
 $$ LANGUAGE plpgsql;        
 
@@ -633,11 +643,6 @@ CREATE OR REPLACE TRIGGER prevent_update_on_companies_trigger
 
 CREATE OR REPLACE TRIGGER prevent_update_on_companies_info_trigger
     BEFORE UPDATE ON companies_info
-    FOR EACH ROW
-    EXECUTE PROCEDURE prevent_update_on_immutable_table();
-
-CREATE OR REPLACE TRIGGER prevent_update_on_ipo_trigger
-    BEFORE UPDATE ON ipo
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_update_on_immutable_table();
 

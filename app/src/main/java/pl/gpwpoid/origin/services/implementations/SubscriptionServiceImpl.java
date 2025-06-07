@@ -71,4 +71,19 @@ public class SubscriptionServiceImpl implements SubscriptionService {
             throw new RuntimeException("Failed to create subscription", e);
         }
     }
+
+    @Override
+    public Integer getSharesSumByIPOId(Integer ipoId) {
+        return subscriptionRepository.getSharesSumByIPOId(ipoId);
+    }
+
+    @Override
+    public List<Subscription> getSubscriptionsByIPOId(Integer ipoId) {
+        return subscriptionRepository.getSubscriptionsByIPOId(ipoId);
+    }
+
+    @Override
+    public void saveModifiedSubscriptions(List<Subscription> subscription) {
+        subscriptionRepository.saveAll(subscription);
+    }
 }

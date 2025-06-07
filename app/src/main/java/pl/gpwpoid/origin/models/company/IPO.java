@@ -2,6 +2,8 @@ package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
+import lombok.*;
+import pl.gpwpoid.origin.models.wallet.Wallet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,11 +12,13 @@ import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "ipo")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class IPO {
@@ -47,7 +51,23 @@ public class IPO {
     @Temporal(TemporalType.TIMESTAMP)
     private Date subscriptionEnd;
 
+    @Column(name = "processed", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean processed;
+
 
     @OneToMany(mappedBy = "ipo")
     private Set<Subscription> subscriptions;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IPO that = (IPO) o;
+        return Objects.equals(ipoId, that.ipoId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ipoId);
+    }
 }

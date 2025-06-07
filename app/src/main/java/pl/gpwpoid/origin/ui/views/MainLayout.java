@@ -18,6 +18,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.ui.views.adminCompanyListView.AdminCompanyListView;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 @AnonymousAllowed
@@ -96,6 +97,10 @@ public class MainLayout extends AppLayout {
 
         if(accessChecker.hasAccess(SubscriptionView.class)){
             nav.addItem(new SideNavItem("Zapisy", SubscriptionView.class, VaadinIcon.CALENDAR.create()));
+        }
+
+        if(accessChecker.hasAccess(AdminCompanyListView.class)){
+            nav.addItem(new SideNavItem("Zarządzanie Firmami", AdminCompanyListView.class, VaadinIcon.ARCHIVES.create()));
         }
 
         addToDrawer(nav);
