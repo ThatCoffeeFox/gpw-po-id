@@ -285,7 +285,10 @@ CREATE OR REPLACE FUNCTION blocked_shares_in_wallet(arg_wallet_id INTEGER, arg_c
     BEGIN
         RETURN (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)),0)
                     FROM orders o
-                    WHERE o.wallet_id = arg_wallet_id AND o.company_id = arg_company_id AND o.order_type = 'sell');
+                    WHERE o.wallet_id = arg_wallet_id 
+                    AND o.company_id = arg_company_id 
+                    AND o.order_type = 'sell'
+                    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc));
     END
 $$ LANGUAGE plpgsql;
 
@@ -345,7 +348,9 @@ CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)
                     ELSE funds_in_wallet(arg_wallet_id) - 
                     (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
                         FROM orders o
-                        WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy')
+                        WHERE o.wallet_id = arg_wallet_id
+                        AND o.order_type = 'buy'
+                        AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc))
                 END;
     END;
 $$ LANGUAGE plpgsql;
@@ -372,7 +377,10 @@ CREATE OR REPLACE FUNCTION unblocked_funds_before_market_buy_order(arg_order_id 
                 ELSE funds_in_wallet(arg_wallet_id, before_date) -
                 (SELECT COALESCE(SUM(shares_left_in_order(o.order_id)*o.share_price),0)
                     FROM orders o
-                    WHERE o.wallet_id = arg_wallet_id AND o.order_type = 'buy' AND o.order_start_date < before_date)
+                    WHERE o.wallet_id = arg_wallet_id 
+                    AND o.order_type = 'buy' 
+                    AND o.order_start_date < before_date
+                    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc WHERE oc.date < before_date))
             END;
     END;
 $$ LANGUAGE plpgsql;
