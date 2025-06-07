@@ -154,7 +154,7 @@ BEGIN
 
         -- Wstaw poprawne zlecenie do bazy danych
         INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id)
-        VALUES (v_order_type, v_shares_amount, NOW() - (random() * INTERVAL '60 minutes'), NOW() + INTERVAL '7 days', v_share_price, v_wallet_id, v_company_id);
+        VALUES (v_order_type, v_shares_amount, NOW() - (random() * INTERVAL '2 minutes'), NOW() + INTERVAL '7 days', v_share_price, v_wallet_id, v_company_id);
 
     END LOOP;
 

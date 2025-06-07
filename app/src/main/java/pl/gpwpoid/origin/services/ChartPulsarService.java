@@ -23,7 +23,7 @@ public class ChartPulsarService {
     @Scheduled(fixedRate = 30000)
     public void pulseCharts() {
         log.trace("Uruchamianie pulsara wykresów...");
-        LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
+        LocalDateTime oneMinuteAgo = LocalDateTime.now().minusSeconds(30);
 
         for (Integer companyId : broadcaster.getActiveCompanyIds()) {
             boolean hasTransactions = transactionRepository.existsByBuyOrder_Company_CompanyIdAndDateAfter(companyId, oneMinuteAgo);

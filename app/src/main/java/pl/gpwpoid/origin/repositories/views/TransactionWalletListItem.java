@@ -8,8 +8,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class TransactionWalletListItem {
     private String orderType;
     private Date date;
@@ -17,4 +17,5 @@ public class TransactionWalletListItem {
     private Integer sharesAmount;
     private String companyCode;
     private Integer companyId;
+    private Integer walletId;
 }

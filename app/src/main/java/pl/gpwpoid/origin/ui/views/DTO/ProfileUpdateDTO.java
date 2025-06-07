@@ -1,12 +1,14 @@
 package pl.gpwpoid.origin.ui.views.DTO;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.gpwpoid.origin.decorators.validPesel.ValidPesel;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class ProfileUpdateDTO {
     @NotBlank
     private Integer accountId;

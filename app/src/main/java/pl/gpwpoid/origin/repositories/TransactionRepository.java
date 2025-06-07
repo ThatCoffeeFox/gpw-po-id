@@ -21,7 +21,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     @Query("""
             SELECT new pl.gpwpoid.origin.repositories.views.TransactionListItem(t.date, t.sharesAmount, t.sharePrice)
             FROM Transaction t
-            WHERE t.buyOrder.company.id = :companyId
+            WHERE t.buyOrder.company.companyId = :companyId
             ORDER BY t.date DESC
             """)
     List<TransactionListItem> findTransactionsByIdAsListItems(@Param("companyId") int companyId, Pageable pageable);
@@ -37,8 +37,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                         t.date AS transaction_time,
                         t.share_price,
                         o.company_id,
-                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('minute', t.date) ORDER BY t.date ASC) as rn_asc,
-                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('minute', t.date) ORDER BY t.date DESC) as rn_desc
+                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('second', t.date) ORDER BY t.date ASC) as rn_asc,
+                        ROW_NUMBER() OVER (PARTITION BY o.company_id, DATE_TRUNC('second', t.date) ORDER BY t.date DESC) as rn_desc
                     FROM
                         transactions t
                     JOIN
@@ -50,19 +50,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                 ),
                 DailyAggregates AS (
                     SELECT
-                        DATE_TRUNC('minute', ct.transaction_time) AS ohlc_date,
+                        DATE_TRUNC('second', ct.transaction_time) AS ohlc_date,
                         ct.company_id,
                         MAX(ct.share_price) AS high_price,
                         MIN(ct.share_price) AS low_price
                     FROM
                         CompanyTransactions ct
                     GROUP BY
-                        DATE_TRUNC('minute', ct.transaction_time),
+                        DATE_TRUNC('second', ct.transaction_time),
                         ct.company_id
                 ),
                 OpenPrices AS (
                     SELECT
-                        DATE_TRUNC('minute', ct.transaction_time) AS ohlc_date,
+                        DATE_TRUNC('second', ct.transaction_time) AS ohlc_date,
                         ct.company_id,
                         ct.share_price AS open_price
                     FROM
@@ -72,7 +72,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                 ),
                 ClosePrices AS (
                     SELECT
-                        DATE_TRUNC('minute', ct.transaction_time) AS ohlc_date,
+                        DATE_TRUNC('second', ct.transaction_time) AS ohlc_date,
                         ct.company_id,
                         ct.share_price AS close_price
                     FROM
@@ -107,7 +107,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
                         t.shares_amount*t.share_price AS amount,
                         t.shares_amount AS shares_amount,
                         ci.code AS companyCode,
-                        ci.company_id AS companyId
+                        ci.company_id AS companyId,
+                        :walletId as walletId
                     FROM transactions t
                     JOIN orders o ON t.buy_order_id = o.order_id OR t.sell_order_id = o.order_id
                     JOIN companies_info ci ON ci.company_id = o.company_id
@@ -118,4 +119,26 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     List<TransactionWalletListItem> getTransactionsByWalletId(int walletId);
 
     boolean existsByBuyOrder_Company_CompanyIdAndDateAfter(Integer companyId, LocalDateTime since);
+
+    @Query(value = """
+    SELECT
+        o.order_type AS orderType,
+        t.date AS date,
+        t.shares_amount*t.share_price AS amount,
+        t.shares_amount AS shares_amount,
+        ci.code as companyCode,
+        ci.company_id AS companyId,
+        w.wallet_id as walletId
+    FROM transactions t
+    JOIN orders o ON (t.buy_order_id = o.order_id OR t.sell_order_id = o.order_id)
+    JOIN wallets w ON (w.wallet_id = o.wallet_id)
+    JOIN companies_info ci ON (ci.company_id = o.company_id)
+    WHERE w.account_id = :userId
+    AND o.company_id = :companyId
+    AND ci.updated_at = (SELECT cii.updated_at FROM companies_info cii WHERE cii.company_id = ci.company_id ORDER BY t.date DESC LIMIT 1)
+    ORDER BY t.date DESC
+""", nativeQuery = true)
+    List<TransactionWalletListItem> findByCompanyAndUser(@Param("companyId") int companyId,
+                                                         @Param("userId") int userId,
+                                                         Pageable pageable);
 }
