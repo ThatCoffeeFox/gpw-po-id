@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
+import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
@@ -8,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
 
@@ -62,33 +64,36 @@ public class OrderMatchingWorker implements Runnable {
         }
     }
 
+    @Transactional
+    private boolean match(){
+        OrderWrapper buyOrder = buyQueue.peek(), sellOrder = sellQueue.peek();
+        if (buyOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(buyOrder.getOrder().getOrderId())) {
+            buyQueue.poll();
+            return true;
+        }
+        if (sellOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(sellOrder.getOrder().getOrderId())) {
+            sellQueue.poll();
+            return true;
+        }
+        if (!canMatchOrders(buyOrder, sellOrder)) return false;
+        BigDecimal sharePrice = getSharePrice(buyOrder, sellOrder);
+        int sharesAmount = Math.min(buyOrder.getSharesLeft(), sellOrder.getSharesLeft());
+        try {
+            transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
+            buyOrder.tradeShares(sharesAmount);
+            sellOrder.tradeShares(sharesAmount);
+            recentTransactionSharePrice = sharePrice;
+        } catch (Exception e) {
+            throw new RuntimeException("Transaction failed", e);
+        }
+        return true;
+    }
+
     @Override
     public void run() {
         while (!Thread.interrupted()) {
             while (!(buyQueue.isEmpty() || sellQueue.isEmpty())) {//matching loop
-                OrderWrapper buyOrder = buyQueue.peek(), sellOrder = sellQueue.peek();
-                System.out.println("buy" + buyOrder.isExpiredOrEmpty().toString()  + orderService.isCanceledOrder(buyOrder.getOrder().getOrderId()).toString());
-                System.out.println("sell" + sellOrder.isExpiredOrEmpty().toString()  + orderService.isCanceledOrder(sellOrder.getOrder().getOrderId()).toString());
-                if (buyOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(buyOrder.getOrder().getOrderId())) {
-                    buyQueue.poll();
-
-                    continue;
-                }
-                if (sellOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(sellOrder.getOrder().getOrderId())) {
-                    sellQueue.poll();
-                    continue;
-                }
-                if (!canMatchOrders(buyOrder, sellOrder)) break;
-                BigDecimal sharePrice = getSharePrice(buyOrder, sellOrder);
-                int sharesAmount = Math.min(buyOrder.getSharesLeft(), sellOrder.getSharesLeft());
-                try {
-                    transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
-                    buyOrder.tradeShares(sharesAmount);
-                    sellOrder.tradeShares(sharesAmount);
-                    recentTransactionSharePrice = sharePrice;
-                } catch (Exception e) {
-                    throw new RuntimeException("Transaction failed", e);
-                }
+                if(!match())break;
             }
             try {
                 Order order = companyIdOrderQueue.get(companyId).take();

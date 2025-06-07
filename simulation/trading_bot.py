@@ -129,12 +129,12 @@ class TradingBot:
             active_orders = self.get_active_orders()
 
             if action == 'BUY':
-                new_price = float(active_orders[0]['sharePrice']) * 1.03  # Increase buy price
+                new_price = float(active_orders[0]['sharePrice']) * 1.015  # Increase buy price
             else:
-                new_price = float(active_orders[0]['sharePrice']) * 0.97  # Decrease sell price
+                new_price = float(active_orders[0]['sharePrice']) * 0.985 # Decrease sell price
                 
             # # Cancel old order
-            # self.cancel_order(active_orders[0]['orderId'])
+            self.cancel_order(active_orders[0]['orderId'])
             
             # Create new order with adjusted price
             new_order = {
@@ -288,7 +288,7 @@ def parse_args():
     parser.add_argument('--base_url', default='http://localhost:8080', 
                        help='Base API URL (default: http://localhost:8080)')
     parser.add_argument('--rate_limit', type=float, default=1.0, 
-                       help='Seconds between trading cycles (default: 2)')
+                       help='Seconds between trading cycles (default: 1)')
     parser.add_argument('--base_price', type=float, default=100.0, 
                        help='Fallback base price when no transactions exist (default: 100)')
     parser.add_argument('--max_order_size', type=int, default=5, 
