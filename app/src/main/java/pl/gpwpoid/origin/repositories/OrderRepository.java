@@ -73,4 +73,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             SELECT is_canceled_order(:orderId)
             """, nativeQuery = true)
     Boolean isCanceledOrder(Integer orderId);
+
+    @Query(value = """
+                SELECT shares_left_in_order(:orderId)
+            """, nativeQuery = true)
+    Integer getSharesLeft(Integer orderId);
 }

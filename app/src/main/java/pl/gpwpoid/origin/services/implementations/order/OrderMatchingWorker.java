@@ -1,11 +1,13 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -84,7 +86,17 @@ public class OrderMatchingWorker implements Runnable {
             sellOrder.tradeShares(sharesAmount);
             recentTransactionSharePrice = sharePrice;
         } catch (Exception e) {
-            throw new RuntimeException("Transaction failed", e);
+            if (e.toString().contains( "buy order is cancelled")) {
+                buyQueue.poll();
+                return true;
+            }
+            else if (e.toString().contains( "sell order is cancelled")){
+                sellQueue.poll();
+                return true;
+            }
+            else {
+                throw new RuntimeException("Transaction failed", e);
+            }
         }
         return true;
     }

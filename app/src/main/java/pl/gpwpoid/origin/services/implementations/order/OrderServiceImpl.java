@@ -147,12 +147,16 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("You are not an owner of the wallet that the order was made to");
         }
 
-        if (!order.getCancellations().isEmpty()) {
+        if (orderRepository.isCanceledOrder(orderId)) {
             throw new IllegalArgumentException("This order was already canceled");
         }
 
         if (order.getOrderExpirationDate() != null && order.getOrderExpirationDate().before(new Date())) {
             throw new IllegalArgumentException("This order already expired");
+        }
+
+        if (orderRepository.getSharesLeft(orderId) == 0){
+            throw new IllegalArgumentException("This order was already completed");
         }
 
         OrderCancellation cancellation = orderCancellationFactory.createOrderCancellation(order);
@@ -219,6 +223,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Boolean isCanceledOrder(Integer orderId) {
         return orderRepository.isCanceledOrder(orderId);
     }
