@@ -30,7 +30,7 @@ public interface WalletsService {
 
     Collection<WalletCompanyListItem> getWalletCompanyListForCurrentWallet(Integer walletId);
 
-    BigDecimal getWalletUnblockedFoundsBeforeMarketBuyOrder(Integer orderId);
+    BigDecimal getWalletUnblockedFundsBeforeMarketBuyOrder(Integer orderId);
 
     Collection<TransferListItem> getTransferListForCurrentWallet(Integer walletId);
 
