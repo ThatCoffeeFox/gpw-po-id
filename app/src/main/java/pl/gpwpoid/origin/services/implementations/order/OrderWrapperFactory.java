@@ -29,7 +29,7 @@ public class OrderWrapperFactory {
     OrderWrapper createOrderWrapper(Order order) {
         OrderWrapper orderWrapper = new OrderWrapper(order);
         if (order.getOrderType().getOrderType().equals("buy") && order.getSharePrice() == null) {
-            orderWrapper.setShareMatchingPrice(walletsService.getWalletUnblockedFoundsBeforeMarketBuyOrder(order.getOrderId()).divide(BigDecimal.valueOf(order.getSharesAmount())));
+            orderWrapper.setShareMatchingPrice(walletsService.getWalletUnblockedFundsBeforeMarketBuyOrder(order.getOrderId()).divide(BigDecimal.valueOf(order.getSharesAmount())));
         }
         return orderWrapper;
     }

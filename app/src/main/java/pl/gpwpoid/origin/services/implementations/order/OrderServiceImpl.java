@@ -76,14 +76,14 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private boolean hasEnoughFoundsOrShares(OrderDTO orderDTO) {
+    private boolean hasEnoughFundsOrShares(OrderDTO orderDTO) {
         if (orderDTO.getOrderType().equals("buy")) {
-            BigDecimal foundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
+            BigDecimal fundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
             if (orderDTO.getSharePrice() == null) {
-                return foundsInWallet.compareTo(BigDecimal.ZERO) > 0;
+                return fundsInWallet.compareTo(BigDecimal.ZERO) > 0;
             }
-            BigDecimal foundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
-            return foundsInWallet.compareTo(foundsNeeded) >= 0;
+            BigDecimal fundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
+            return fundsInWallet.compareTo(fundsNeeded) >= 0;
         } else if (orderDTO.getOrderType().equals("sell")) {
             Integer sharesInWallet = walletsService.getWalletUnblockedSharesAmount(orderDTO.getWalletId(), orderDTO.getCompanyId());
             return sharesInWallet.compareTo(orderDTO.getSharesAmount()) >= 0;
@@ -104,8 +104,8 @@ public class OrderServiceImpl implements OrderService {
         if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
-        if (!hasEnoughFoundsOrShares(orderDTO)) {
-            throw new RuntimeException("You don't have enough shares/founds");
+        if (!hasEnoughFundsOrShares(orderDTO)) {
+            throw new RuntimeException("You don't have enough shares/funds");
         }
 
 
