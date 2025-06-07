@@ -78,20 +78,20 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private boolean hasEnoughFoundsOrShares(OrderDTO orderDTO){
-        if(orderDTO.getOrderType().equals("buy")){
-            BigDecimal foundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
-            if(orderDTO.getSharePrice() == null) {
-                return foundsInWallet.compareTo(BigDecimal.ZERO) > 0;
+    private boolean hasEnoughFundsOrShares(OrderDTO orderDTO) {
+        if (orderDTO.getOrderType().equals("buy")) {
+            BigDecimal fundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
+            if (orderDTO.getSharePrice() == null) {
+                return fundsInWallet.compareTo(BigDecimal.ZERO) > 0;
             }
-            BigDecimal foundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
-            return foundsInWallet.compareTo(foundsNeeded) >= 0;
+            BigDecimal fundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
+            return fundsInWallet.compareTo(fundsNeeded) >= 0;
         } else if (orderDTO.getOrderType().equals("sell")) {
             Integer sharesInWallet = walletsService.getWalletUnblockedSharesAmount(orderDTO.getWalletId(), orderDTO.getCompanyId());
             return sharesInWallet.compareTo(orderDTO.getSharesAmount()) >= 0;
         }
         return false;
-    };
+    }
 
 
     @Override
@@ -109,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
         if(!orderDTO.getOrderType().equals("buy") && !orderDTO.getOrderType().equals("sell")){
             throw new IllegalArgumentException("Order type has to be 'buy' or 'sell'");
         }
-        if(!hasEnoughFoundsOrShares(orderDTO)){
+        if(!hasEnoughFundsOrShares(orderDTO)){
             throw new RuntimeException("You don't have enough shares/founds");
         }
 

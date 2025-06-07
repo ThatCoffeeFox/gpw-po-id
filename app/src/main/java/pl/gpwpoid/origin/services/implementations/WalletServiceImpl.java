@@ -103,8 +103,8 @@ public class WalletServiceImpl implements WalletsService {
     }
 
     @Override
-    public BigDecimal getWalletUnblockedFoundsBeforeMarketBuyOrder(Integer orderId) {
-        return walletRepository.getWalletUnblockedFoundsBeforeMarketBuyOrder(orderId);
+    public BigDecimal getWalletUnblockedFundsBeforeMarketBuyOrder(Integer orderId) {
+        return walletRepository.getWalletUnblockedFundsBeforeMarketBuyOrder(orderId);
     }
 
     @Override

@@ -104,10 +104,10 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         if (companyId != null) {
             broadcasterRegistration = broadcaster.register(companyId, id -> {
                 attachEvent.getUI().access(() -> {
-                    Notification.show("Aktualizacja danych spółki...", 1000, Notification.Position.BOTTOM_STRETCH);
                     updateChart();
                     if(SecurityUtils.isLoggedIn()) {
                         updateTransactionsGrid();
+                        activeOrdersGrid.updateList();
                     }
                 });
             });

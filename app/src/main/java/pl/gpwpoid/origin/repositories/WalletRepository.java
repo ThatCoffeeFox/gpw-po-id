@@ -45,9 +45,9 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
     Integer getWalletUnblockedSharesAmount(Integer walletId, Integer companyId);
 
     @Query(value = """
-            SELECT unblocked_founds_before_market_buy_order( :orderId )
+            SELECT unblocked_funds_before_market_buy_order( :orderId )
             """, nativeQuery = true)
-    BigDecimal getWalletUnblockedFoundsBeforeMarketBuyOrder(Integer orderId);
+    BigDecimal getWalletUnblockedFundsBeforeMarketBuyOrder(Integer orderId);
 
     @Query(value = """
                     SELECT 
