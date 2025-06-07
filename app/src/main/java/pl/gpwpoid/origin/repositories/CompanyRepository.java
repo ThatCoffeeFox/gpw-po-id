@@ -4,8 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.company.Company;
+import pl.gpwpoid.origin.models.company.CompanyInfo;
 import pl.gpwpoid.origin.repositories.views.AdminCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.CompanyListItem;
+import pl.gpwpoid.origin.repositories.views.CompanyStatusItem;
 
 import java.util.List;
 
@@ -66,4 +68,33 @@ public interface CompanyRepository extends JpaRepository<Company,Long> {
                         LIMIT 1)
     """, nativeQuery = true)
     List<AdminCompanyListItem> getAdminCompanyListItems();
+
+    @Query("""
+        SELECT ci
+        FROM Company c LEFT JOIN CompanyInfo ci ON c.companyId = ci.id.companyId
+        WHERE c.companyId = :companyId
+        AND ci.id.updatedAt = (
+            SELECT cii.id.updatedAt
+            FROM CompanyInfo cii
+            WHERE cii.company = c
+            ORDER BY cii.id.updatedAt DESC
+            LIMIT 1
+        )
+""")
+    CompanyInfo findCompanyInfoById(Long companyId);
+
+    @Query(value = """
+        SELECT
+            shares_value(:companyId) AS currentPrice,
+            shares_value_last_day(:companyId) AS previousPrice,
+            cs.tradable
+        FROM companies_status cs
+        WHERE cs.company_id = :companyId
+        AND cs.date = (SELECT css.date
+                        FROM companies_status css
+                        WHERE css.company_id = :companyId
+                        ORDER BY css.date DESC
+                        LIMIT 1)
+""", nativeQuery = true)
+    CompanyStatusItem getCompanyStatusItemById(Integer companyId);
 }

@@ -138,7 +138,8 @@ public class OrderForm extends FormLayout {
     }
 
     private void loadWalletListItems() {
-        userWallets = walletsService.getWalletListViewForCurrentUser();
+        Integer accountId = SecurityUtils.getAuthenticatedAccountId();
+        userWallets = walletsService.getWalletListViewByAccountId(accountId);
     }
 
     public void setCompanyId(Integer companyId) {

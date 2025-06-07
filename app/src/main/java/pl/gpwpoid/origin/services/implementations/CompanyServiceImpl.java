@@ -9,14 +9,17 @@ import pl.gpwpoid.origin.factories.CompanyStatusFactory;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.address.Town;
 import pl.gpwpoid.origin.models.company.Company;
+import pl.gpwpoid.origin.models.company.CompanyInfo;
 import pl.gpwpoid.origin.models.company.CompanyStatus;
 import pl.gpwpoid.origin.repositories.CompanyRepository;
 import pl.gpwpoid.origin.repositories.CompanyStatusRepository;
 import pl.gpwpoid.origin.repositories.views.AdminCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.CompanyListItem;
+import pl.gpwpoid.origin.repositories.views.CompanyStatusItem;
 import pl.gpwpoid.origin.services.AddressService;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.ui.views.DTO.CompanyDTO;
+import pl.gpwpoid.origin.ui.views.DTO.CompanyUpdateDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -95,7 +98,35 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public void updateCompany(CompanyDTO companyDTO) {
+    @Transactional
+    public void updateCompany(CompanyUpdateDTO companyUpdateDTO) {
+        if(companyUpdateDTO == null || !companyRepository.existsById(Long.valueOf(companyUpdateDTO.getCompanyId())))
+            throw new IllegalArgumentException("Id nie istnieje lub jest NULL");
 
+        Company company = companyRepository.findById(Long.valueOf(companyUpdateDTO.getCompanyId())).orElse(null);
+        if(company == null)
+            throw new IllegalArgumentException("Nie znaleziono Firmy");
+
+        Town town = addressService.getTownById(companyUpdateDTO.getTownId()).get();
+        PostalCodesTowns postalCodesTowns = addressService.getPostalCodesTowns(town, companyUpdateDTO.getPostalCode()).get();
+
+        CompanyInfo updatedCompanyInfo = companyFactory.createCompanyInfo(companyUpdateDTO, postalCodesTowns);
+        updatedCompanyInfo.setCompany(company);
+        company.getCompanyInfos().add(updatedCompanyInfo);
+        companyRepository.save(company);
+    }
+
+    @Override
+    public CompanyInfo getNewestCompanyInfoItemById(Integer companyId) {
+        if(companyId == null)
+            return null;
+        return companyRepository.findCompanyInfoById(companyId.longValue());
+    }
+
+    @Override
+    public CompanyStatusItem getCompanyStatusItemById(Integer companyId) {
+        if(companyId == null)
+            return null;
+        return companyRepository.getCompanyStatusItemById(companyId);
     }
 }

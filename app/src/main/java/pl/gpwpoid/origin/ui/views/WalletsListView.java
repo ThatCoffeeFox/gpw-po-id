@@ -132,7 +132,8 @@ public class WalletsListView extends HorizontalLayout {
 
     private void loadWalletListItems() {
         if(SecurityUtils.isLoggedIn()) {
-            Collection<WalletListItem> walletList = walletsService.getWalletListViewForCurrentUser();
+            Integer accountId = SecurityUtils.getAuthenticatedAccountId();
+            Collection<WalletListItem> walletList = walletsService.getWalletListViewByAccountId(accountId);
             grid.setItems(walletList);
         }
         else

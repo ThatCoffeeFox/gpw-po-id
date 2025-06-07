@@ -23,6 +23,7 @@ import pl.gpwpoid.origin.services.IPOService;
 import pl.gpwpoid.origin.services.SubscriptionService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.SubscriptionDTO;
+import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.text.NumberFormat;
 import java.util.Collection;
@@ -82,7 +83,8 @@ public class SubscriptionView extends VerticalLayout {
     }
 
     void loadSubscriptionFormData(){
-        this.avaibleWallets = walletsService.getWalletListViewForCurrentUser();
+        Integer accountId = SecurityUtils.getAuthenticatedAccountId();
+        this.avaibleWallets = walletsService.getWalletListViewByAccountId(accountId);
         this.avaibleCompanies = ipoService.getActiveIPOListItems();
         walletComboBox.setItems(avaibleWallets);
         companyComboBox.setItems(avaibleCompanies);

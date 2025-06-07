@@ -2,11 +2,20 @@ package pl.gpwpoid.origin.services.implementations;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pl.gpwpoid.origin.factories.IPOFactory;
+import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.models.company.IPO;
+import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.IPORepository;
+import pl.gpwpoid.origin.repositories.views.AdminIPOListItem;
 import pl.gpwpoid.origin.repositories.views.IPOListItem;
+import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.IPOService;
+import pl.gpwpoid.origin.services.WalletsService;
+import pl.gpwpoid.origin.ui.views.DTO.IPODTO;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +23,16 @@ import java.util.Optional;
 @Service
 public class IPOServiceImpl implements IPOService {
     private final IPORepository ipoRepository;
+    private final CompanyService companyService;
+    private final WalletsService walletsService;
+    private final IPOFactory ipoFactory;
 
     @Autowired
-    IPOServiceImpl(IPORepository ipoRepository){
+    IPOServiceImpl(IPORepository ipoRepository, CompanyService companyService, WalletsService walletsService, IPOFactory ipoFactory) {
         this.ipoRepository = ipoRepository;
+        this.companyService = companyService;
+        this.walletsService = walletsService;
+        this.ipoFactory = ipoFactory;
     }
 
     @Override
@@ -35,5 +50,26 @@ public class IPOServiceImpl implements IPOService {
         }
         return Optional.empty();
 
+    }
+
+    @Override
+    public Collection<AdminIPOListItem> getAdminIPOListItemsByCompanyId(Integer companyId) {
+        return ipoRepository.getAdminIPOListItemsByCompanyId(companyId);
+    }
+
+    @Override
+    @Transactional
+    public void addIPO(IPODTO ipoDTO) {
+        Company company = companyService.getCompanyById(ipoDTO.getCompanyId()).get();
+        Wallet wallet = walletsService.getWalletById(ipoDTO.getWalletOwnerId()).get();
+        IPO ipo = ipoFactory.createIPO(
+                ipoDTO.getSharePrice(),
+                ipoDTO.getSharesAmount(),
+                ipoDTO.getSubscriptionEnd(),
+                company,
+                wallet
+        );
+
+        ipoRepository.save(ipo);
     }
 }
