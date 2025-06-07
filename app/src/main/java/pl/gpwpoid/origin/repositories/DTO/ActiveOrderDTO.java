@@ -1,4 +1,4 @@
-package pl.gpwpoid.origin.repositories.views;
+package pl.gpwpoid.origin.repositories.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,8 +10,11 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TransactionListItem {
-    private Date date;
+public class ActiveOrderDTO{
+    private Integer orderId;
+    private String orderType;
     private Integer sharesAmount;
     private BigDecimal sharePrice;
+    private Date orderStartDate;
+    private Date orderExpirationDate;
 }

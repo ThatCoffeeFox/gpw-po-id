@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.DTO.WalletCompanyDTO;
 import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
@@ -83,4 +84,16 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
                         WHERE t.wallet_id = :walletId
             """, nativeQuery = true)
     List<TransferListItem> getTransferListForCurrentWallet(Integer walletId);
+
+    @Query(value = """
+           SELECT
+            :walletId,
+            funds_in_wallet(:walletId),
+            unblocked_funds_in_wallet(:walletId),
+            :companyId,
+            shares_in_wallet(:walletId, :companyId),
+            shares_in_wallet(:walletId, :companyId) - blocked_shares_in_wallet(:walletId, :companyId),
+            shares_value(:companyId);
+           """, nativeQuery = true)
+    WalletCompanyDTO findWalletCompanyDTOByWalletIdCompanyId(Integer walletId, Integer companyId);
 }
