@@ -27,4 +27,7 @@ public interface OrderService {
     void stopOrderMatching(int companyId);
 
     List<ActiveOrderDTO> getActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException;
+
+    Boolean isCanceledOrder(Integer orderId);
 }
+

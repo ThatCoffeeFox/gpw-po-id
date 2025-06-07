@@ -48,7 +48,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             JOIN wallets w ON aso.wallet_id = w.wallet_id
             WHERE w.account_id = :accountId
         ) combined_orders
-        ORDER BY order_start_date ASC
+        ORDER BY order_start_date DESC
         """, nativeQuery = true)
     List<ActiveOrderListItem> findActiveOrdersByAccountId(@Param("accountId") Integer accountId);
 
@@ -65,7 +65,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM active_sell_orders aso
         WHERE aso.wallet_id = :walletId AND aso.company_id = :companyId
     ) combined_orders
-    ORDER BY order_start_date ASC
+    ORDER BY order_start_date DESC
     """, nativeQuery = true)
     List<ActiveOrderDTO> findActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId);
+
+    @Query(value = """
+            SELECT is_canceled_order(:orderId)
+            """, nativeQuery = true)
+    Boolean isCanceledOrder(Integer orderId);
 }

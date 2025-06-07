@@ -188,7 +188,8 @@ public class OrderServiceImpl implements OrderService {
                                 transactionService.getShareValueByCompanyId(companyId),
                                 transactionService,
                                 orderWrapperFactory,
-                                companyIdOrderQueue))
+                                companyIdOrderQueue,
+                                this))
         );
     }
 
@@ -215,6 +216,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderRepository.findActiveOrderDTOListByWalletIdCompanyId(walletId, companyId);
+    }
+
+    @Override
+    public Boolean isCanceledOrder(Integer orderId) {
+        return orderRepository.isCanceledOrder(orderId);
     }
 
 

@@ -53,6 +53,20 @@ public class ApiControler {
         }
     }
 
+        @DeleteMapping("/wallets/{walletId}/{companyId}/active_orders")
+        public ResponseEntity<?> cancelWalletCompanyActiveOrders(@PathVariable Integer walletId, @PathVariable Integer companyId){
+            try{
+                List<ActiveOrderDTO> activeOrderDTOList = orderService.getActiveOrderDTOListByWalletIdCompanyId(walletId, companyId);
+                for(ActiveOrderDTO activeOrderDTO : activeOrderDTOList){
+                    orderService.cancelOrder(activeOrderDTO.getOrderId());
+                }
+                return ResponseEntity.ok().build();
+            }
+            catch (Exception e){
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }
+
     @GetMapping("/wallets/{walletId}/{companyId}")
     public ResponseEntity<?> getWalletCompanyInfo(@PathVariable Integer walletId, @PathVariable Integer companyId){
         try{
@@ -63,6 +77,8 @@ public class ApiControler {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
 
     @GetMapping("/wallets/{walletId}/{companyId}/active_orders")
     public ResponseEntity<?> getWalletCompanyActiveOrders(@PathVariable Integer walletId, @PathVariable Integer companyId){

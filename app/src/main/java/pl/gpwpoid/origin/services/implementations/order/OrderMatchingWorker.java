@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
 import pl.gpwpoid.origin.models.order.Order;
+import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ public class OrderMatchingWorker implements Runnable {
     private final Map<Integer, BlockingQueue<Order>> companyIdOrderQueue;
 
     private final OrderWrapperFactory orderWrapperFactory;
+    private final OrderService orderService;
 
     private BigDecimal recentTransactionSharePrice;
 
@@ -27,8 +29,9 @@ public class OrderMatchingWorker implements Runnable {
                         BigDecimal recentTransactionSharePrice,
                         TransactionService transactionService,
                         OrderWrapperFactory orderWrapperFactory,
-                        ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue) {
+                        ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue, OrderService orderService) {
         this.companyId = companyId;
+        this.orderService = orderService;
         this.buyQueue = new PriorityQueue<>(new BuyComparator());
         this.sellQueue = new PriorityQueue<>(new SellComparator());
         this.recentTransactionSharePrice = recentTransactionSharePrice;
@@ -40,7 +43,7 @@ public class OrderMatchingWorker implements Runnable {
         if (activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
     }
 
-    private boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder) {
+    private Boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder) {
         return sellOrder.getOrder().getSharePrice() == null ||
                 (sellOrder.getOrder().getSharePrice().compareTo(buyOrder.getShareMatchingPrice()) <= 0);
     }
@@ -64,11 +67,14 @@ public class OrderMatchingWorker implements Runnable {
         while (!Thread.interrupted()) {
             while (!(buyQueue.isEmpty() || sellQueue.isEmpty())) {//matching loop
                 OrderWrapper buyOrder = buyQueue.peek(), sellOrder = sellQueue.peek();
-                if (!buyOrder.isValid()) {
+                System.out.println("buy" + buyOrder.isExpiredOrEmpty().toString()  + orderService.isCanceledOrder(buyOrder.getOrder().getOrderId()).toString());
+                System.out.println("sell" + sellOrder.isExpiredOrEmpty().toString()  + orderService.isCanceledOrder(sellOrder.getOrder().getOrderId()).toString());
+                if (buyOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(buyOrder.getOrder().getOrderId())) {
                     buyQueue.poll();
+
                     continue;
                 }
-                if (!sellOrder.isValid()) {
+                if (sellOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(sellOrder.getOrder().getOrderId())) {
                     sellQueue.poll();
                     continue;
                 }

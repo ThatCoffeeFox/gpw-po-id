@@ -525,6 +525,14 @@ CREATE OR REPLACE TRIGGER is_valid_cancellation_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE is_valid_cancellation();
 
+CREATE OR REPLACE FUNCTION is_canceled_order(arg_order_id INTEGER)
+    RETURNS BOOLEAN
+    AS $$
+    BEGIN
+        RETURN EXISTS (SELECT 1 FROM order_cancellations WHERE order_id = arg_order_id);
+    END
+$$ LANGUAGE plpgsql;
+
 --triggers preventing updates
 
 CREATE OR REPLACE FUNCTION prevent_update_on_immutable_table()
