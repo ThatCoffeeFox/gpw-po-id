@@ -72,4 +72,9 @@ public class IPOServiceImpl implements IPOService {
 
         ipoRepository.save(ipo);
     }
+
+    @Override
+    public Boolean hasActiveIPO(Integer companyId) {
+        return ipoRepository.hasActiveIPO(companyId) != null;
+    }
 }

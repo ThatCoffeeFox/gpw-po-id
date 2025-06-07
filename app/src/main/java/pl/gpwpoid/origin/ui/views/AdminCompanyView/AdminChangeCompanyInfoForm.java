@@ -59,8 +59,6 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
         this.addressService = addressService;
         this.companyService = companyService;
 
-        add(new H3("Edytuj dane firmy"));
-
         bindFields();
         HorizontalLayout layout = new HorizontalLayout(configureForm(), configureCompanyStatus());
         add(layout);

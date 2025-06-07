@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.ui.views.AdminCompanyView;
 
 
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -49,15 +50,19 @@ public class AdminCompanyView extends VerticalLayout implements HasUrlParameter<
         setSpacing(true);
 
         adminChangeCompanyInfoForm = new AdminChangeCompanyInfoForm(addressService, companyService);
-        adminStartIPODialog = new AdminStartIPODialog(ipoService, accountService, walletService);
+        adminChangeCompanyInfoForm.setWidth("100%");
+        adminStartIPODialog = new AdminStartIPODialog(ipoService, accountService, walletService, companyService);
 
         HorizontalLayout infoLayout = new HorizontalLayout();
-        infoLayout.add(adminChangeCompanyInfoForm, adminStartIPODialog);
+        infoLayout.add(new H3("Edytuj dane firmy"), adminStartIPODialog);
+        infoLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
+        infoLayout.setPadding(true);
+        infoLayout.setSpacing(true);
 
         adminCompanyTransactionsGrid = new AdminCompanyTransactionsGrid(transactionService, companyService);
         adminCompanyIPOsGrid = new AdminCompanyIPOsGrid(ipoService);
 
-        add(infoLayout, adminCompanyTransactionsGrid, adminCompanyIPOsGrid);
+        add(infoLayout, adminChangeCompanyInfoForm, adminCompanyTransactionsGrid, adminCompanyIPOsGrid);
     }
 
     @Override

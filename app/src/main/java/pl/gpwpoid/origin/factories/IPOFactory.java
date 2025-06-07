@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashSet;
 
 @Component
 public class IPOFactory {
@@ -36,6 +37,7 @@ public class IPOFactory {
             throw new IllegalArgumentException("subscriptionEnd cannot be in the past");
 
         IPO ipo = new IPO();
+        ipo.setSubscriptions(new HashSet<>());
         ipo.setCompany(company);
         ipo.setPaymentWallet(wallet);
         ipo.setSubscriptionStart(new Date());

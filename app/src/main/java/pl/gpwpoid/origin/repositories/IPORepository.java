@@ -47,4 +47,14 @@ public interface IPORepository extends JpaRepository<IPO, Long> {
         )
 """, nativeQuery = true)
     List<AdminIPOListItem> getAdminIPOListItemsByCompanyId(Integer companyId);
+
+    @Query(value = """
+        SELECT
+            i.ipo_id
+        FROM ipo i
+        WHERE current_timestamp BETWEEN i.subscription_start AND i.subscription_end
+        AND i.company_id = :companyId
+        LIMIT 1
+""", nativeQuery = true)
+    Integer hasActiveIPO(Integer companyId);
 }

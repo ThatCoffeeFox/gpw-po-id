@@ -16,6 +16,7 @@ import com.vaadin.flow.data.provider.Query;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.IPOService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.IPODTO;
@@ -30,6 +31,7 @@ public class AdminStartIPODialog extends VerticalLayout {
     private final IPOService ipoService;
     private final AccountService accountService;
     private final WalletsService walletService;
+    private final CompanyService companyService;
 
     private Integer companyId;
 
@@ -48,12 +50,15 @@ public class AdminStartIPODialog extends VerticalLayout {
 
     private IPODTO ipoDTO = new IPODTO();
 
-    public AdminStartIPODialog(IPOService ipoService, AccountService accountService, WalletsService walletService) {
+    public AdminStartIPODialog(IPOService ipoService, AccountService accountService, WalletsService walletService, CompanyService companyService) {
         this.ipoService = ipoService;
         this.accountService = accountService;
         this.walletService = walletService;
+        this.companyService = companyService;
+
 
         add(startIPOButton);
+        setWidth("200px");
 
         startIPOButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         startIPOButton.setEnabled(false);
@@ -139,9 +144,7 @@ public class AdminStartIPODialog extends VerticalLayout {
                                     return ownerWallet.getDataProvider().fetch(new Query<>())
                                             .filter(item -> item.getWalletId().equals(walletId))
                                             .findFirst()
-                                            .orElseGet(() -> {
-                                                return walletService.getWalletListItemById(walletId);
-                                            });
+                                            .orElseGet(() -> walletService.getWalletListItemById(walletId));
                                 }
                         )
                 .bind("walletOwnerId");
@@ -165,6 +168,8 @@ public class AdminStartIPODialog extends VerticalLayout {
             ipoService.addIPO(ipoDTO);
 
             Notification.show("Rozpoczęto emisję", 4000, Notification.Position.TOP_CENTER);
+            startIPOButton.setEnabled(canStartIPO());
+            companyService.setTradable(companyId, false);
             dialog.close();
         } catch (Exception e) {
             Notification.show("Wystąpił błąd: " + e.getMessage(), 4000, Notification.Position.TOP_CENTER);
@@ -173,6 +178,10 @@ public class AdminStartIPODialog extends VerticalLayout {
 
     public void setCompany(Integer companyId) {
         this.companyId = companyId;
-        startIPOButton.setEnabled(true);
+        startIPOButton.setEnabled(canStartIPO());
+    }
+
+    private boolean canStartIPO(){
+        return !ipoService.hasActiveIPO(companyId);
     }
 }

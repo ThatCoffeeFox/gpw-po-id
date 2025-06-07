@@ -9,6 +9,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import pl.gpwpoid.origin.repositories.views.AdminCompanyListItem;
 import pl.gpwpoid.origin.services.CompanyService;
+import pl.gpwpoid.origin.services.IPOService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,6 +19,7 @@ import java.util.Locale;
 
 public class AdminCompaniesGrid extends VerticalLayout {
     private final CompanyService companyService;
+    private final IPOService ipoService;
     private final Grid<AdminCompanyListItem> grid = new Grid<>();
 
     private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
@@ -25,8 +27,9 @@ public class AdminCompaniesGrid extends VerticalLayout {
             DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
     );
 
-    AdminCompaniesGrid(CompanyService companyService) {
+    AdminCompaniesGrid(CompanyService companyService, IPOService ipoService) {
         this.companyService = companyService;
+        this.ipoService = ipoService;
         configureGrid();
         add(new H3("Lista Firm"), grid);
         setSizeFull();
@@ -108,7 +111,12 @@ public class AdminCompaniesGrid extends VerticalLayout {
                 tradableButton.setEnabled(true);
             }
         });
+        tradableButton.setEnabled(!hasActiveIPO(item.getCompanyId()));
         return tradableButton;
+    }
+
+    private boolean hasActiveIPO(Integer companyId) {
+        return ipoService.hasActiveIPO(companyId);
     }
 
     private String translateTradable(AdminCompanyListItem item) {

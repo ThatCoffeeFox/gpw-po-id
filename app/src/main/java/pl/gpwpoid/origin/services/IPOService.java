@@ -15,4 +15,5 @@ public interface IPOService {
     Optional<IPO> getActiveIPOById(Integer ipoId);
     Collection<AdminIPOListItem> getAdminIPOListItemsByCompanyId(Integer companyId);
     void addIPO(IPODTO ipoDTO);
+    Boolean hasActiveIPO(Integer companyId);
 }
