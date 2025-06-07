@@ -110,14 +110,17 @@ public class CompanyChart extends VerticalLayout {
         Configuration conf = candlestickChart.getConfiguration();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startTime = currentRange.getStartTime(now);
-        BigDecimal anchorPrice = BigDecimal.ZERO;
-
+        BigDecimal anchorPrice = transactionService.getShareValueByCompanyId(companyId);
 
         List<OHLCDataItem> rawDataFromDb = transactionService.getOHLCDataByCompanyId(
                 this.companyId,
                 startTime,
                 now
         );
+
+        if(rawDataFromDb.isEmpty() && transactionService.getCompanyTransactionsById(companyId, 1).isEmpty()){
+            anchorPrice = BigDecimal.ZERO;
+        }
 
         chartHeader.setText("Historia cen akcji");
         Map<LocalDateTime, OhlcItem> candleMap = new TreeMap<>();
@@ -173,6 +176,27 @@ public class CompanyChart extends VerticalLayout {
             }
 
             currentTimeStep = currentTimeStep.plus(currentRange.getIntervalAmount(), currentRange.getGroupingUnit());
+        }
+
+        if (!finalCandles.isEmpty()) {
+            double minLow = finalCandles.stream()
+                    .mapToDouble(item -> item.getLow().doubleValue())
+                    .min()
+                    .orElse(0.0);
+
+            double maxHigh = finalCandles.stream()
+                    .mapToDouble(item -> item.getHigh().doubleValue())
+                    .max()
+                    .orElse(100.0);
+
+            YAxis yAxis = conf.getyAxis();
+
+            yAxis.setMin(minLow - 1.0);
+            yAxis.setMax(maxHigh + 1.0);
+        } else {
+            YAxis yAxis = conf.getyAxis();
+            yAxis.setMin(0);
+            yAxis.setMax(1);
         }
 
         DataSeries newDataSeries = new DataSeries("Cena Akcji");
