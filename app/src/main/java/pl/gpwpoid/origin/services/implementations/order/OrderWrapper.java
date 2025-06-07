@@ -39,10 +39,12 @@ class OrderWrapper {
         sharesLeft -= tradeAmount;
     }
 
-    boolean isValid() {
-        System.out.println();
-        return sharesLeft > 0 && (order.getCancellations() == null || order.getCancellations().isEmpty()) && (order.getOrderExpirationDate() == null || order.getOrderExpirationDate().compareTo(new Date()) >= 0);
+    Boolean isExpiredOrEmpty() {
+        Date expiration = order.getOrderExpirationDate();
+        Date now = new Date();
+        return sharesLeft <= 0 || (expiration != null && !expiration.after(now));
     }
+
 
     int getSharesLeft() {
         return this.sharesLeft;

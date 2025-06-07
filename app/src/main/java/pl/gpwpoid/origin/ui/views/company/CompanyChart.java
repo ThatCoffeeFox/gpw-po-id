@@ -118,7 +118,7 @@ public class CompanyChart extends VerticalLayout {
                 now
         );
 
-        if(rawDataFromDb.isEmpty() && transactionService.getCompanyTransactionsById(companyId, 1).isEmpty()){
+        if(rawDataFromDb.isEmpty() && transactionService.getCompanyTransactionDTOListByCompanyId(companyId, 1).isEmpty()){
             anchorPrice = BigDecimal.ZERO;
         }
 
