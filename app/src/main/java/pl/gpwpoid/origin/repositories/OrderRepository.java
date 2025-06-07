@@ -38,7 +38,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                    abo.order_start_date, abo.order_expiration_date
             FROM active_buy_orders abo 
             JOIN wallets w ON abo.wallet_id = w.wallet_id
-            WHERE w.account_id = :accountId
+            WHERE w.account_id = :accountId AND abo.company_id = :companyId 
             
             UNION ALL
             
@@ -46,11 +46,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                    aso.order_start_date, aso.order_expiration_date
             FROM active_sell_orders aso
             JOIN wallets w ON aso.wallet_id = w.wallet_id
-            WHERE w.account_id = :accountId
+            WHERE w.account_id = :accountId AND aso.company_id = :companyId 
         ) combined_orders
         ORDER BY order_start_date DESC
         """, nativeQuery = true)
-    List<ActiveOrderListItem> findActiveOrdersByAccountId(@Param("accountId") Integer accountId);
+    List<ActiveOrderListItem> findActiveOrdersByAccountIdCompanyId(@Param("accountId") Integer accountId, Integer companyId);
 
     @Query(value = """
     SELECT order_id, order_type, shares_amount, share_price, order_start_date, order_expiration_date

@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.NumberRenderer;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
 import pl.gpwpoid.origin.services.OrderService;
@@ -20,6 +21,8 @@ public class ActiveOrdersGrid extends VerticalLayout {
 
     private final Grid<ActiveOrderListItem> grid = new Grid<>();
     private final OrderService orderService;
+    @Setter
+    private Integer companyId;
 
     @Autowired
     public ActiveOrdersGrid(OrderService orderService) {
@@ -91,6 +94,6 @@ public class ActiveOrdersGrid extends VerticalLayout {
     }
 
     public void updateList() {
-        grid.setItems(orderService.getActiveOrderListItemsForLoggedInAccount());
+        grid.setItems(orderService.getActiveOrderListItemsForLoggedInAccount(companyId));
     }
 }

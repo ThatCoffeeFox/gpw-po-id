@@ -164,12 +164,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount() {
+    public List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount(Integer companyId) {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
         if(accountId == null){
             throw new RuntimeException("there is no logged in user");
         }
-        return orderRepository.findActiveOrdersByAccountId(accountId);
+        return orderRepository.findActiveOrdersByAccountIdCompanyId(accountId, companyId);
     }
 
     @Override

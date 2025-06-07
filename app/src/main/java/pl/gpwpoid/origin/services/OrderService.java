@@ -15,10 +15,9 @@ public interface OrderService {
 
     void addOrder(OrderDTO orderDTO) throws AccessDeniedException;
 
-    @Transactional
     void cancelOrder(Integer orderId);
 
-    List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount();
+    List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount(Integer companyId);
 
     Collection<Order> getOrders();
 

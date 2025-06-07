@@ -94,6 +94,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
             if (SecurityUtils.isLoggedIn()) {
                 orderForm.setCompanyId(companyId);
                 transactionsGrid.setCompanyId(companyId);
+                activeOrdersGrid.setCompanyId(companyId);
                 activeOrdersGrid.updateList();
             }
         } catch (Exception e) {
