@@ -1,27 +1,33 @@
 package pl.gpwpoid.origin.services.implementations;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.factories.ExternalTransferFactory;
-import pl.gpwpoid.origin.factories.WalletFactory;
 import pl.gpwpoid.origin.models.account.Account;
+import pl.gpwpoid.origin.factories.WalletFactory;
 import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import pl.gpwpoid.origin.repositories.DTO.WalletCompanyDTO;
 import pl.gpwpoid.origin.repositories.ExternalTransferRepository;
 import pl.gpwpoid.origin.repositories.WalletRepository;
 import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.TransferDTO;
 import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
+import java.nio.file.AccessDeniedException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class WalletServiceImpl implements WalletsService {
@@ -30,18 +36,19 @@ public class WalletServiceImpl implements WalletsService {
     private final AccountService accountService;
     private final ExternalTransferFactory externalTransferFactory;
     private final ExternalTransferRepository externalTransferRepository;
-
+    private final CompanyService companyService;
     @Autowired
     public WalletServiceImpl(WalletRepository walletRepository,
                              WalletFactory walletFactory,
                              AccountService accountService,
                              ExternalTransferFactory externalTransferFactory,
-                             ExternalTransferRepository externalTransferRepository) {
+                             ExternalTransferRepository externalTransferRepository, CompanyService companyService) {
         this.externalTransferFactory = externalTransferFactory;
         this.walletRepository = walletRepository;
         this.walletFactory = walletFactory;
         this.accountService = accountService;
         this.externalTransferRepository = externalTransferRepository;
+        this.companyService = companyService;
     }
 
     @Override
@@ -138,5 +145,20 @@ public class WalletServiceImpl implements WalletsService {
             walletRepository.save(walletToDelete);
         } else
             throw new IllegalArgumentException("Wallet not found");
+    }
+
+    @Override
+    public WalletCompanyDTO getWalletCompanyDTOByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException {
+        if(companyService.getCompanyById(companyId).isEmpty()){
+            throw new EntityNotFoundException("This company does not exist");
+        }
+
+        Optional<Wallet> wallet = getWalletById(walletId);
+        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+            throw new AccessDeniedException("You are not an owner of the wallet");
+        }
+
+        return walletRepository.findWalletCompanyDTOByWalletIdCompanyId(walletId,companyId);
     }
 }

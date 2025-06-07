@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.keys.TransactionId;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
-import pl.gpwpoid.origin.repositories.views.TransactionListItem;
+import pl.gpwpoid.origin.repositories.views.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,13 +19,14 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, TransactionId> {
 
-    @Query("""
-            SELECT new pl.gpwpoid.origin.repositories.views.TransactionListItem(t.date, t.sharesAmount, t.sharePrice)
-            FROM Transaction t
-            WHERE t.buyOrder.company.companyId = :companyId
-            ORDER BY t.date DESC
-            """)
-    List<TransactionListItem> findTransactionsByIdAsListItems(@Param("companyId") int companyId, Pageable pageable);
+    @Query(value = """
+    SELECT t.date, t.shares_amount, t.share_price
+    FROM transactions t JOIN orders o ON t.buy_order_id = o.order_id
+    WHERE o.company_id = :companyId
+    ORDER BY t.date DESC
+    LIMIT :limit
+    """, nativeQuery = true)
+    List<TransactionDTO> findTransactionDTOListByCompanyId(@Param("companyId") int companyId, Integer limit);
 
     @Query(value = """
             SELECT shares_value( :companyId )

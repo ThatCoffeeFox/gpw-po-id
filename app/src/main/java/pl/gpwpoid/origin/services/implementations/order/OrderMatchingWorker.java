@@ -1,12 +1,17 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
+import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
 
@@ -18,6 +23,7 @@ public class OrderMatchingWorker implements Runnable {
     private final Map<Integer, BlockingQueue<Order>> companyIdOrderQueue;
 
     private final OrderWrapperFactory orderWrapperFactory;
+    private final OrderService orderService;
 
     private BigDecimal recentTransactionSharePrice;
 
@@ -27,8 +33,9 @@ public class OrderMatchingWorker implements Runnable {
                         BigDecimal recentTransactionSharePrice,
                         TransactionService transactionService,
                         OrderWrapperFactory orderWrapperFactory,
-                        ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue) {
+                        ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue, OrderService orderService) {
         this.companyId = companyId;
+        this.orderService = orderService;
         this.buyQueue = new PriorityQueue<>(new BuyComparator());
         this.sellQueue = new PriorityQueue<>(new SellComparator());
         this.recentTransactionSharePrice = recentTransactionSharePrice;
@@ -40,7 +47,7 @@ public class OrderMatchingWorker implements Runnable {
         if (activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
     }
 
-    private boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder) {
+    private Boolean canMatchOrders(OrderWrapper buyOrder, OrderWrapper sellOrder) {
         return sellOrder.getOrder().getSharePrice() == null ||
                 (sellOrder.getOrder().getSharePrice().compareTo(buyOrder.getShareMatchingPrice()) <= 0);
     }
@@ -59,30 +66,46 @@ public class OrderMatchingWorker implements Runnable {
         }
     }
 
+    @Transactional
+    private boolean match(){
+        OrderWrapper buyOrder = buyQueue.peek(), sellOrder = sellQueue.peek();
+        if (buyOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(buyOrder.getOrder().getOrderId())) {
+            buyQueue.poll();
+            return true;
+        }
+        if (sellOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(sellOrder.getOrder().getOrderId())) {
+            sellQueue.poll();
+            return true;
+        }
+        if (!canMatchOrders(buyOrder, sellOrder)) return false;
+        BigDecimal sharePrice = getSharePrice(buyOrder, sellOrder);
+        int sharesAmount = Math.min(buyOrder.getSharesLeft(), sellOrder.getSharesLeft());
+        try {
+            transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
+            buyOrder.tradeShares(sharesAmount);
+            sellOrder.tradeShares(sharesAmount);
+            recentTransactionSharePrice = sharePrice;
+        } catch (Exception e) {
+            if (e.toString().contains( "buy order is cancelled")) {
+                buyQueue.poll();
+                return true;
+            }
+            else if (e.toString().contains( "sell order is cancelled")){
+                sellQueue.poll();
+                return true;
+            }
+            else {
+                throw new RuntimeException("Transaction failed", e);
+            }
+        }
+        return true;
+    }
+
     @Override
     public void run() {
         while (!Thread.interrupted()) {
             while (!(buyQueue.isEmpty() || sellQueue.isEmpty())) {//matching loop
-                OrderWrapper buyOrder = buyQueue.peek(), sellOrder = sellQueue.peek();
-                if (!buyOrder.isValid()) {
-                    buyQueue.poll();
-                    continue;
-                }
-                if (!sellOrder.isValid()) {
-                    sellQueue.poll();
-                    continue;
-                }
-                if (!canMatchOrders(buyOrder, sellOrder)) break;
-                BigDecimal sharePrice = getSharePrice(buyOrder, sellOrder);
-                int sharesAmount = Math.min(buyOrder.getSharesLeft(), sellOrder.getSharesLeft());
-                try {
-                    transactionService.addTransaction(sellOrder.getOrder(), buyOrder.getOrder(), sharesAmount, sharePrice);
-                    buyOrder.tradeShares(sharesAmount);
-                    sellOrder.tradeShares(sharesAmount);
-                    recentTransactionSharePrice = sharePrice;
-                } catch (Exception e) {
-                    throw new RuntimeException("Transaction failed", e);
-                }
+                if(!match())break;
             }
             try {
                 Order order = companyIdOrderQueue.get(companyId).take();

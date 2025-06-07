@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.models.order.Transaction;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
-import pl.gpwpoid.origin.repositories.views.TransactionListItem;
+import pl.gpwpoid.origin.repositories.views.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 
 import java.math.BigDecimal;
@@ -21,7 +21,8 @@ public interface TransactionService {
 
     Collection<Transaction> getTransactions();
 
-    Collection<TransactionListItem> getCompanyTransactionsById(int companyId, int limit);
+    @Transactional(readOnly = true)
+    List<TransactionDTO> getCompanyTransactionDTOListByCompanyId(Integer companyId, Integer limit);
 
     Collection<TransactionWalletListItem> getTransactionsByWalletId(int walletId);
 
