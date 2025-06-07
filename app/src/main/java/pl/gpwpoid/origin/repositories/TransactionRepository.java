@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, TransactionId> {
@@ -148,4 +149,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     List<TransactionWalletListItem> findByCompanyAndUser(@Param("companyId") int companyId,
                                                          @Param("userId") int userId,
                                                          Pageable pageable);
+
+    @Query(value = """
+        SELECT t.share_price
+        FROM transactions t JOIN orders o ON t.buy_order_id = o.order_id
+        WHERE o.company_id = :companyId AND t.date < :beforeDate
+        ORDER BY t.date DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<BigDecimal> findLastSharePriceBeforeDate(@Param("companyId") int companyId, @Param("beforeDate") LocalDateTime beforeDate);
 }

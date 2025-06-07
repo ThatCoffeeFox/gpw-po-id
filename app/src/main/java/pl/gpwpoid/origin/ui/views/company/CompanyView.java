@@ -27,6 +27,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     private final OrderService orderService;
     private final TransactionService transactionService;
     private final WalletsService walletsService;
+    private final IPOService ipoService;
     private final ChartUpdateBroadcaster broadcaster;
     private final CompanyInfoTablet companyInfoTablet;
     private Registration broadcasterRegistration;
@@ -44,14 +45,16 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
                        TransactionService transactionService,
                        OrderService orderService,
                        WalletsService walletsService,
-                       ChartUpdateBroadcaster broadcaster) {
+                       ChartUpdateBroadcaster broadcaster,
+                       IPOService ipoService) {
         this.companyService = companyService;
         this.transactionService = transactionService;
         this.orderService = orderService;
         this.walletsService = walletsService;
+        this.ipoService = ipoService;
         this.activeOrdersGrid = new ActiveOrdersGrid(orderService);
         this.orderForm = new OrderForm(orderService, walletsService);
-        this.companyChart = new CompanyChart(transactionService);
+        this.companyChart = new CompanyChart(transactionService, ipoService);
         this.broadcaster = broadcaster;
         this.transactionsGrid = new CompanyUserTransactionsGrid(transactionService, walletsService);
         this.companyInfoTablet = new CompanyInfoTablet();

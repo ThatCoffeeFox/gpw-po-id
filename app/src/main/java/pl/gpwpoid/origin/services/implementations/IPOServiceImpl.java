@@ -15,6 +15,7 @@ import pl.gpwpoid.origin.services.IPOService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.IPODTO;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -90,5 +91,11 @@ public class IPOServiceImpl implements IPOService {
     @Override
     public void saveProcessedIPO(IPO ipo) {
         ipoRepository.save(ipo);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<BigDecimal> getIpoPriceByCompanyId(Integer companyId) {
+        return ipoRepository.findIpoPriceByCompanyId(companyId);
     }
 }

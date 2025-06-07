@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -98,5 +99,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<TransactionWalletListItem> getTransactionsByCompanyAndUser(int companyId, int userId, Pageable pageable) {
         return transactionRepository.findByCompanyAndUser(companyId, userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<BigDecimal> findLastSharePriceBeforeDate(Integer companyId, LocalDateTime beforeDate) {
+        return transactionRepository.findLastSharePriceBeforeDate(companyId, beforeDate);
     }
 }

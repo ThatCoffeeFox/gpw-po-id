@@ -20,7 +20,9 @@ import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -106,12 +108,40 @@ public class CompaniesListView extends VerticalLayout {
         return changeSpan;
     }
 
+    private void refreshGridItems() {
+        List<CompanyListItem> freshList = companyService.getCompaniesViewList();
+
+        if (freshList.size() != companyMap.size()) {
+            loadCompanyListItems();
+            return;
+        }
+
+        Map<Integer, CompanyListItem> freshMap = freshList.stream()
+                .collect(Collectors.toMap(CompanyListItem::getCompanyId, Function.identity()));
+
+        companyMap.values().forEach(currentItem -> {
+            CompanyListItem freshItem = freshMap.get(currentItem.getCompanyId());
+            if (freshItem == null) return;
+
+            boolean priceChanged = !Objects.equals(currentItem.getCurrentSharePrice(), freshItem.getCurrentSharePrice());
+            boolean lastDayPriceChanged = !Objects.equals(currentItem.getLastDaySharePrice(), freshItem.getLastDaySharePrice());
+
+            if (priceChanged || lastDayPriceChanged) {
+                currentItem.setCurrentSharePrice(freshItem.getCurrentSharePrice());
+                currentItem.setLastDaySharePrice(freshItem.getLastDaySharePrice());
+
+                dataProvider.refreshItem(currentItem);
+            }
+        });
+    }
+
     private void loadCompanyListItems() {
         List<CompanyListItem> companyList = companyService.getCompaniesViewList();
         this.companyMap = new ConcurrentHashMap<>(
-                companyList.stream().collect(Collectors.toMap(CompanyListItem::getCompanyId, item -> item))
+                companyList.stream().collect(Collectors.toMap(CompanyListItem::getCompanyId, Function.identity()))
         );
         this.dataProvider = new ListDataProvider<>(companyList);
+
         grid.setDataProvider(dataProvider);
     }
 
@@ -120,17 +150,8 @@ public class CompaniesListView extends VerticalLayout {
         super.onAttach(attachEvent);
         UI ui = attachEvent.getUI();
 
-        broadcasterRegistration = broadcaster.register(companyId -> {
-            ui.access(() -> {
-                if (companyMap.containsKey(companyId)) {
-                    CompanyListItem updatedItemData = companyService.getCompanyItemById(companyId);
-                    if (updatedItemData != null) {
-                        CompanyListItem itemToRefresh = companyMap.get(companyId);
-                        itemToRefresh.setCurrentSharePrice(updatedItemData.getCurrentSharePrice());
-                        dataProvider.refreshItem(itemToRefresh);
-                    }
-                }
-            });
+        broadcasterRegistration = broadcaster.register(() -> {
+            ui.access(this::refreshGridItems);
         });
     }
 

@@ -2,12 +2,15 @@ package pl.gpwpoid.origin.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.company.IPO;
 import pl.gpwpoid.origin.repositories.views.AdminIPOListItem;
 import pl.gpwpoid.origin.repositories.views.IPOListItem;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IPORepository extends JpaRepository<IPO, Long> {
@@ -62,4 +65,13 @@ public interface IPORepository extends JpaRepository<IPO, Long> {
         WHERE i.subscriptionEnd < CURRENT_TIMESTAMP AND i.processed = false
 """)
     List<IPO> findIPOsToProcess();
+
+    @Query(value = """
+        SELECT i.ipo_price
+        FROM ipo i
+        WHERE i.company_id = :companyId
+        ORDER BY i.subscription_start ASC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<BigDecimal> findIpoPriceByCompanyId(@Param("companyId") Integer companyId);
 }

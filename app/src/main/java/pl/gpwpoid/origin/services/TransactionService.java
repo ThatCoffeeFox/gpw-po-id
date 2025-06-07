@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface TransactionService {
     void addTransaction(Order sellOrder,
@@ -33,4 +34,6 @@ public interface TransactionService {
 
     @Transactional(readOnly = true)
     List<TransactionWalletListItem> getTransactionsByCompanyAndUser(int companyId, int userId, Pageable pageable);
+
+    Optional<BigDecimal> findLastSharePriceBeforeDate(Integer companyId, LocalDateTime beforeDate);
 }

@@ -5,6 +5,7 @@ import pl.gpwpoid.origin.repositories.views.AdminIPOListItem;
 import pl.gpwpoid.origin.repositories.views.IPOListItem;
 import pl.gpwpoid.origin.ui.views.DTO.IPODTO;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +19,5 @@ public interface IPOService {
     Boolean hasActiveIPO(Integer companyId);
     List<IPO> findIPOsToProcess();
     void saveProcessedIPO(IPO ipo);
+    Optional<BigDecimal> getIpoPriceByCompanyId(Integer companyId);
 }
