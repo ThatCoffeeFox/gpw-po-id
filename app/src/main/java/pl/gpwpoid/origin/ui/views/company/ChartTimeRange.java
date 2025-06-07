@@ -11,7 +11,7 @@ public enum ChartTimeRange {
     ONE_HOUR("1h", 1, ChronoUnit.HOURS, ChronoUnit.MINUTES, 1),
     ONE_DAY("1d", 1, ChronoUnit.DAYS, ChronoUnit.MINUTES, 24),
     ONE_WEEK("1t", 1, ChronoUnit.WEEKS, ChronoUnit.HOURS, 3),
-    ONE_MONTH("1m", 1, ChronoUnit.MONTHS, ChronoUnit.HOURS, 12);
+    ONE_MONTH("1M", 1, ChronoUnit.MONTHS, ChronoUnit.HOURS, 12);
 
     @Getter
     private final String label;
