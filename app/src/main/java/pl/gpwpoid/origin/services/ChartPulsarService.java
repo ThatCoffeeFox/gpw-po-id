@@ -20,13 +20,13 @@ public class ChartPulsarService {
         this.transactionRepository = transactionRepository;
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 5000)
     public void pulseCharts() {
         log.trace("Uruchamianie pulsara wykresów...");
-        LocalDateTime oneMinuteAgo = LocalDateTime.now().minusSeconds(30);
+        LocalDateTime fiveSecondsAgo = LocalDateTime.now().minusSeconds(5);
 
         for (Integer companyId : broadcaster.getActiveCompanyIds()) {
-            boolean hasTransactions = transactionRepository.existsByBuyOrder_Company_CompanyIdAndDateAfter(companyId, oneMinuteAgo);
+            boolean hasTransactions = transactionRepository.existsByBuyOrder_Company_CompanyIdAndDateAfter(companyId, fiveSecondsAgo);
 
             if (!hasTransactions) {
                 log.debug("Wysyłanie pulsu dla spółki ID: {}. Brak transakcji.", companyId);
