@@ -1,5 +1,3 @@
-BEGIN;
-
 INSERT INTO accounts (role) VALUES
 ('admin'),
 ('user'),
@@ -187,7 +185,7 @@ INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiratio
 
 -- wallet 6 wants to buy 100 shares C1 at high prices - should be cancelled, not enough funds in wallet
 INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id) VALUES
-('buy', 100, NOW() - INTERVAL '30 minutes', NOW() + INTERVAL '5 days', 100000.00, 6, 1);
+('buy', 100, NOW() - INTERVAL '30 minutes', NOW() + INTERVAL '5 days', 10.00, 6, 1);
 
 -- wallet 8 wants to buy 500 shares C1 but resignes
 INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id) VALUES
@@ -219,4 +217,3 @@ INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiratio
 -- should be cancelled - C3 is not tradable
 INSERT INTO orders (order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id) VALUES
 ('buy', 10, NOW() - INTERVAL '1 hour', NOW() + INTERVAL '5 days', 7.00, 9, 3);
-COMMIT;
