@@ -58,7 +58,7 @@ public class AdminCompanyView extends VerticalLayout implements HasUrlParameter<
         infoLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         infoLayout.setPadding(true);
 
-        adminCompanyTransactionsGrid = new AdminCompanyTransactionsGrid(transactionService, companyService);
+        adminCompanyTransactionsGrid = new AdminCompanyTransactionsGrid(transactionService);
         adminCompanyIPOsGrid = new AdminCompanyIPOsGrid(ipoService);
 
         add(infoLayout, adminChangeCompanyInfoForm, adminCompanyTransactionsGrid, adminCompanyIPOsGrid);
