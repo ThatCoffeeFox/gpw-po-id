@@ -3,13 +3,8 @@ package pl.gpwpoid.origin.ui.views.AdminCompanyView;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import pl.gpwpoid.origin.models.company.IPO;
 import pl.gpwpoid.origin.repositories.views.AdminIPOListItem;
-import pl.gpwpoid.origin.repositories.views.IPOListItem;
-import pl.gpwpoid.origin.repositories.views.TransactionListItem;
-import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.IPOService;
-import pl.gpwpoid.origin.services.TransactionService;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;

@@ -60,14 +60,18 @@ public class IPOServiceImpl implements IPOService {
     @Override
     @Transactional
     public void addIPO(IPODTO ipoDTO) {
-        Company company = companyService.getCompanyById(ipoDTO.getCompanyId()).get();
-        Wallet wallet = walletsService.getWalletById(ipoDTO.getWalletOwnerId()).get();
+        Optional<Company> companyOptional = companyService.getCompanyById(ipoDTO.getCompanyId());
+        if(companyOptional.isEmpty())
+            throw new IllegalArgumentException("No company found");
+        Optional<Wallet> walletOptional = walletsService.getWalletById(ipoDTO.getWalletOwnerId());
+        if(walletOptional.isEmpty())
+            throw new IllegalArgumentException("No wallet found");
         IPO ipo = ipoFactory.createIPO(
                 ipoDTO.getSharePrice(),
                 ipoDTO.getSharesAmount(),
                 ipoDTO.getSubscriptionEnd(),
-                company,
-                wallet
+                companyOptional.get(),
+                walletOptional.get()
         );
 
         ipoRepository.save(ipo);

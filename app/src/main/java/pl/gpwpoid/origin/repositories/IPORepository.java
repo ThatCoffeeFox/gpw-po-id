@@ -7,9 +7,7 @@ import pl.gpwpoid.origin.models.company.IPO;
 import pl.gpwpoid.origin.repositories.views.AdminIPOListItem;
 import pl.gpwpoid.origin.repositories.views.IPOListItem;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface IPORepository extends JpaRepository<IPO, Long> {

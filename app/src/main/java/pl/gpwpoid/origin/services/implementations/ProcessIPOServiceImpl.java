@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.company.IPO;
 import pl.gpwpoid.origin.models.order.Subscription;
-import pl.gpwpoid.origin.repositories.IPORepository;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.IPOService;
 import pl.gpwpoid.origin.services.ProcessIPOService;

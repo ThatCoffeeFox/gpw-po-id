@@ -28,7 +28,7 @@ public class AdminCompanyTransactionsGrid extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
-    public AdminCompanyTransactionsGrid(TransactionService transactionService, CompanyService companyService) {
+    public AdminCompanyTransactionsGrid(TransactionService transactionService) {
         this.transactionService = transactionService;
 
         add(new H3("Historia transakcji"), grid);
