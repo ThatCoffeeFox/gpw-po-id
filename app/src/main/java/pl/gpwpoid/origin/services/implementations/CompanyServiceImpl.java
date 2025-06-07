@@ -36,7 +36,7 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public CompanyListItem getCompanyItemById(int companyId) {
-        return null;
+        return companyRepository.getCompanyById(companyId);
     }
 
     @Override

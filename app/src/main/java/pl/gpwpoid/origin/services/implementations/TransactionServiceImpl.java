@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services.implementations;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final ChartUpdateBroadcaster broadcaster;
 
     @Autowired
-    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, ChartUpdateBroadcaster broadcaster) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, @Lazy ChartUpdateBroadcaster broadcaster) {
         this.transactionRepository = transactionRepository;
         this.transactionFactory = transactionFactory;
         this.broadcaster = broadcaster;

@@ -17,8 +17,16 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
                 SELECT 
                     c.company_id,
                     ci.name,
-                    ci.code
+                    ci.code,
+                    t.name,
+                    ci.postal_code,
+                    ci.street,
+                    ci.street_number,
+                    ci.apartment_number,
+                    shares_value(c.company_id),
+                    shares_value_last_day(c.company_id)
                 FROM companies c JOIN companies_info ci ON c.company_id = ci.company_id
+                JOIN towns t ON ci.town_id = t.town_id
                 WHERE ci.updated_at = (SELECT cii.updated_at 
                                     FROM companies_info cii 
                                     WHERE cii.company_id = c.company_id 
@@ -31,8 +39,16 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
                 SELECT
                     c.company_id,
                     ci.name,
-                    ci.code
+                    ci.code,
+                    t.name,
+                    ci.postal_code,
+                    ci.street,
+                    ci.street_number,
+                    ci.apartment_number,
+                    shares_value(:companyId),
+                    shares_value_last_day(:companyId)
                 FROM companies c JOIN companies_info ci ON c.company_id = ci.company_id
+                JOIN towns t ON ci.town_id = t.town_id
                 WHERE c.company_id = :companyId
                 AND ci.updated_at = (SELECT cii.updated_at
                                     FROM companies_info cii
