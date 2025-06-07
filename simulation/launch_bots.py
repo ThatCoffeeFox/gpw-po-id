@@ -50,12 +50,10 @@ def launch_bot(wallet_id, company_id, email):
         "--max_retries", str(MAX_RETRIES),
     ]
 
-    # Create log file per bot
-    logfile_name = f"bot_{wallet_id}_{company_id}.log"
-    logfile = open(logfile_name, "a")
-
     print(f"Launching bot for wallet {wallet_id}, company {company_id}, email {email}")
-    return subprocess.Popen(cmd, stdout=logfile, stderr=logfile, text=True)
+    with open(os.devnull, 'w') as devnull:
+        return subprocess.Popen(cmd, stdout=devnull, stderr=devnull)
+
 
 def main():
     processes = []
