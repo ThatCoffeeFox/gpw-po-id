@@ -3,8 +3,7 @@ package pl.gpwpoid.origin.ui.views.AdminCompanyView;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import pl.gpwpoid.origin.repositories.views.TransactionListItem;
-import pl.gpwpoid.origin.services.CompanyService;
+import pl.gpwpoid.origin.repositories.views.TransactionDTO;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.text.DecimalFormat;
@@ -19,7 +18,7 @@ public class AdminCompanyTransactionsGrid extends VerticalLayout {
     private final TransactionService transactionService;
     private Integer companyId;
 
-    private final Grid<TransactionListItem> grid = new Grid<>();
+    private final Grid<TransactionDTO> grid = new Grid<>();
 
     private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
             "#,##0.00",
@@ -40,7 +39,7 @@ public class AdminCompanyTransactionsGrid extends VerticalLayout {
                 .setHeader("Cena akcji")
                 .setAutoWidth(true);
 
-        grid.addColumn(TransactionListItem::getSharesAmount)
+        grid.addColumn(TransactionDTO::getSharesAmount)
                 .setHeader("Ilość akcji")
                 .setAutoWidth(true);
 
@@ -51,13 +50,13 @@ public class AdminCompanyTransactionsGrid extends VerticalLayout {
         grid.setPageSize(10);
     }
 
-    private String formatFunds(TransactionListItem item) {
+    private String formatFunds(TransactionDTO item) {
         if(item.getSharePrice() == null)
             return "";
         return FUNDS_FORMATTER.format(item.getSharePrice()) + " zł";
     }
 
-    private String formatDate(TransactionListItem item) {
+    private String formatDate(TransactionDTO item) {
         if(item.getDate() == null)
             return "";
         LocalDateTime date = item.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -69,7 +68,7 @@ public class AdminCompanyTransactionsGrid extends VerticalLayout {
     }
 
     public void updateList(){
-        Collection<TransactionListItem> items = transactionService.getCompanyTransactionsById(companyId, 50);
+        Collection<TransactionDTO> items = transactionService.getCompanyTransactionDTOListByCompanyId(companyId, 50);
         grid.setItems(items);
     }
 }
