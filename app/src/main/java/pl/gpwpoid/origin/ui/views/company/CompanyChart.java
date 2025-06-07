@@ -110,7 +110,7 @@ public class CompanyChart extends VerticalLayout {
         Configuration conf = candlestickChart.getConfiguration();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startTime = currentRange.getStartTime(now);
-        BigDecimal anchorPrice = transactionService.getShareValueByCompanyId(companyId);
+        BigDecimal anchorPrice = BigDecimal.ZERO;
 
         List<OHLCDataItem> rawDataFromDb = transactionService.getOHLCDataByCompanyId(
                 this.companyId,
@@ -118,8 +118,8 @@ public class CompanyChart extends VerticalLayout {
                 now
         );
 
-        if(rawDataFromDb.isEmpty() && transactionService.getCompanyTransactionDTOListByCompanyId(companyId, 1).isEmpty()){
-            anchorPrice = BigDecimal.ZERO;
+        if(rawDataFromDb.isEmpty()){
+            anchorPrice = transactionService.getShareValueByCompanyId(companyId);
         }
 
         chartHeader.setText("Historia cen akcji");
@@ -191,7 +191,7 @@ public class CompanyChart extends VerticalLayout {
 
             YAxis yAxis = conf.getyAxis();
 
-            yAxis.setMin(minLow - 1.0);
+            yAxis.setMin(minLow - 1.0 < 0 ?  0.0 : minLow - 1.0);
             yAxis.setMax(maxHigh + 1.0);
         } else {
             YAxis yAxis = conf.getyAxis();

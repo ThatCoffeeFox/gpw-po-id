@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pl.gpwpoid.origin.repositories.TransactionRepository;
@@ -15,7 +16,7 @@ public class ChartPulsarService {
     private final ChartUpdateBroadcaster broadcaster;
     private final TransactionRepository transactionRepository;
 
-    public ChartPulsarService(ChartUpdateBroadcaster broadcaster, TransactionRepository transactionRepository) {
+    public ChartPulsarService(@Lazy ChartUpdateBroadcaster broadcaster, TransactionRepository transactionRepository) {
         this.broadcaster = broadcaster;
         this.transactionRepository = transactionRepository;
     }

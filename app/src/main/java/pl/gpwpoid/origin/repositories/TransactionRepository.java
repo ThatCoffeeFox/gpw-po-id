@@ -34,6 +34,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     BigDecimal findShareValueByCompanyId(@Param("companyId") Integer companyId);
 
     @Query(value = """
+            SELECT shares_value_last_day(:companyId)
+        """, nativeQuery = true)
+    BigDecimal findShareValueLastDayByCompany(@Param("companyId") Integer companyId);
+
+    @Query(value = """
                 WITH CompanyTransactions AS (
                     SELECT
                         t.date AS transaction_time,

@@ -3,6 +3,7 @@ package pl.gpwpoid.origin.services.implementations;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final CompanyService companyService;
 
     @Autowired
-    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, CompanyService companyService,  ChartUpdateBroadcaster broadcaster){
+    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionFactory transactionFactory, CompanyService companyService, @Lazy ChartUpdateBroadcaster broadcaster){
         this.transactionRepository = transactionRepository;
         this.transactionFactory = transactionFactory;
         this.broadcaster = broadcaster;
