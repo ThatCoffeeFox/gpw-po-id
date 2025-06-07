@@ -5,6 +5,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -83,8 +84,12 @@ public class AdminStartIPODialog extends VerticalLayout {
 
     private void configureDialog(){
         dialog.setHeaderTitle("Nowe IPO");
+        dialog.setWidth("500px");
 
-        VerticalLayout layout = new VerticalLayout(ownerAccount, ownerWallet, sharesAmount, sharePrice, subscriptionEnd);
+        HorizontalLayout layout1 = new HorizontalLayout(ownerAccount, ownerWallet);
+        HorizontalLayout layout2 = new HorizontalLayout(sharesAmount, sharePrice);
+        HorizontalLayout layout3 = new HorizontalLayout(subscriptionEnd);
+        VerticalLayout layout = new VerticalLayout(layout1, layout2, layout3);
         HorizontalLayout buttonLayout = new HorizontalLayout(confirmButton, cancelButton);
         buttonLayout.setJustifyContentMode(JustifyContentMode.CENTER);
 
@@ -130,8 +135,12 @@ public class AdminStartIPODialog extends VerticalLayout {
         ownerWallet.setEnabled(false);
         ownerWallet.setPlaceholder("Najpierw wybierz użytkownika");
 
+        sharesAmount.setRequiredIndicatorVisible(true);
+        sharePrice.setRequiredIndicatorVisible(true);
+
         subscriptionEnd.setLocale(new Locale("pl", "PL"));
         subscriptionEnd.setStep(Duration.ofMinutes(1));
+        subscriptionEnd.setRequiredIndicatorVisible(true);
     }
 
     private void bindFields(){

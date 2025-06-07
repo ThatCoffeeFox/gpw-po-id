@@ -109,7 +109,7 @@ public class MainLayout extends AppLayout {
         }
 
         if(accessChecker.hasAccess(AdminCompanyListView.class)){
-            nav.addItem(new SideNavItem("AdminFirmy", AdminCompanyListView.class, VaadinIcon.ARCHIVE.create()));
+            nav.addItem(new SideNavItem("Zarządzanie Firmami", AdminCompanyListView.class, VaadinIcon.ARCHIVES.create()));
         }
 
         addToDrawer(nav);

@@ -16,4 +16,6 @@ public interface IPOService {
     Collection<AdminIPOListItem> getAdminIPOListItemsByCompanyId(Integer companyId);
     void addIPO(IPODTO ipoDTO);
     Boolean hasActiveIPO(Integer companyId);
+    List<IPO> findIPOsToProcess();
+    void saveProcessedIPO(IPO ipo);
 }

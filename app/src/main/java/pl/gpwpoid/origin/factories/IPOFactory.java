@@ -44,6 +44,7 @@ public class IPOFactory {
         ipo.setSubscriptionEnd(dateSubscriptionEnd);
         ipo.setSharesAmount(sharesAmount);
         ipo.setIpoPrice(sharePrice);
+        ipo.setProcessed(false);
 
         company.getIpos().add(ipo);
 

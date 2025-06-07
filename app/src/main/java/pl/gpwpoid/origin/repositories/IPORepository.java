@@ -57,4 +57,11 @@ public interface IPORepository extends JpaRepository<IPO, Long> {
         LIMIT 1
 """, nativeQuery = true)
     Integer hasActiveIPO(Integer companyId);
+
+    @Query(value = """
+        SELECT i
+        FROM IPO i 
+        WHERE i.subscriptionEnd < CURRENT_TIMESTAMP AND i.processed = false
+""")
+    List<IPO> findIPOsToProcess();
 }

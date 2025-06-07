@@ -58,6 +58,8 @@ public class AdminCompaniesGrid extends VerticalLayout {
         grid.addColumn(new ComponentRenderer<>(this::setTradableButton))
                 .setHeader("Tradable")
                 .setAutoWidth(true);
+
+        grid.setPageSize(10);
     }
 
     public void updateList() {

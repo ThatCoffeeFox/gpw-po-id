@@ -47,6 +47,8 @@ public class AdminCompanyTransactionsGrid extends VerticalLayout {
         grid.addColumn(this::formatDate)
                 .setHeader("Data")
                 .setAutoWidth(true);
+
+        grid.setPageSize(10);
     }
 
     private String formatFunds(TransactionListItem item) {

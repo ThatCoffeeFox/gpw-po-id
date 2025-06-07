@@ -52,12 +52,11 @@ public class AdminCompanyView extends VerticalLayout implements HasUrlParameter<
         adminChangeCompanyInfoForm = new AdminChangeCompanyInfoForm(addressService, companyService);
         adminChangeCompanyInfoForm.setWidth("100%");
         adminStartIPODialog = new AdminStartIPODialog(ipoService, accountService, walletService, companyService);
-
+        adminStartIPODialog.setAlignItems(Alignment.END);
         HorizontalLayout infoLayout = new HorizontalLayout();
         infoLayout.add(new H3("Edytuj dane firmy"), adminStartIPODialog);
         infoLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         infoLayout.setPadding(true);
-        infoLayout.setSpacing(true);
 
         adminCompanyTransactionsGrid = new AdminCompanyTransactionsGrid(transactionService, companyService);
         adminCompanyIPOsGrid = new AdminCompanyIPOsGrid(ipoService);

@@ -47,6 +47,9 @@ public class IPO {
     @Temporal(TemporalType.TIMESTAMP)
     private Date subscriptionEnd;
 
+    @Column(name = "processed", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean processed;
+
 
     @OneToMany(mappedBy = "ipo")
     private Set<Subscription> subscriptions;

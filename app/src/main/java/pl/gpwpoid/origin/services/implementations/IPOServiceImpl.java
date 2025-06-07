@@ -77,4 +77,14 @@ public class IPOServiceImpl implements IPOService {
     public Boolean hasActiveIPO(Integer companyId) {
         return ipoRepository.hasActiveIPO(companyId) != null;
     }
+
+    @Override
+    public List<IPO> findIPOsToProcess() {
+        return ipoRepository.findIPOsToProcess();
+    }
+
+    @Override
+    public void saveProcessedIPO(IPO ipo) {
+        ipoRepository.save(ipo);
+    }
 }

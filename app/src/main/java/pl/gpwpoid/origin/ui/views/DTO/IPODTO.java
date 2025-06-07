@@ -26,6 +26,5 @@ public class IPODTO {
     @Digits(integer = 17, fraction = 2, message = "Cena może mieć maksymalnie dwa miejsca po przecinku")
     private BigDecimal sharePrice;
 
-    @Future(message = "Koniec IPO nie może być w przeszłości")
     private LocalDateTime subscriptionEnd;
 }

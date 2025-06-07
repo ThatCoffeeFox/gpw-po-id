@@ -59,6 +59,8 @@ public class AdminCompanyIPOsGrid extends VerticalLayout {
         grid.addColumn(this::formatEndDate)
                 .setHeader("Data zakończenia")
                 .setAutoWidth(true);
+
+        grid.setPageSize(10);
     }
 
     private String formatFunds(AdminIPOListItem item) {
