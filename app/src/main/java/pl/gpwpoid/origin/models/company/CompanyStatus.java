@@ -2,6 +2,9 @@ package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import pl.gpwpoid.origin.models.keys.CompanyStatusId;
 
 import java.util.Objects;

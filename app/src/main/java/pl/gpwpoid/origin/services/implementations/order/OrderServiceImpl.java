@@ -25,7 +25,6 @@ import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
-import java.lang.Integer;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.util.*;
@@ -56,9 +55,9 @@ public class OrderServiceImpl implements OrderService {
                             OrderWrapperFactory orderWrapperFactory,
                             CompanyService companyService,
                             TransactionService transactionService,
-                            ConcurrentMap<Integer,BlockingQueue<Order>> companyIdOrderQueue,
+                            ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue,
                             @Qualifier("orderExecutorService") ExecutorService orderExecutorService,
-                            WalletsService walletsService){
+                            WalletsService walletsService) {
         this.orderRepository = orderRepository;
         this.orderCancellationRepository = orderCancellationRepository;
 
@@ -72,43 +71,42 @@ public class OrderServiceImpl implements OrderService {
         this.orderExecutorService = orderExecutorService;
         this.walletsService = walletsService;
 
-        for(int id : this.companyService.getTradableCompaniesId()){
-           startOrderMatching(id);
+        for (int id : this.companyService.getTradableCompaniesId()) {
+            startOrderMatching(id);
         }
     }
 
-    private boolean hasEnoughFoundsOrShares(OrderDTO orderDTO){
-        if(orderDTO.getOrderType().equals("buy")){
-            BigDecimal foundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
-            if(orderDTO.getSharePrice() == null) {
-                return foundsInWallet.compareTo(BigDecimal.ZERO) > 0;
+    private boolean hasEnoughFundsOrShares(OrderDTO orderDTO) {
+        if (orderDTO.getOrderType().equals("buy")) {
+            BigDecimal fundsInWallet = walletsService.getWalletUnblockedFundsById(orderDTO.getWalletId());
+            if (orderDTO.getSharePrice() == null) {
+                return fundsInWallet.compareTo(BigDecimal.ZERO) > 0;
             }
-            BigDecimal foundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
-            return foundsInWallet.compareTo(foundsNeeded) >= 0;
+            BigDecimal fundsNeeded = orderDTO.getSharePrice().multiply(BigDecimal.valueOf(orderDTO.getSharesAmount()));
+            return fundsInWallet.compareTo(fundsNeeded) >= 0;
         } else if (orderDTO.getOrderType().equals("sell")) {
             Integer sharesInWallet = walletsService.getWalletUnblockedSharesAmount(orderDTO.getWalletId(), orderDTO.getCompanyId());
             return sharesInWallet.compareTo(orderDTO.getSharesAmount()) >= 0;
         }
         return false;
-    };
+    }
 
 
     @Override
     @Transactional
     public void addOrder(OrderDTO orderDTO) throws AccessDeniedException {
         Optional<Company> company = companyService.getCompanyById(orderDTO.getCompanyId());
-        if(company.isEmpty()) throw new EntityNotFoundException("This company does not exist");
+        if (company.isEmpty()) throw new EntityNotFoundException("This company does not exist");
 
         Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWalletId());
 
-        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+        if (wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
-        if(!hasEnoughFoundsOrShares(orderDTO)){
-            throw new RuntimeException("You don't have enough shares/founds");
+        if (!hasEnoughFundsOrShares(orderDTO)) {
+            throw new RuntimeException("You don't have enough shares/funds");
         }
-
 
 
         Order order = orderFactory.createOrder(orderDTO, wallet.get(), company.get());
@@ -116,8 +114,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             orderRepository.save(order);
             orderRepository.flush();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to create order", e);
         }
 
@@ -158,7 +155,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
-        if(accountId == null){
+        if (accountId == null) {
             throw new RuntimeException("there is no logged in user");
         }
         return orderRepository.findActiveOrdersByAccountId(accountId);

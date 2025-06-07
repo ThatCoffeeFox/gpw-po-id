@@ -36,15 +36,15 @@ public class AccountFactory {
             String apartmentNumber,
             Account.UserRole role
     ) {
-        if(email == null || email.isEmpty()) {
+        if (email == null || email.isEmpty()) {
             throw new IllegalArgumentException("Email cannot be null or empty");
         }
 
-        if(unprotectedPassword == null || unprotectedPassword.isEmpty()) {
+        if (unprotectedPassword == null || unprotectedPassword.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
 
-        if(phoneNumber == null || phoneNumber.isEmpty()) {
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
             throw new IllegalArgumentException("Phone number cannot be null or empty");
         }
 
@@ -79,19 +79,19 @@ public class AccountFactory {
     }
 
     public AccountInfo createAccountInfo(ProfileUpdateDTO profileUpdateDTO, PostalCodesTowns postalCodesTowns) {
-        if(profileUpdateDTO.getEmail() == null || profileUpdateDTO.getEmail().isEmpty()) {
+        if (profileUpdateDTO.getEmail() == null || profileUpdateDTO.getEmail().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be null or empty");
         }
 
-        if(profileUpdateDTO.getPesel() == null || profileUpdateDTO.getPesel().isEmpty()) {
+        if (profileUpdateDTO.getPesel() == null || profileUpdateDTO.getPesel().isEmpty()) {
             throw new IllegalArgumentException("Pesel cannot be null or empty");
         }
 
-        if(profileUpdateDTO.getPhoneNumber() == null || profileUpdateDTO.getPhoneNumber().isEmpty()) {
+        if (profileUpdateDTO.getPhoneNumber() == null || profileUpdateDTO.getPhoneNumber().isEmpty()) {
             throw new IllegalArgumentException("Phone number cannot be null or empty");
         }
 
-        if(profileUpdateDTO.getTownId() == null || profileUpdateDTO.getPostalCode() == null) {
+        if (profileUpdateDTO.getTownId() == null || profileUpdateDTO.getPostalCode() == null) {
             throw new IllegalArgumentException("Town id cannot be null or empty");
         }
 

@@ -2,11 +2,12 @@ package pl.gpwpoid.origin.models.account;
 
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.JdbcType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.util.Objects;
@@ -34,7 +35,7 @@ public class Account {
     @Column(name = "role", nullable = false)
     private UserRole role;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch =  FetchType.EAGER)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<AccountInfo> accountInfos;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import pl.gpwpoid.origin.models.wallet.Wallet;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import pl.gpwpoid.origin.models.order.Subscription;
+import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.math.BigDecimal;
 import java.util.Date;

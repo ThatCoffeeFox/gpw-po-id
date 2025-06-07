@@ -1,9 +1,9 @@
 package pl.gpwpoid.origin.models.order;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import pl.gpwpoid.origin.models.keys.OrderCancellationId;
 
 @Entity

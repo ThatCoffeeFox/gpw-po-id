@@ -33,27 +33,27 @@ public class RegistrationView extends VerticalLayout {
     private final AccountService accountService;
     private final AddressService addressService;
 
-    private Binder<RegistrationDTO> binder = new BeanValidationBinder<>(RegistrationDTO.class);
+    private final Binder<RegistrationDTO> binder = new BeanValidationBinder<>(RegistrationDTO.class);
     private RegistrationDTO registrationDTO;
 
 
-    private EmailField email = new EmailField("Email");
-    private PasswordField password = new PasswordField("Hasło");
-    private PasswordField confirmPassword = new PasswordField("Potwierdź hasło");
-    private TextField firstName = new TextField("Imię");
-    private TextField secondaryName = new TextField("Drugie imię (opcjonalne)");
-    private TextField lastName = new TextField("Nazwisko");
+    private final EmailField email = new EmailField("Email");
+    private final PasswordField password = new PasswordField("Hasło");
+    private final PasswordField confirmPassword = new PasswordField("Potwierdź hasło");
+    private final TextField firstName = new TextField("Imię");
+    private final TextField secondaryName = new TextField("Drugie imię (opcjonalne)");
+    private final TextField lastName = new TextField("Nazwisko");
 
-    private ComboBox<Town> townComboBox = new ComboBox<>("Miasto");
-    private ComboBox<String> postalCodeComboBox = new ComboBox<>("Kod pocztowy");
+    private final ComboBox<Town> townComboBox = new ComboBox<>("Miasto");
+    private final ComboBox<String> postalCodeComboBox = new ComboBox<>("Kod pocztowy");
 
-    private TextField street = new TextField("Ulica");
-    private TextField streetNumber = new TextField("Numer domu");
-    private TextField apartmentNumber = new TextField("Numer mieszkania (opcjonalne)");
-    private TextField phoneNumber = new TextField("Numer telefonu (np. +48123456789)");
-    private TextField pesel = new TextField("PESEL");
+    private final TextField street = new TextField("Ulica");
+    private final TextField streetNumber = new TextField("Numer domu");
+    private final TextField apartmentNumber = new TextField("Numer mieszkania (opcjonalne)");
+    private final TextField phoneNumber = new TextField("Numer telefonu (np. +48123456789)");
+    private final TextField pesel = new TextField("PESEL");
 
-    private Button registerButton = new Button("Zarejestruj");
+    private final Button registerButton = new Button("Zarejestruj");
 
     @Autowired
     public RegistrationView(AccountService accountService, AddressService addressService) {
@@ -184,7 +184,7 @@ public class RegistrationView extends VerticalLayout {
                 this.registrationDTO = new RegistrationDTO();
                 binder.setBean(this.registrationDTO);
                 townComboBox.clear();
-                 getUI().ifPresent(ui -> ui.navigate("login"));
+                getUI().ifPresent(ui -> ui.navigate("login"));
             } catch (ValidationException e) {
                 Notification.show("Proszę poprawić błędy w formularzu.", 3000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);

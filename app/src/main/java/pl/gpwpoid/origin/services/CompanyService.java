@@ -23,4 +23,11 @@ public interface CompanyService {
     void updateCompany(CompanyUpdateDTO companyUpdateDTO);
     CompanyInfo getNewestCompanyInfoItemById(Integer companyId);
     CompanyStatusItem getCompanyStatusItemById(Integer companyId);
+    List<Integer> getTradableCompaniesId();
+
+    List<CompanyListItem> getCompaniesViewList();
+
+    CompanyListItem getCompanyItemById(int companyId);
+
+    Optional<Company> getCompanyById(int companyId);
 }

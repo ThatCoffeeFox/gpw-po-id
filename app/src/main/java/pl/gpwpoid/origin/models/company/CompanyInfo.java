@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import pl.gpwpoid.origin.models.keys.CompanyInfoId;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
+import pl.gpwpoid.origin.models.keys.CompanyInfoId;
 
 import java.util.Objects;
 

@@ -1,0 +1,228 @@
+.
+├── HELP.md
+├── mvnw
+├── mvnw.cmd
+├── origin.iml
+├── pom.xml
+├── src
+│   ├── main
+│   │   ├── bundles
+│   │   │   ├── README.md
+│   │   │   └── dev.bundle
+│   │   ├── frontend
+│   │   │   ├── generated
+│   │   │   │   ├── flow
+│   │   │   │   │   ├── Flow.tsx
+│   │   │   │   │   ├── ReactAdapter.tsx
+│   │   │   │   │   ├── generated-flow-imports.d.ts
+│   │   │   │   │   ├── generated-flow-imports.js
+│   │   │   │   │   ├── generated-flow-webcomponent-imports.js
+│   │   │   │   │   └── web-components
+│   │   │   │   ├── index.tsx
+│   │   │   │   ├── jar-resources
+│   │   │   │   │   ├── Flow.d.ts
+│   │   │   │   │   ├── Flow.js
+│   │   │   │   │   ├── Flow.js.map
+│   │   │   │   │   ├── FlowBootstrap.d.ts
+│   │   │   │   │   ├── FlowBootstrap.js
+│   │   │   │   │   ├── FlowClient.d.ts
+│   │   │   │   │   ├── FlowClient.js
+│   │   │   │   │   ├── ReactRouterOutletElement.tsx
+│   │   │   │   │   ├── comboBoxConnector.js
+│   │   │   │   │   ├── contextMenuConnector.js
+│   │   │   │   │   ├── contextMenuTargetConnector.js
+│   │   │   │   │   ├── copilot
+│   │   │   │   │   │   ├── base-panel-B0Uw6Qw8.js
+│   │   │   │   │   │   ├── copilot-DaciUyLO.js
+│   │   │   │   │   │   ├── copilot-features-plugin-BgIAA6XF.js
+│   │   │   │   │   │   ├── copilot-feedback-plugin-gHEYHvo_.js
+│   │   │   │   │   │   ├── copilot-global-vars-later-BLvyKi0w.js
+│   │   │   │   │   │   ├── copilot-info-plugin-C96PzNLm.js
+│   │   │   │   │   │   ├── copilot-init-step2-Bn-vm__O.js
+│   │   │   │   │   │   ├── copilot-log-plugin-7kxzKbnt.js
+│   │   │   │   │   │   ├── copilot-shortcuts-plugin-CquTmlLD.js
+│   │   │   │   │   │   ├── early-project-state-CqEloDes.js
+│   │   │   │   │   │   ├── icons-BCyjv34U.js
+│   │   │   │   │   │   ├── overlay-monkeypatch-CdEmN4G0.js
+│   │   │   │   │   │   └── state-mcQNujqR.js
+│   │   │   │   │   ├── copilot.css
+│   │   │   │   │   ├── copilot.js
+│   │   │   │   │   ├── datepickerConnector.js
+│   │   │   │   │   ├── disableOnClickFunctions.js
+│   │   │   │   │   ├── dndConnector.js
+│   │   │   │   │   ├── flow-component-directive.js
+│   │   │   │   │   ├── flow-component-renderer.js
+│   │   │   │   │   ├── gridConnector.ts
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── index.js.map
+│   │   │   │   │   ├── lit-renderer.ts
+│   │   │   │   │   ├── menubarConnector.js
+│   │   │   │   │   ├── messageListConnector.js
+│   │   │   │   │   ├── selectConnector.js
+│   │   │   │   │   ├── styles
+│   │   │   │   │   ├── theme-util.js
+│   │   │   │   │   ├── themes
+│   │   │   │   │   │   └── maintheme
+│   │   │   │   │   ├── tooltip.ts
+│   │   │   │   │   ├── vaadin-big-decimal-field.js
+│   │   │   │   │   ├── vaadin-dev-tools
+│   │   │   │   │   │   ├── License.d.ts
+│   │   │   │   │   │   ├── connection.d.ts
+│   │   │   │   │   │   ├── live-reload-connection.d.ts
+│   │   │   │   │   │   ├── vaadin-dev-tools.d.ts
+│   │   │   │   │   │   ├── vaadin-dev-tools.js
+│   │   │   │   │   │   └── websocket-connection.d.ts
+│   │   │   │   │   ├── vaadin-grid-flow-selection-column.js
+│   │   │   │   │   ├── vaadin-popover
+│   │   │   │   │   │   └── popover.ts
+│   │   │   │   │   ├── vaadin-time-picker
+│   │   │   │   │   │   ├── helpers.js
+│   │   │   │   │   │   └── timepickerConnector.js
+│   │   │   │   │   └── virtualListConnector.js
+│   │   │   │   ├── jsx-dev-transform
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── jsx-dev-runtime.ts
+│   │   │   │   │   └── jsx-runtime.ts
+│   │   │   │   ├── layouts.json
+│   │   │   │   ├── routes.tsx
+│   │   │   │   ├── theme-maintheme.components.generated.js
+│   │   │   │   ├── theme-maintheme.generated.js
+│   │   │   │   ├── theme-maintheme.global.generated.js
+│   │   │   │   ├── vaadin-featureflags.js
+│   │   │   │   ├── vaadin-react.tsx
+│   │   │   │   ├── vaadin.ts
+│   │   │   │   └── vite-devmode.ts
+│   │   │   └── index.html
+│   │   ├── java
+│   │   │   └── pl
+│   │   │       └── gpwpoid
+│   │   │           └── origin
+│   │   │               ├── AppShell.java
+│   │   │               ├── OriginApplication.java
+│   │   │               ├── config
+│   │   │               │   ├── OrderMatchingConfig.java
+│   │   │               │   └── SecurityConfig.java
+│   │   │               ├── decorators
+│   │   │               │   └── validPesel
+│   │   │               │       ├── PeselValidator.java
+│   │   │               │       └── ValidPesel.java
+│   │   │               ├── factories
+│   │   │               │   ├── AccountFactory.java
+│   │   │               │   ├── ExternalTransferFactory.java
+│   │   │               │   ├── OrderCancellationFactory.java
+│   │   │               │   ├── OrderFactory.java
+│   │   │               │   ├── TransactionFactory.java
+│   │   │               │   └── WalletFactory.java
+│   │   │               ├── models
+│   │   │               │   ├── account
+│   │   │               │   │   ├── Account.java
+│   │   │               │   │   └── AccountInfo.java
+│   │   │               │   ├── address
+│   │   │               │   │   ├── PostalCode.java
+│   │   │               │   │   ├── PostalCodesTowns.java
+│   │   │               │   │   └── Town.java
+│   │   │               │   ├── company
+│   │   │               │   │   ├── Company.java
+│   │   │               │   │   ├── CompanyInfo.java
+│   │   │               │   │   ├── CompanyStatus.java
+│   │   │               │   │   └── IPO.java
+│   │   │               │   ├── keys
+│   │   │               │   │   ├── AccountInfoId.java
+│   │   │               │   │   ├── CompanyInfoId.java
+│   │   │               │   │   ├── CompanyStatusId.java
+│   │   │               │   │   ├── OrderCancellationId.java
+│   │   │               │   │   ├── PostalCodesTownsId.java
+│   │   │               │   │   └── TransactionId.java
+│   │   │               │   ├── order
+│   │   │               │   │   ├── Order.java
+│   │   │               │   │   ├── OrderCancellation.java
+│   │   │               │   │   ├── OrderType.java
+│   │   │               │   │   ├── Subscription.java
+│   │   │               │   │   └── Transaction.java
+│   │   │               │   └── wallet
+│   │   │               │       ├── ExternalTransfer.java
+│   │   │               │       └── Wallet.java
+│   │   │               ├── repositories
+│   │   │               │   ├── AccountRepository.java
+│   │   │               │   ├── CompanyRepository.java
+│   │   │               │   ├── ExternalTransferRepository.java
+│   │   │               │   ├── OrderCancellationRepository.java
+│   │   │               │   ├── OrderRepository.java
+│   │   │               │   ├── PostalCodeTownRepository.java
+│   │   │               │   ├── TransactionRepository.java
+│   │   │               │   ├── WalletRepository.java
+│   │   │               │   ├── projections
+│   │   │               │   │   └── ActiveOrderProjection.java
+│   │   │               │   └── views
+│   │   │               │       ├── AccountAuthItem.java
+│   │   │               │       ├── AccountListItem.java
+│   │   │               │       ├── ActiveOrderListItem.java
+│   │   │               │       ├── CompanyListItem.java
+│   │   │               │       ├── OHLCDataItem.java
+│   │   │               │       ├── PostalCodesTownsItem.java
+│   │   │               │       ├── TransactionListItem.java
+│   │   │               │       ├── TransactionWalletListItem.java
+│   │   │               │       ├── TransferListItem.java
+│   │   │               │       ├── WalletCompanyListItem.java
+│   │   │               │       └── WalletListItem.java
+│   │   │               ├── services
+│   │   │               │   ├── AccountService.java
+│   │   │               │   ├── AddressService.java
+│   │   │               │   ├── CompanyService.java
+│   │   │               │   ├── OrderService.java
+│   │   │               │   ├── TransactionService.java
+│   │   │               │   ├── WalletsService.java
+│   │   │               │   └── implementations
+│   │   │               │       ├── AccountServiceImpl.java
+│   │   │               │       ├── AddressServiceImpl.java
+│   │   │               │       ├── CompanyServiceImpl.java
+│   │   │               │       ├── SecurityServiceImpl.java
+│   │   │               │       ├── TransactionServiceImpl.java
+│   │   │               │       ├── WalletServiceImpl.java
+│   │   │               │       └── order
+│   │   │               │           ├── BuyComparator.java
+│   │   │               │           ├── OrderMatchingWorker.java
+│   │   │               │           ├── OrderServiceImpl.java
+│   │   │               │           ├── OrderWrapper.java
+│   │   │               │           ├── OrderWrapperFactory.java
+│   │   │               │           └── SellComparator.java
+│   │   │               ├── ui
+│   │   │               │   ├── components
+│   │   │               │   └── views
+│   │   │               │       ├── AccountsListView.java
+│   │   │               │       ├── CompaniesListView.java
+│   │   │               │       ├── DTO
+│   │   │               │       │   ├── OrderDTO.java
+│   │   │               │       │   ├── ProfileUpdateDTO.java
+│   │   │               │       │   ├── RegistrationDTO.java
+│   │   │               │       │   ├── TransferDTO.java
+│   │   │               │       │   └── WalletDTO.java
+│   │   │               │       ├── LoginView.java
+│   │   │               │       ├── MainLayout.java
+│   │   │               │       ├── ProfileView.java
+│   │   │               │       ├── RegistrationView.java
+│   │   │               │       ├── WalletView.java
+│   │   │               │       ├── WalletsListView.java
+│   │   │               │       └── company
+│   │   │               │           ├── ActiveOrdersGrid.java
+│   │   │               │           ├── CompanyChart.java
+│   │   │               │           ├── CompanyView.java
+│   │   │               │           └── OrderForm.java
+│   │   │               └── utils
+│   │   │                   ├── ExtendedUser.java
+│   │   │                   ├── ExtendedUserDetails.java
+│   │   │                   └── SecurityUtils.java
+│   │   └── resources
+│   │       ├── application.properties
+│   │       ├── static
+│   │       └── templates
+│   └── test
+│       └── java
+│           └── pl
+│               └── gpwpoid
+│                   └── origin
+│                       └── OriginApplicationTests.java
+└── tree.txt
+
+52 directories, 174 files

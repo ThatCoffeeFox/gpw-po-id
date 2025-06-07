@@ -24,11 +24,13 @@ import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Locale;
 
-@Route(value = "wallets", layout =  MainLayout.class)
+@Route(value = "wallets", layout = MainLayout.class)
 @PageTitle("Lista portfeli")
-@RolesAllowed({"user","admin"})
+@RolesAllowed({"user", "admin"})
 public class WalletsListView extends HorizontalLayout {
     private final WalletsService walletsService;
     private final Grid<WalletListItem> grid = new Grid<>();
@@ -51,7 +53,7 @@ public class WalletsListView extends HorizontalLayout {
         setPadding(true);
     }
 
-    private VerticalLayout configureAddWalletButton(){
+    private VerticalLayout configureAddWalletButton() {
         Button addWalletButton = new Button("Dodaj portfel", VaadinIcon.PLUS.create());
         addWalletButton.addClickListener(e -> openAddWalletDialog());
 
@@ -88,14 +90,14 @@ public class WalletsListView extends HorizontalLayout {
         binder.setBean(walletDTO);
 
         saveWalletButton.addClickListener(e -> {
-            try{
-                if(SecurityUtils.isLoggedIn())
+            try {
+                if (SecurityUtils.isLoggedIn())
                     walletDTO.setAccountId(SecurityUtils.getAuthenticatedAccountId());
                 binder.writeBean(walletDTO);
                 walletsService.addWallet(walletDTO);
                 loadWalletListItems();
                 dialog.close();
-            } catch (ValidationException ex){
+            } catch (ValidationException ex) {
                 Notification.show(ex.getMessage());
             }
         });
@@ -111,9 +113,9 @@ public class WalletsListView extends HorizontalLayout {
         grid.addColumn(WalletListItem::getName).setHeader("Nazwa portfela").setSortable(true);
 
         grid.addColumn(
-                wallet -> {
-                    return FUNDS_FORMATTER.format(wallet.getFunds()) + " zł";
-                })
+                        wallet -> {
+                            return FUNDS_FORMATTER.format(wallet.getFunds()) + " zł";
+                        })
                 .setHeader("Dostępne fundusze")
                 .setTextAlign(ColumnTextAlign.END).setSortable(true);
 
@@ -135,8 +137,7 @@ public class WalletsListView extends HorizontalLayout {
             Integer accountId = SecurityUtils.getAuthenticatedAccountId();
             Collection<WalletListItem> walletList = walletsService.getWalletListViewByAccountId(accountId);
             grid.setItems(walletList);
-        }
-        else
+        } else
             grid.setItems(Collections.emptyList());
     }
 }

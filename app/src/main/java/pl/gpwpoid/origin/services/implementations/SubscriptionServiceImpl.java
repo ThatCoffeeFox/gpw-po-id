@@ -61,7 +61,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         if(ipo.get().getIpoPrice().multiply(BigDecimal.valueOf(subscriptionDTO.getSharesAmount()))
                 .compareTo(walletsService.getWalletUnblockedFundsById(subscriptionDTO.getWalletId())) > 0){
-            throw new RuntimeException("You don't have enough shares/founds");
+            throw new RuntimeException("You don't have enough shares/funds");
         }
 
         try {

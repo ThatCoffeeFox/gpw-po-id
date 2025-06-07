@@ -29,12 +29,14 @@ import java.util.Optional;
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
     private final CompanyStatusFactory companyStatusFactory;
     private final CompanyStatusRepository companyStatusRepository;
     private final AddressService addressService;
     private final CompanyFactory companyFactory;
 
     @Autowired
+    public CompanyServiceImpl(CompanyRepository companyRepository) {
     public CompanyServiceImpl(
             CompanyRepository companyRepository,
             CompanyStatusFactory companyStatusFactory,

@@ -1,12 +1,9 @@
 package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import pl.gpwpoid.origin.models.company.CompanyInfo;
-import pl.gpwpoid.origin.models.company.CompanyStatus;
-import pl.gpwpoid.origin.models.company.IPO;
 import pl.gpwpoid.origin.models.order.Order;
 
 import java.util.Set;

@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.gpwpoid.origin.factories.AccountFactory;
 import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.address.Town;
-import pl.gpwpoid.origin.factories.AccountFactory;
 import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
@@ -60,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public void updateAccount(ProfileUpdateDTO profileUpdateDTO) {
-        if(profileUpdateDTO == null || !accountRepository.existsById(Long.valueOf(profileUpdateDTO.getAccountId()))) {
+        if (profileUpdateDTO == null || !accountRepository.existsById(Long.valueOf(profileUpdateDTO.getAccountId()))) {
             throw new IllegalArgumentException("ID nie istnieje lub nie może być null");
         }
 
@@ -84,12 +84,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public void deleteAccountById(Long id) {
-        if(id == null || !accountRepository.existsById(id)) {
+        if (id == null || !accountRepository.existsById(id)) {
             throw new IllegalArgumentException("ID nie istnieje lub nie może być null");
         }
 
         Account account = accountRepository.findById(id).isPresent() ? accountRepository.findById(id).get() : null;
-        if(account == null) {
+        if (account == null) {
             throw new NullPointerException("Nie znaleziono konta o takim ID");
         }
 
@@ -118,10 +118,50 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional(readOnly = true)
     public AccountInfo getNewestAccountInfoItemById(Integer id) {
-        if(id == null) {
+        if (id == null) {
             return null;
         }
 
         return accountRepository.findAccountInfoById(id.longValue());
+    }
+
+    @Override
+    @Transactional
+    public void updatePassword(String email, String password) {
+        if(email == null || password == null) {
+            throw new IllegalArgumentException("Email or password null");
+        }
+
+        Account account = accountRepository.findAccountByEmail(email).orElse(null);
+
+        if(account != null) {
+            AccountInfo latestInfo = accountRepository.findAccountInfoById(account.getAccountId().longValue());
+            if(latestInfo == null) {
+                throw  new NullPointerException("Nie znaleziono account");
+            }
+
+            ProfileUpdateDTO profileUpdateDTO = new ProfileUpdateDTO(
+                    account.getAccountId(),
+                    latestInfo.getEmail(),
+                    latestInfo.getPostalCodesTowns().getTown().getTownId(),
+                    latestInfo.getPostalCodesTowns().getPostalCode().getPostalCode(),
+                    latestInfo.getStreet(),
+                    latestInfo.getStreetNumber(),
+                    latestInfo.getApartmentNumber(),
+                    latestInfo.getPhoneNumber(),
+                    latestInfo.getPesel()
+            );
+
+            AccountInfo newInfo = accountFactory.createAccountInfo(profileUpdateDTO, latestInfo.getPostalCodesTowns());
+            newInfo.setAccount(account);
+            newInfo.setPassword(passwordEncoder.encode(password));
+            newInfo.setFirstName(latestInfo.getFirstName());
+            newInfo.setLastName(latestInfo.getLastName());
+            newInfo.setSecondaryName(latestInfo.getSecondaryName());
+
+            account.getAccountInfos().add(newInfo);
+            accountRepository.save(account);
+        }
+
     }
 }
