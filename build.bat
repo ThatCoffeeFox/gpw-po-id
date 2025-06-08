@@ -4,6 +4,7 @@ cls
 echo --- Konfiguracja Bazy Danych ---
 set /p DB_USER="Podaj nazwę użytkownika PostgreSQL: "
 set /p DB_NAME="Podaj nazwę bazy danych: "
+set /p DB_PASS="Podaj hasło do bazy danych: "
 echo ---------------------------------
 echo.
 
@@ -35,7 +36,7 @@ echo Tworzenie pliku konfiguracyjnego .env...
 
 (
     echo POSTGRESQL_USER=%DB_USER%
-    echo POSTGRESQL_PASSWORD=postgres
+    echo POSTGRESQL_PASSWORD=%DB_PASS%
     echo DATABASE_URL=jdbc:postgresql://127.0.0.1:5432/%DB_NAME%
 ) > .env
 
