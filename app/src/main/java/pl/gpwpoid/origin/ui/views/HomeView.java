@@ -4,6 +4,9 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -11,7 +14,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.shared.Registration;
-import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.repositories.views.CompanyListItem;
 import pl.gpwpoid.origin.services.ChartUpdateBroadcaster;
 import pl.gpwpoid.origin.services.CompanyService;
@@ -23,59 +26,73 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-
-@Route(value = "/companies", layout = MainLayout.class)
-@PageTitle("Spółki Giełdowe")
+@Route(value = "", layout = MainLayout.class)
+@PageTitle("Strona Główna - SGPW")
 @AnonymousAllowed
-public class CompaniesListView extends VerticalLayout {
+public class HomeView extends VerticalLayout {
+
+    private final Grid<CompanyListItem> topCompaniesGrid = new Grid<>();
     private final CompanyService companyService;
-    private final ChartUpdateBroadcaster broadcaster;
-    @Getter
-    private final Grid<CompanyListItem> grid = new Grid<>();
     private Registration broadcasterRegistration;
+    private final ChartUpdateBroadcaster broadcaster;
     private ListDataProvider<CompanyListItem> dataProvider;
 
-    public CompaniesListView(CompanyService companyService, ChartUpdateBroadcaster broadcaster) {
+    @Autowired
+    public HomeView(CompanyService companyService, ChartUpdateBroadcaster broadcaster) {
         this.companyService = companyService;
         this.broadcaster = broadcaster;
 
-        setSizeFull();
+
+        H1 title = new H1("Witaj w Symulacji Giełdy Papierów Wartościowych");
+        Paragraph description = new Paragraph(
+                "SGPW to platforma demonstracyjna, która pozwala na śledzenie notowań fikcyjnych spółek, " +
+                        "składanie zleceń kupna i sprzedaży oraz zarządzanie wirtualnym portfelem. " +
+                        "Sprawdź poniżej listę najdroższych firm notowanych na naszej giełdzie!"
+        );
+        description.getStyle().set("max-width", "800px").set("text-align", "center");
+        H2 topCompaniesHeader = new H2("Top 5 Najdroższych Spółek");
+
         configureGrid();
-        add(grid);
-        loadCompanyListItems();
+        loadTopCompanies();
+
+        setAlignItems(Alignment.CENTER);
+        topCompaniesGrid.getStyle().set("margin-left", "auto").set("margin-right", "auto");
+        getStyle().set("padding", "var(--lumo-space-l)");
+
+        add(title, description, topCompaniesHeader, topCompaniesGrid);
     }
 
     private void configureGrid() {
-        grid.setSizeFull();
+        topCompaniesGrid.setWidth("100%");
+        topCompaniesGrid.setMaxWidth("1000px");
 
-        grid.addColumn(CompanyListItem::getName).setHeader("Nazwa spółki").setSortable(true);
-        grid.addColumn(CompanyListItem::getCode).setHeader("Kod").setSortable(true);
-
-        grid.addColumn(item -> formatPrice(item.getCurrentSharePrice()))
+        topCompaniesGrid.addColumn(CompanyListItem::getName).setHeader("Nazwa spółki");
+        topCompaniesGrid.addColumn(CompanyListItem::getCode).setHeader("Kod");
+        topCompaniesGrid.addColumn(item -> formatPrice(item.getCurrentSharePrice()))
                 .setHeader("Cena za akcję")
-                .setTextAlign(com.vaadin.flow.component.grid.ColumnTextAlign.END)
-                .setSortable(true);
-
-        grid.addComponentColumn(this::createChangeSpan)
+                .setTextAlign(com.vaadin.flow.component.grid.ColumnTextAlign.END);
+        topCompaniesGrid.addComponentColumn(this::createChangeSpan)
                 .setHeader("Zmiana (24h)")
-                .setTextAlign(com.vaadin.flow.component.grid.ColumnTextAlign.END)
-                .setSortable(true);
+                .setTextAlign(com.vaadin.flow.component.grid.ColumnTextAlign.END);
 
-        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        grid.addItemClickListener(event -> {
-            CompanyListItem item = event.getItem();
-            if (item != null) {
-                UI.getCurrent().navigate("companies/" + item.getCompanyId());
-            }
+
+        topCompaniesGrid.setAllRowsVisible(true);
+
+
+        topCompaniesGrid.addItemClickListener(event -> {
+            UI.getCurrent().navigate("companies/" + event.getItem().getCompanyId());
         });
+    }
 
-        grid.getColumns().forEach(column -> column.setAutoWidth(true));
+    private void loadTopCompanies() {
+        List<CompanyListItem> companyList = companyService.getTop5MostValuableCompanies();
+        this.dataProvider = new ListDataProvider<>(companyList);
+
+        topCompaniesGrid.setDataProvider(dataProvider);
     }
 
     private String formatPrice(BigDecimal price) {
-        if (price == null) {
-            return "Brak danych";
-        }
+        if (price == null) return "Brak danych";
         return String.format("%.2f PLN", price);
     }
 
@@ -91,7 +108,6 @@ public class CompaniesListView extends VerticalLayout {
 
         BigDecimal change = currentPrice.subtract(lastDayPrice);
         BigDecimal percentageChange = change.divide(lastDayPrice, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-
         String formattedChange = String.format("%s%.2f%%", percentageChange.signum() >= 0 ? "+" : "", percentageChange);
         changeSpan.setText(formattedChange);
 
@@ -100,7 +116,6 @@ public class CompaniesListView extends VerticalLayout {
         } else if (percentageChange.signum() < 0) {
             changeSpan.getStyle().set("color", "var(--lumo-error-text-color)");
         }
-
         return changeSpan;
     }
 
@@ -122,14 +137,6 @@ public class CompaniesListView extends VerticalLayout {
             }
         });
     }
-
-    private void loadCompanyListItems() {
-        List<CompanyListItem> companyList = companyService.getCompaniesViewList();
-        this.dataProvider = new ListDataProvider<>(companyList);
-
-        grid.setDataProvider(dataProvider);
-    }
-
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {

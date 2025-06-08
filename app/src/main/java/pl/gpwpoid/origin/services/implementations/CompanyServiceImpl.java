@@ -24,8 +24,10 @@ import pl.gpwpoid.origin.ui.views.DTO.CompanyDTO;
 import pl.gpwpoid.origin.ui.views.DTO.CompanyUpdateDTO;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CompanyServiceImpl implements CompanyService {
@@ -143,5 +145,17 @@ public class CompanyServiceImpl implements CompanyService {
         if (companyId == null)
             return null;
         return companyRepository.getCompanyStatusItemById(companyId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyListItem> getTop5MostValuableCompanies() {
+        List<CompanyListItem> allCompanies = companyRepository.getCompaniesAsViewItems();
+
+        return allCompanies.stream()
+                .filter(item -> item.getCurrentSharePrice() != null)
+                .sorted(Comparator.comparing(CompanyListItem::getCurrentSharePrice).reversed())
+                .limit(5)
+                .collect(Collectors.toList());
     }
 }

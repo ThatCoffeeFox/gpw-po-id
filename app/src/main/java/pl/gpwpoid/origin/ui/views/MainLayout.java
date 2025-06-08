@@ -11,12 +11,11 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.services.AccountService;
 import pl.gpwpoid.origin.ui.views.adminAccountView.AccountsListView;
@@ -24,16 +23,14 @@ import pl.gpwpoid.origin.ui.views.adminCompanyListView.AdminCompanyListView;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 @AnonymousAllowed
-@Route("/")
 public class MainLayout extends AppLayout {
 
     private final AccessAnnotationChecker accessChecker;
     private final AccountService accountService;
 
-    @Autowired
-    public MainLayout(AccountService accountService, AccessAnnotationChecker accessChecker) {
-        this.accountService = accountService;
-        this.accessChecker = accessChecker;
+    public MainLayout() {
+        this.accountService = VaadinService.getCurrent().getInstantiator().getOrCreate(AccountService.class);
+        this.accessChecker = VaadinService.getCurrent().getInstantiator().getOrCreate(AccessAnnotationChecker.class);
 
         setPrimarySection(Section.NAVBAR);
         addHeaderContent();
@@ -45,7 +42,7 @@ public class MainLayout extends AppLayout {
 
         title.addClassNames(LumoUtility.FontSize.XLARGE, LumoUtility.Margin.NONE);
         RouterLink logoLink = new RouterLink();
-        logoLink.setRoute(MainLayout.class);
+        logoLink.setRoute(HomeView.class);
 
         logoLink.add(title);
         logoLink.addClassName("logo-link");

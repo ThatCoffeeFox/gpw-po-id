@@ -211,13 +211,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ActiveOrderDTO> getActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException {
-        if(companyService.getCompanyById(companyId).isEmpty()){
+        if (companyService.getCompanyById(companyId).isEmpty()) {
             throw new EntityNotFoundException("This company does not exist");
         }
 
         Optional<Wallet> wallet = walletsService.getWalletById(walletId);
-        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+        if (wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
 

@@ -34,4 +34,6 @@ public interface CompanyService {
     CompanyListItem getCompanyItemById(int companyId);
 
     Optional<Company> getCompanyById(int companyId);
+
+    List<CompanyListItem> getTop5MostValuableCompanies();
 }
