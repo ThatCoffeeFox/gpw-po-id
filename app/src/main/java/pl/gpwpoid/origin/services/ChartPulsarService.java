@@ -26,7 +26,7 @@ public class ChartPulsarService {
 
         for (Integer companyId : broadcaster.getActiveCompanyIds()) {
             log.debug("Wysyłanie pulsu dla spółki ID: {}", companyId);
-            broadcaster.broadcast(companyId);
+            broadcaster.broadcastPulse(companyId);
         }
 
         log.debug("Wysyłanie globalnego pulsu odświeżającego.");

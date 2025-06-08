@@ -11,6 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Data
 public class TransactionDTO {
+    private Integer companyId;
     private Date date;
     private Integer sharesAmount;
     private BigDecimal sharePrice;

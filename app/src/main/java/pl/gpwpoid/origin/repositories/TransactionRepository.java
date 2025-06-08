@@ -20,7 +20,7 @@ import java.util.Optional;
 public interface TransactionRepository extends JpaRepository<Transaction, TransactionId> {
 
     @Query(value = """
-            SELECT t.date, t.shares_amount, t.share_price
+            SELECT :companyId, t.date, t.shares_amount, t.share_price
             FROM transactions t JOIN orders o ON t.buy_order_id = o.order_id
             WHERE o.company_id = :companyId
             ORDER BY t.date DESC
@@ -158,6 +158,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
             """, nativeQuery = true)
     Optional<BigDecimal> findLastSharePriceBeforeDate(@Param("companyId") int companyId, @Param("beforeDate") LocalDateTime beforeDate);
 
-    @Query("SELECT new pl.gpwpoid.origin.repositories.DTO.TransactionDTO(t.date, t.sharesAmount, t.sharePrice) FROM Transaction t WHERE t.buyOrder.wallet.account.accountId = :accountId OR t.sellOrder.wallet.account.accountId = :accountId ORDER BY t.date DESC")
+    @Query("SELECT new pl.gpwpoid.origin.repositories.DTO.TransactionDTO(t.sellOrder.company.companyId, t.date, t.sharesAmount, t.sharePrice) FROM Transaction t WHERE t.buyOrder.wallet.account.accountId = :accountId OR t.sellOrder.wallet.account.accountId = :accountId ORDER BY t.date DESC")
     List<TransactionDTO> findLatestTransactionsByAccountId(Integer accountId, Pageable pageable);
 }
