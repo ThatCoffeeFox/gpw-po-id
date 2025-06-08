@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.ui.views;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -105,5 +106,14 @@ public class MainLayout extends AppLayout {
         }
 
         addToDrawer(nav);
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+
+        getUI().ifPresent(ui ->
+                ui.getLoadingIndicatorConfiguration().setApplyDefaultTheme(false)
+        );
     }
 }

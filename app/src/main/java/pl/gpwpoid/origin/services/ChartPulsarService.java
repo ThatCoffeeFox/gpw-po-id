@@ -7,9 +7,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pl.gpwpoid.origin.repositories.TransactionRepository;
 
-import java.time.LocalDateTime;
-
 @Service
+@Lazy
 public class ChartPulsarService {
 
     private static final Logger log = LoggerFactory.getLogger(ChartPulsarService.class);
@@ -24,16 +23,13 @@ public class ChartPulsarService {
     @Scheduled(fixedRate = 5000)
     public void pulseCharts() {
         log.trace("Uruchamianie pulsara wykresów...");
-        broadcaster.broadcastPulse();
-        LocalDateTime fiveSecondsAgo = LocalDateTime.now().minusSeconds(5);
 
         for (Integer companyId : broadcaster.getActiveCompanyIds()) {
-            boolean hasTransactions = transactionRepository.existsByBuyOrder_Company_CompanyIdAndDateAfter(companyId, fiveSecondsAgo);
-
-            if (!hasTransactions) {
-                log.debug("Wysyłanie pulsu podtrzymującego dla spółki ID: {}. Brak transakcji.", companyId);
-                broadcaster.broadcast(companyId);
-            }
+            log.debug("Wysyłanie pulsu dla spółki ID: {}", companyId);
+            broadcaster.broadcast(companyId);
         }
+
+        log.debug("Wysyłanie globalnego pulsu odświeżającego.");
+        broadcaster.broadcastGlobal();
     }
 }

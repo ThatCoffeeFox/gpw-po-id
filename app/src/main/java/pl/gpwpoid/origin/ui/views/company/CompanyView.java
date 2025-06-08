@@ -25,6 +25,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     private final WalletsService walletsService;
     private final IPOService ipoService;
     private final ChartUpdateBroadcaster broadcaster;
+    private final ChartPulsarService chartPulsarService;
     private final CompanyInfoTablet companyInfoTablet;
     private final CompanyChart companyChart;
     private final OrderForm orderForm;
@@ -40,6 +41,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
                        OrderService orderService,
                        WalletsService walletsService,
                        ChartUpdateBroadcaster broadcaster,
+                       ChartPulsarService chartPulsarService,
                        IPOService ipoService) {
         this.companyService = companyService;
         this.transactionService = transactionService;
@@ -48,8 +50,9 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         this.ipoService = ipoService;
         this.activeOrdersGrid = new ActiveOrdersGrid(orderService);
         this.orderForm = new OrderForm(orderService, walletsService);
-        this.companyChart = new CompanyChart(transactionService, ipoService);
         this.broadcaster = broadcaster;
+        this.chartPulsarService = chartPulsarService;
+        this.companyChart = new CompanyChart(transactionService, ipoService, broadcaster);
         this.transactionsGrid = new CompanyUserTransactionsGrid(transactionService, walletsService);
         this.companyInfoTablet = new CompanyInfoTablet();
 
@@ -131,7 +134,6 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
             broadcasterRegistration = broadcaster.register(companyId, id -> {
                 attachEvent.getUI().access(() -> {
                     updateCompanyInfoTablet();
-                    updateChart();
                     if (SecurityUtils.isLoggedIn()) {
                         updateTransactionsGrid();
                         activeOrdersGrid.updateList();

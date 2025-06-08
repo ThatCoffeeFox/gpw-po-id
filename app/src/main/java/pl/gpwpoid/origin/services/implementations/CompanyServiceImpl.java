@@ -86,7 +86,7 @@ public class CompanyServiceImpl implements CompanyService {
         Company company = companyRepository.findById(Long.valueOf(companyId)).orElse(null);
         CompanyStatus companyStatus = companyStatusFactory.createCompanyStatus(company, tradable);
         companyStatusRepository.save(companyStatus);
-        if(tradable)
+        if (tradable)
             orderService.startOrderMatching(companyId);
         else
             orderService.stopOrderMatching(companyId);

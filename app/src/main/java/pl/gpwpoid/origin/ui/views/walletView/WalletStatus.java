@@ -1,12 +1,10 @@
 package pl.gpwpoid.origin.ui.views.walletView;
 
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -17,8 +15,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
-import pl.gpwpoid.origin.models.wallet.Wallet;
-import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.TransferDTO;
 
@@ -27,19 +23,16 @@ import java.util.Date;
 
 public class WalletStatus extends VerticalLayout {
     private final WalletsService walletsService;
-    private Integer walletId;
-
     private final Button transferButton = new Button("Nowy Transfer");
     private final Button deletionButton = new Button("Usuń portfel");
     private final TextField walletFunds = new TextField("Dostępne środki:");
-    private BigDecimal funds;
-
     private final TextField accountNumberField = new TextField("Numer konta");
     private final NumberField transferFunds = new NumberField("Kwota");
     private final ComboBox<ExternalTransfer.TransferType> transferType = new ComboBox<>("Typ transferu");
-
-    private TransferDTO transferDTO = new TransferDTO();
     private final Binder<TransferDTO> binder = new BeanValidationBinder<>(TransferDTO.class);
+    private Integer walletId;
+    private BigDecimal funds;
+    private TransferDTO transferDTO = new TransferDTO();
 
     public WalletStatus(WalletsService walletsService) {
         this.walletsService = walletsService;
@@ -112,7 +105,7 @@ public class WalletStatus extends VerticalLayout {
         dialog.open();
     }
 
-    private void configureTransferFields(){
+    private void configureTransferFields() {
         accountNumberField.setRequiredIndicatorVisible(true);
         accountNumberField.setWidth("100%");
 
@@ -153,7 +146,7 @@ public class WalletStatus extends VerticalLayout {
         binder.setBean(transferDTO);
     }
 
-    private void confirmTransferButton(Dialog dialog){
+    private void confirmTransferButton(Dialog dialog) {
         try {
             transferDTO.setWalletId(walletId);
             transferDTO.setTransferDate(new Date());

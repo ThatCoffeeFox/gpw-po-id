@@ -147,7 +147,7 @@ public class CompaniesListView extends VerticalLayout {
         super.onAttach(attachEvent);
         UI ui = attachEvent.getUI();
 
-        broadcasterRegistration = broadcaster.register(() -> {
+        broadcasterRegistration = broadcaster.register(id -> {
             ui.access(this::refreshGridItems);
         });
     }

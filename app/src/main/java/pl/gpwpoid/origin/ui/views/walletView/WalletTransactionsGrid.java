@@ -6,8 +6,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
-import pl.gpwpoid.origin.repositories.views.TransferListItem;
-import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 
@@ -17,14 +15,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 public class WalletTransactionsGrid extends VerticalLayout {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private final TransactionService transactionService;
     private final WalletsService walletsService;
-
-    private Integer walletId;
-
     private final Grid<TransactionWalletListItem> transactionsGrid = new Grid<>();
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private Integer walletId;
 
     public WalletTransactionsGrid(TransactionService transactionService, WalletsService walletsService) {
         this.transactionService = transactionService;
@@ -59,7 +54,7 @@ public class WalletTransactionsGrid extends VerticalLayout {
         transactionsGrid.setMaxWidth("100%");
     }
 
-    public void updateList(){
+    public void updateList() {
         Collection<TransactionWalletListItem> transactionWalletListItems = transactionService.getTransactionsByWalletId(walletId);
         transactionsGrid.setItems(transactionWalletListItems);
     }
