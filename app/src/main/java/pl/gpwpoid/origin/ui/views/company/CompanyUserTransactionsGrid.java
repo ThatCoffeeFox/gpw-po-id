@@ -9,24 +9,21 @@ import org.springframework.data.domain.PageRequest;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
-import pl.gpwpoid.origin.ui.views.WalletView;
 import pl.gpwpoid.origin.utils.ExtendedUserDetails;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.util.Collections;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public class CompanyUserTransactionsGrid extends VerticalLayout {
 
     private final TransactionService transactionService;
     private final WalletsService walletsService;
     private final Grid<TransactionWalletListItem> grid = new Grid<>();
-
-    private Integer companyId;
     private final Integer userId;
+    private Integer companyId;
 
-    public CompanyUserTransactionsGrid(TransactionService transactionService,  WalletsService walletsService) {
+    public CompanyUserTransactionsGrid(TransactionService transactionService, WalletsService walletsService) {
         this.transactionService = transactionService;
         this.walletsService = walletsService;
         this.userId = SecurityUtils.getAuthenticatedUser().map(ExtendedUserDetails::getAccountId).orElse(null);
@@ -47,7 +44,7 @@ public class CompanyUserTransactionsGrid extends VerticalLayout {
         grid.addComponentColumn(item -> new Button(walletsService.getWalletNameById(item.getWalletId()),
                 e -> {
                     UI.getCurrent().navigate("/wallets/" + item.getWalletId());
-        })).setHeader("Portfel");
+                })).setHeader("Portfel");
     }
 
     public void setCompanyId(Integer companyId) {

@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.factories.ExternalTransferFactory;
-import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.factories.WalletFactory;
+import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.wallet.ExternalTransfer;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 import pl.gpwpoid.origin.repositories.DTO.WalletCompanyDTO;
@@ -25,9 +25,7 @@ import pl.gpwpoid.origin.utils.SecurityUtils;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class WalletServiceImpl implements WalletsService {
@@ -37,6 +35,7 @@ public class WalletServiceImpl implements WalletsService {
     private final ExternalTransferFactory externalTransferFactory;
     private final ExternalTransferRepository externalTransferRepository;
     private final CompanyService companyService;
+
     @Autowired
     public WalletServiceImpl(WalletRepository walletRepository,
                              WalletFactory walletFactory,
@@ -153,16 +152,16 @@ public class WalletServiceImpl implements WalletsService {
 
     @Override
     public WalletCompanyDTO getWalletCompanyDTOByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException {
-        if(companyService.getCompanyById(companyId).isEmpty()){
+        if (companyService.getCompanyById(companyId).isEmpty()) {
             throw new EntityNotFoundException("This company does not exist");
         }
 
         Optional<Wallet> wallet = getWalletById(walletId);
-        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+        if (wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
 
-        return walletRepository.findWalletCompanyDTOByWalletIdCompanyId(walletId,companyId);
+        return walletRepository.findWalletCompanyDTOByWalletIdCompanyId(walletId, companyId);
     }
 }

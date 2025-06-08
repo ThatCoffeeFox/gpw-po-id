@@ -11,7 +11,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
@@ -19,15 +18,14 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 import pl.gpwpoid.origin.models.account.AccountInfo;
-import pl.gpwpoid.origin.models.order.Order;
-import pl.gpwpoid.origin.models.order.Transaction;
-import pl.gpwpoid.origin.models.wallet.Wallet;
-import pl.gpwpoid.origin.repositories.DTO.ActiveOrderDTO;
+import pl.gpwpoid.origin.repositories.DTO.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
-import pl.gpwpoid.origin.repositories.views.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
-import pl.gpwpoid.origin.services.*;
+import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.services.OrderService;
+import pl.gpwpoid.origin.services.TransactionService;
+import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.AdminProfileUpdateDTO;
 import pl.gpwpoid.origin.ui.views.MainLayout;
 
@@ -43,13 +41,8 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
     private final WalletsService walletService;
     private final OrderService orderService;
     private final TransactionService transactionService;
-
-    private Integer currentAccountId;
-
     private final H2 header = new H2("Zarządzanie Użytkownikiem");
     private final Binder<AdminProfileUpdateDTO> binder = new Binder<>(AdminProfileUpdateDTO.class);
-
-    
     private final TextField firstNameField = new TextField("Imię");
     private final TextField secondaryNameField = new TextField("Drugie imię");
     private final TextField lastNameField = new TextField("Nazwisko");
@@ -59,15 +52,12 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
     private final TextField streetField = new TextField("Ulica i numer");
     private final TextField phoneNumberField = new TextField("Numer telefonu");
     private final TextField peselField = new TextField("PESEL");
-
-    
-    private final Button saveButton = new Button("Zapisz zmiany", e -> saveChanges());
-
-    
     private final Grid<AccountListItem> historyGrid = new Grid<>(AccountListItem.class);
     private final Grid<WalletListItem> walletsGrid = new Grid<>(WalletListItem.class);
-    private final Grid<ActiveOrderListItem> ordersGrid = new Grid<>(ActiveOrderListItem.class); 
-    private final Grid<TransactionDTO> transactionsGrid = new Grid<>(TransactionDTO.class); 
+    private final Grid<ActiveOrderListItem> ordersGrid = new Grid<>(ActiveOrderListItem.class);
+    private final Grid<TransactionDTO> transactionsGrid = new Grid<>(TransactionDTO.class);
+    private Integer currentAccountId;
+    private final Button saveButton = new Button("Zapisz zmiany", e -> saveChanges());
 
     public AdminUserDetailView(AccountService accountService, WalletsService walletService, OrderService orderService, TransactionService transactionService) {
         this.accountService = accountService;
@@ -89,11 +79,11 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
     }
 
     private void configureForm() {
-        
+
         firstNameField.setRequired(true);
         lastNameField.setRequired(true);
 
-        
+
         emailField.setReadOnly(true);
         townField.setReadOnly(true);
         postalCodeField.setReadOnly(true);
@@ -101,7 +91,7 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
         phoneNumberField.setReadOnly(true);
         peselField.setReadOnly(true);
 
-        
+
         binder.forField(firstNameField).asRequired().bind(AdminProfileUpdateDTO::getFirstName, AdminProfileUpdateDTO::setFirstName);
         binder.forField(secondaryNameField).bind(AdminProfileUpdateDTO::getSecondaryName, AdminProfileUpdateDTO::setSecondaryName);
         binder.forField(lastNameField).asRequired().bind(AdminProfileUpdateDTO::getLastName, AdminProfileUpdateDTO::setLastName);
@@ -121,7 +111,7 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
     }
 
     private void configureGrids() {
-        
+
         historyGrid.removeAllColumns();
         historyGrid.addColumn(AccountListItem::getAccountId).setHeader("ID").setFlexGrow(1);
         historyGrid.addColumn(info -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(info.getUpdatedAt())).setHeader("Data zmiany").setSortable(true);
@@ -134,7 +124,7 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
         historyGrid.addColumn(AccountListItem::getPhoneNumber).setHeader("Telefon");
         historyGrid.addColumn(AccountListItem::getPesel).setHeader("PESEL");
 
-        
+
         walletsGrid.removeAllColumns();
         walletsGrid.addColumn(WalletListItem::getWalletId).setHeader("ID Portfela");
         walletsGrid.addColumn(WalletListItem::getName).setHeader("Nazwa");
@@ -168,12 +158,12 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
     private void loadData() {
         if (currentAccountId == null) return;
 
-        
+
         AccountInfo latestInfo = accountService.getNewestAccountInfoItemById(currentAccountId);
         if (latestInfo != null) {
             header.setText("Zarządzanie Użytkownikiem: " + latestInfo.getFirstName() + " " + latestInfo.getLastName());
 
-            
+
             emailField.setValue(latestInfo.getEmail());
             phoneNumberField.setValue(latestInfo.getPhoneNumber());
             peselField.setValue(latestInfo.getPesel());
@@ -183,7 +173,7 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
                 streetField.setValue(String.format("%s %s/%s", latestInfo.getStreet(), latestInfo.getStreetNumber(), latestInfo.getApartmentNumber()).replace("null", "").trim());
             }
 
-            
+
             AdminProfileUpdateDTO dto = new AdminProfileUpdateDTO(
                     currentAccountId,
                     latestInfo.getFirstName(),
@@ -193,10 +183,10 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
             binder.setBean(dto);
         }
 
-        
+
         historyGrid.setItems(accountService.getAccountInfoHistory(currentAccountId));
         walletsGrid.setItems(walletService.getWalletListViewByAccountId(currentAccountId));
-        
+
         ordersGrid.setItems(orderService.getOrderListItemsByAccountId(currentAccountId, PageRequest.of(0, 10)));
         transactionsGrid.setItems(transactionService.getLatestTransactionsByAccountId(currentAccountId, PageRequest.of(0, 20)));
     }
@@ -206,11 +196,11 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
             try {
                 AdminProfileUpdateDTO dto = new AdminProfileUpdateDTO();
                 binder.writeBean(dto);
-                dto.setAccountId(currentAccountId); 
+                dto.setAccountId(currentAccountId);
 
                 accountService.updateAccountByAdmin(dto);
                 Notification.show("Dane użytkownika zostały zaktualizowane.", 3000, Notification.Position.TOP_CENTER);
-                loadData(); 
+                loadData();
             } catch (Exception e) {
                 Notification.show("Błąd podczas zapisu: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER);
             }

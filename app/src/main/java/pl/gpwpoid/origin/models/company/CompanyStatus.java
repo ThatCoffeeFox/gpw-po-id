@@ -1,10 +1,10 @@
 package pl.gpwpoid.origin.models.company;
 
 import jakarta.persistence.*;
-import lombok.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import pl.gpwpoid.origin.models.keys.CompanyStatusId;
 
 import java.util.Objects;
@@ -32,7 +32,7 @@ public class CompanyStatus {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CompanyStatus that = (CompanyStatus) o;
-        return Objects.equals(id,that.id);
+        return Objects.equals(id, that.id);
     }
 
     @Override

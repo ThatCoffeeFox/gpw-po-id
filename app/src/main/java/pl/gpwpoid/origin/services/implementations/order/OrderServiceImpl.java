@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
-import com.vaadin.flow.data.provider.DataProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,7 +28,6 @@ import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.OrderDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
-import java.lang.Integer;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.util.*;
@@ -60,9 +58,9 @@ public class OrderServiceImpl implements OrderService {
                             OrderWrapperFactory orderWrapperFactory,
                             CompanyService companyService,
                             TransactionService transactionService,
-                            ConcurrentMap<Integer,BlockingQueue<Order>> companyIdOrderQueue,
+                            ConcurrentMap<Integer, BlockingQueue<Order>> companyIdOrderQueue,
                             @Qualifier("orderExecutorService") ExecutorService orderExecutorService,
-                            WalletsService walletsService){
+                            WalletsService walletsService) {
         this.orderRepository = orderRepository;
         this.orderCancellationRepository = orderCancellationRepository;
 
@@ -76,8 +74,8 @@ public class OrderServiceImpl implements OrderService {
         this.orderExecutorService = orderExecutorService;
         this.walletsService = walletsService;
 
-        for(int id : this.companyService.getTradableCompaniesId()){
-           startOrderMatching(id);
+        for (int id : this.companyService.getTradableCompaniesId()) {
+            startOrderMatching(id);
         }
     }
 
@@ -101,21 +99,20 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void addOrder(OrderDTO orderDTO) throws AccessDeniedException {
         Optional<Company> company = companyService.getCompanyById(orderDTO.getCompanyId());
-        if(company.isEmpty()) throw new EntityNotFoundException("This company does not exist");
+        if (company.isEmpty()) throw new EntityNotFoundException("This company does not exist");
 
         Optional<Wallet> wallet = walletsService.getWalletById(orderDTO.getWalletId());
 
-        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+        if (wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
-        if(!orderDTO.getOrderType().equals("buy") && !orderDTO.getOrderType().equals("sell")){
+        if (!orderDTO.getOrderType().equals("buy") && !orderDTO.getOrderType().equals("sell")) {
             throw new IllegalArgumentException("Order type has to be 'buy' or 'sell'");
         }
-        if(!hasEnoughFundsOrShares(orderDTO)){
+        if (!hasEnoughFundsOrShares(orderDTO)) {
             throw new RuntimeException("You don't have enough shares/founds");
         }
-
 
 
         Order order = orderFactory.createOrder(orderDTO, wallet.get(), company.get());
@@ -123,8 +120,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             orderRepository.save(order);
             orderRepository.flush();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to create order", e);
         }
 
@@ -158,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("This order already expired");
         }
 
-        if (orderRepository.getSharesLeft(orderId) == 0){
+        if (orderRepository.getSharesLeft(orderId) == 0) {
             throw new IllegalArgumentException("This order was already completed");
         }
 
@@ -169,11 +165,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
-        if(accountId == null){
+        if (accountId == null) {
             throw new RuntimeException("there is no logged in user");
         }
         return orderRepository.findActiveOrdersByAccountId(accountId, PageRequest.of(0, 50));
     }
+
     @Override
     public List<ActiveOrderListItem> getOrderListItemsByAccountId(Integer accountId, Pageable pageable) {
         return orderRepository.findOrdersByAccountId(accountId, pageable);
@@ -216,13 +213,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ActiveOrderDTO> getActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException {
-        if(companyService.getCompanyById(companyId).isEmpty()){
+        if (companyService.getCompanyById(companyId).isEmpty()) {
             throw new EntityNotFoundException("This company does not exist");
         }
 
         Optional<Wallet> wallet = walletsService.getWalletById(walletId);
-        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+        if (wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
 

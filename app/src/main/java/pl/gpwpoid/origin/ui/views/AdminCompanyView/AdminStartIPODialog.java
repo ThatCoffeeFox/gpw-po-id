@@ -32,22 +32,17 @@ public class AdminStartIPODialog extends VerticalLayout {
     private final AccountService accountService;
     private final WalletsService walletService;
     private final CompanyService companyService;
-
-    private Integer companyId;
-
     private final ComboBox<AccountListItem> ownerAccount = new ComboBox<>("Właściciel Portfela");
     private final ComboBox<WalletListItem> ownerWallet = new ComboBox<>("Portfel");
     private final IntegerField sharesAmount = new IntegerField("Ilość akcji");
     private final NumberField sharePrice = new NumberField("Cena akcji");
     private final DateTimePicker subscriptionEnd = new DateTimePicker("Data zakończenia");
     private final Binder<IPODTO> binder = new BeanValidationBinder<>(IPODTO.class);
-
     private final Button confirmButton = new Button("Zatwierdź");
     private final Button cancelButton = new Button("Anuluj");
     private final Dialog dialog = new Dialog();
-
     private final Button startIPOButton = new Button("Rozpocznij emisję");
-
+    private Integer companyId;
     private IPODTO ipoDTO = new IPODTO();
 
     public AdminStartIPODialog(IPOService ipoService, AccountService accountService, WalletsService walletService, CompanyService companyService) {
@@ -81,7 +76,7 @@ public class AdminStartIPODialog extends VerticalLayout {
         dialog.open();
     }
 
-    private void configureDialog(){
+    private void configureDialog() {
         dialog.setHeaderTitle("Nowe IPO");
         dialog.setWidth("500px");
 
@@ -96,7 +91,7 @@ public class AdminStartIPODialog extends VerticalLayout {
         dialog.getFooter().add(buttonLayout);
     }
 
-    private void configureFields(){
+    private void configureFields() {
         ownerAccount.setItemLabelGenerator(item ->
                 String.format("%s %s %s (%s)",
                         item.getFirstName(),
@@ -109,7 +104,7 @@ public class AdminStartIPODialog extends VerticalLayout {
         ownerAccount.addValueChangeListener(e -> {
             AccountListItem accountListItem = (AccountListItem) e.getValue();
 
-            if(accountListItem != null){
+            if (accountListItem != null) {
                 Integer accountId = accountListItem.getAccountId();
 
                 Collection<WalletListItem> ownerWallets = walletService.getWalletListViewByAccountId(accountId);
@@ -117,15 +112,14 @@ public class AdminStartIPODialog extends VerticalLayout {
 
                 ownerWallet.setEnabled(true);
                 ownerWallet.setPlaceholder("Wybierz portfel");
-            }
-            else {
+            } else {
                 ownerWallet.clear();
                 ownerWallet.setItems(Collections.emptyList());
                 ownerWallet.setEnabled(false);
                 ownerWallet.setPlaceholder("Najpierw wybierz użytkownika");
             }
 
-            if(binder.getBean() != null)
+            if (binder.getBean() != null)
                 binder.getBean().setWalletOwnerId(null);
         });
 
@@ -142,19 +136,19 @@ public class AdminStartIPODialog extends VerticalLayout {
         subscriptionEnd.setRequiredIndicatorVisible(true);
     }
 
-    private void bindFields(){
+    private void bindFields() {
         binder.forField(ownerWallet)
-                        .withConverter(
-                                walletListItem -> (walletListItem == null) ? null : walletListItem.getWalletId(),
-                                walletId -> {
-                                    if(walletId == null)
-                                        return null;
-                                    return ownerWallet.getDataProvider().fetch(new Query<>())
-                                            .filter(item -> item.getWalletId().equals(walletId))
-                                            .findFirst()
-                                            .orElseGet(() -> walletService.getWalletListItemById(walletId));
-                                }
-                        )
+                .withConverter(
+                        walletListItem -> (walletListItem == null) ? null : walletListItem.getWalletId(),
+                        walletId -> {
+                            if (walletId == null)
+                                return null;
+                            return ownerWallet.getDataProvider().fetch(new Query<>())
+                                    .filter(item -> item.getWalletId().equals(walletId))
+                                    .findFirst()
+                                    .orElseGet(() -> walletService.getWalletListItemById(walletId));
+                        }
+                )
                 .bind("walletOwnerId");
 
         binder.forField(sharesAmount).bind("sharesAmount");
@@ -168,8 +162,8 @@ public class AdminStartIPODialog extends VerticalLayout {
         binder.forField(subscriptionEnd).bind("subscriptionEnd");
     }
 
-    private void confirmNewIPO(){
-        try{
+    private void confirmNewIPO() {
+        try {
             ipoDTO.setCompanyId(companyId);
             binder.writeBean(ipoDTO);
 
@@ -189,7 +183,7 @@ public class AdminStartIPODialog extends VerticalLayout {
         startIPOButton.setEnabled(canStartIPO());
     }
 
-    private boolean canStartIPO(){
+    private boolean canStartIPO() {
         return !ipoService.hasActiveIPO(companyId);
     }
 }

@@ -14,10 +14,16 @@ public interface IPOService {
     List<IPOListItem> getActiveIPOListItems();
 
     Optional<IPO> getActiveIPOById(Integer ipoId);
+
     Collection<AdminIPOListItem> getAdminIPOListItemsByCompanyId(Integer companyId);
+
     void addIPO(IPODTO ipoDTO);
+
     Boolean hasActiveIPO(Integer companyId);
+
     List<IPO> findIPOsToProcess();
+
     void saveProcessedIPO(IPO ipo);
+
     Optional<BigDecimal> getIpoPriceByCompanyId(Integer companyId);
 }

@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.services.implementations;
 
-import ch.qos.logback.core.BasicStatusManager;
 import com.vaadin.flow.shared.Registration;
 import org.springframework.stereotype.Component;
 import pl.gpwpoid.origin.services.ChartUpdateBroadcaster;
@@ -23,7 +22,7 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
         listenersByCompany.computeIfAbsent(companyId, k -> new LinkedList<>()).add(listener);
         return () -> unregister(companyId, listener);
     }
-    
+
 
     @Override
     public synchronized void unregister(Integer companyId, ChartUpdateListener listener) {

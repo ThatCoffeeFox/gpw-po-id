@@ -96,11 +96,11 @@ public class MainLayout extends AppLayout {
             nav.addItem(new SideNavItem("Mój Profil", ProfileView.class, VaadinIcon.USER.create()));
         }
 
-        if(accessChecker.hasAccess(SubscriptionView.class)){
+        if (accessChecker.hasAccess(SubscriptionView.class)) {
             nav.addItem(new SideNavItem("Zapisy", SubscriptionView.class, VaadinIcon.CALENDAR.create()));
         }
 
-        if(accessChecker.hasAccess(AdminCompanyListView.class)){
+        if (accessChecker.hasAccess(AdminCompanyListView.class)) {
             nav.addItem(new SideNavItem("Zarządzanie Firmami", AdminCompanyListView.class, VaadinIcon.ARCHIVES.create()));
         }
 

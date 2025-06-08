@@ -19,17 +19,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CompanyChart extends VerticalLayout {
+    private static final ZoneId SERVER_ZONE_ID = ZoneId.systemDefault();
     private final Chart candlestickChart = new Chart(ChartType.CANDLESTICK);
     private final H3 chartHeader = new H3("Historia cen akcji");
     private final TransactionService transactionService;
     private final IPOService ipoService;
-
-
     private Integer companyId;
-
     private ChartTimeRange currentRange = ChartTimeRange.THIRTY_MINUTES;
-
-    private static final ZoneId SERVER_ZONE_ID = ZoneId.systemDefault();
 
     public CompanyChart(TransactionService transactionService, IPOService ipoService) {
         this.transactionService = transactionService;
@@ -203,7 +199,7 @@ public class CompanyChart extends VerticalLayout {
 
             YAxis yAxis = conf.getyAxis();
 
-            yAxis.setMin(minLow - 1.0 < 0 ?  0.0 : minLow - 1.0);
+            yAxis.setMin(minLow - 1.0 < 0 ? 0.0 : minLow - 1.0);
             yAxis.setMax(maxHigh + 1.0);
         } else {
             YAxis yAxis = conf.getyAxis();

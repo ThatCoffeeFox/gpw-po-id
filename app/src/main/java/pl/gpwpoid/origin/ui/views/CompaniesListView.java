@@ -17,7 +17,6 @@ import pl.gpwpoid.origin.services.CompanyService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,10 +31,8 @@ import java.util.stream.Collectors;
 public class CompaniesListView extends VerticalLayout {
     private final CompanyService companyService;
     private final ChartUpdateBroadcaster broadcaster;
-    private Registration broadcasterRegistration;
-
     private final Grid<CompanyListItem> grid = new Grid<>();
-
+    private Registration broadcasterRegistration;
     private ListDataProvider<CompanyListItem> dataProvider;
     private Map<Integer, CompanyListItem> companyMap;
 

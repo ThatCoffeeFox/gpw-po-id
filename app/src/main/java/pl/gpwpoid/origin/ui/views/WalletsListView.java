@@ -32,13 +32,12 @@ import java.util.Locale;
 @PageTitle("Lista portfeli")
 @RolesAllowed({"user", "admin"})
 public class WalletsListView extends HorizontalLayout {
-    private final WalletsService walletsService;
-    private final Grid<WalletListItem> grid = new Grid<>();
-
     private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
             "#,##0.00",
             DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
     );
+    private final WalletsService walletsService;
+    private final Grid<WalletListItem> grid = new Grid<>();
 
     public WalletsListView(WalletsService walletsService) {
         this.walletsService = walletsService;
@@ -133,7 +132,7 @@ public class WalletsListView extends HorizontalLayout {
     }
 
     private void loadWalletListItems() {
-        if(SecurityUtils.isLoggedIn()) {
+        if (SecurityUtils.isLoggedIn()) {
             Integer accountId = SecurityUtils.getAuthenticatedAccountId();
             Collection<WalletListItem> walletList = walletsService.getWalletListViewByAccountId(accountId);
             grid.setItems(walletList);

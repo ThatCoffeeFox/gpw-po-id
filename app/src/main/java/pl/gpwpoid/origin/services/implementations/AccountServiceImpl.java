@@ -9,7 +9,6 @@ import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.address.Town;
-import pl.gpwpoid.origin.models.keys.AccountInfoId;
 import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
@@ -18,8 +17,6 @@ import pl.gpwpoid.origin.ui.views.DTO.AdminProfileUpdateDTO;
 import pl.gpwpoid.origin.ui.views.DTO.ProfileUpdateDTO;
 import pl.gpwpoid.origin.ui.views.DTO.RegistrationDTO;
 
-import java.sql.Date;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -133,16 +130,16 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public void updatePassword(String email, String password) {
-        if(email == null || password == null) {
+        if (email == null || password == null) {
             throw new IllegalArgumentException("Email or password null");
         }
 
         Account account = accountRepository.findAccountByEmail(email).orElse(null);
 
-        if(account != null) {
+        if (account != null) {
             AccountInfo latestInfo = accountRepository.findAccountInfoById(account.getAccountId().longValue());
-            if(latestInfo == null) {
-                throw  new NullPointerException("Nie znaleziono account");
+            if (latestInfo == null) {
+                throw new NullPointerException("Nie znaleziono account");
             }
 
             ProfileUpdateDTO profileUpdateDTO = new ProfileUpdateDTO(

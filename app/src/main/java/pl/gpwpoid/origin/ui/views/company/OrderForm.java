@@ -25,24 +25,21 @@ import java.util.Locale;
 
 
 public class OrderForm extends FormLayout {
+    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
+            "#,##0.00",
+            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
+    );
     private final ComboBox<String> orderType = new ComboBox<>("Typ zlecenia");
     private final ComboBox<WalletListItem> wallet = new ComboBox<>("Portfel");
     private final IntegerField sharesAmount = new IntegerField("Ilość akcji");
     private final NumberField sharePrice = new NumberField("Cena za akcję");
     private final DateTimePicker orderExpirationDate = new DateTimePicker("Data wygaśnięcia zlecenia");
     private final Button submitButton = new Button("Złóż zlecenie");
-
     private final Binder<OrderDTO> binder = new BeanValidationBinder<>(OrderDTO.class);
     private final OrderService orderService;
     private final WalletsService walletsService;
     private Collection<WalletListItem> userWallets;
-
     private Integer companyId;
-
-    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
-            "#,##0.00",
-            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
-    );
 
     public OrderForm(OrderService orderService, WalletsService walletsService) {
         this.orderService = orderService;

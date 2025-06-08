@@ -12,10 +12,10 @@ public class CompanyStatusFactory {
     public CompanyStatus createCompanyStatus(
             Company company,
             Boolean tradable
-    ){
-        if(company == null)
+    ) {
+        if (company == null)
             throw new NullPointerException("Company is null");
-        if(tradable == null)
+        if (tradable == null)
             throw new NullPointerException("Tradable is null");
 
         CompanyStatusId companyStatusId = new CompanyStatusId();

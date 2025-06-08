@@ -14,7 +14,9 @@ public interface AccountService {
     Account addAccount(RegistrationDTO registrationDTO);
 
     void updateAccount(ProfileUpdateDTO profileUpdateDTO);
+
     void updateAccountByAdmin(AdminProfileUpdateDTO adminProfileUpdateDTO);
+
     void updatePassword(String email, String password);
 
     void deleteAccountById(Long id);

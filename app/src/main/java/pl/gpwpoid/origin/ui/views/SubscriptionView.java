@@ -4,10 +4,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.binder.Binder;
@@ -30,36 +28,29 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Objects;
 
-@Route(value = "subscriptions", layout =  MainLayout.class)
+@Route(value = "subscriptions", layout = MainLayout.class)
 @PageTitle("Zapisy")
-@RolesAllowed({"user","admin"})
+@RolesAllowed({"user", "admin"})
 public class SubscriptionView extends VerticalLayout {
     private final ComboBox<IPOListItem> companyComboBox = new ComboBox<>("Wybierz firmę");
     private final ComboBox<WalletListItem> walletComboBox = new ComboBox<>("Wybierz portfel");
     private final IntegerField sharesAmountIntegerField = new IntegerField("Liczba akcji");
     private final Button submitButton = new Button("Zapisz się");
     private final Binder<SubscriptionDTO> binder = new Binder<>(SubscriptionDTO.class);
+    private final Grid<IPOListItem> activeIPOGrid = new Grid<>();
+    private final Grid<SubscriptionListItem> subscriptionsGrid = new Grid<>();
+    private final IPOService ipoService;
+    private final SubscriptionService subscriptionService;
+    private final WalletsService walletsService;
+    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pl", "PL"));
     private FormLayout subscriptionFormLayout = new FormLayout(
             companyComboBox,
             walletComboBox,
             sharesAmountIntegerField,
             submitButton
     );
-
     private Collection<WalletListItem> avaibleWallets;
     private Collection<IPOListItem> avaibleCompanies;
-
-
-    private final Grid<IPOListItem> activeIPOGrid = new Grid<>();
-    private final Grid<SubscriptionListItem> subscriptionsGrid = new Grid<>();
-
-    private final IPOService ipoService;
-    private final SubscriptionService subscriptionService;
-    private final WalletsService walletsService;
-    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pl", "PL"));
-
-
-
 
 
     @Autowired
@@ -82,7 +73,7 @@ public class SubscriptionView extends VerticalLayout {
         loadSubscriptionGrid();
     }
 
-    void loadSubscriptionFormData(){
+    void loadSubscriptionFormData() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
         this.avaibleWallets = walletsService.getWalletListViewByAccountId(accountId);
         this.avaibleCompanies = ipoService.getActiveIPOListItems();
@@ -117,8 +108,8 @@ public class SubscriptionView extends VerticalLayout {
 
         submitButton.addClickListener(e -> {
             SubscriptionDTO dto = new SubscriptionDTO();
-            if(binder.writeBeanIfValid(dto)){
-                try{
+            if (binder.writeBeanIfValid(dto)) {
+                try {
                     subscriptionService.addSubscription(dto);
                     loadSubscriptionGrid();
                     binder.readBean(new SubscriptionDTO());
@@ -129,8 +120,7 @@ public class SubscriptionView extends VerticalLayout {
                 } catch (Exception ex) {
                     Notification.show("Wystąpił błąd " + ex.getMessage(), 4000, Notification.Position.TOP_CENTER);
                 }
-            }
-            else{
+            } else {
                 Notification.show("Niepoprawne dane", 4000, Notification.Position.TOP_CENTER);
             }
         });

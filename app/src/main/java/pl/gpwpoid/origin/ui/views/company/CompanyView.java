@@ -11,14 +11,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.shared.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
-import pl.gpwpoid.origin.models.company.Company;
 import pl.gpwpoid.origin.repositories.views.CompanyListItem;
 import pl.gpwpoid.origin.services.*;
 import pl.gpwpoid.origin.ui.views.MainLayout;
 import pl.gpwpoid.origin.utils.SecurityUtils;
-
-import java.math.BigDecimal;
-import java.util.Optional;
 
 @Route(value = "companies", layout = MainLayout.class)
 @AnonymousAllowed
@@ -30,13 +26,11 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     private final IPOService ipoService;
     private final ChartUpdateBroadcaster broadcaster;
     private final CompanyInfoTablet companyInfoTablet;
-    private Registration broadcasterRegistration;
-
     private final CompanyChart companyChart;
     private final OrderForm orderForm;
     private final ActiveOrdersGrid activeOrdersGrid;
     private final CompanyUserTransactionsGrid transactionsGrid;
-
+    private Registration broadcasterRegistration;
     private Integer companyId;
     private CompanyListItem companyInfo;
 
@@ -69,7 +63,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         bottomLayout.setJustifyContentMode(JustifyContentMode.CENTER);
 
         if (SecurityUtils.isLoggedIn()) {
-            HorizontalLayout temp = new  HorizontalLayout();
+            HorizontalLayout temp = new HorizontalLayout();
             temp.setWidthFull();
             temp.setAlignItems(Alignment.CENTER);
             temp.setJustifyContentMode(JustifyContentMode.CENTER);
@@ -137,7 +131,7 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
                 attachEvent.getUI().access(() -> {
                     updateCompanyInfoTablet();
                     updateChart();
-                    if(SecurityUtils.isLoggedIn()) {
+                    if (SecurityUtils.isLoggedIn()) {
                         updateTransactionsGrid();
                         activeOrdersGrid.updateList();
                     }
