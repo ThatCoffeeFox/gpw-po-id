@@ -31,7 +31,7 @@ public class IPOFactory {
             throw new IllegalArgumentException("company cannot be null");
         if (wallet == null)
             throw new IllegalArgumentException("wallet cannot be null");
-        ZoneId zoneId = ZoneId.of("UTC");
+        ZoneId zoneId = ZoneId.of("Europe/Warsaw");
         Date dateSubscriptionEnd = Date.from(subscriptionEnd.atZone(zoneId).toInstant());
         if (dateSubscriptionEnd.before(new Date()))
             throw new IllegalArgumentException("subscriptionEnd cannot be in the past");
