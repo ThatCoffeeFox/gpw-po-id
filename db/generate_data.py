@@ -114,10 +114,10 @@ transefers = []
 subscriptions = []
 
 print("\\encoding UTF8")
-print("COPY accounts (account_id, role) FROM stdin WITH(FORMAT csv);")
-print("1,admin")
+print("COPY accounts (role) FROM stdin WITH(FORMAT csv);")
+print("admin")
 for i in range(1, ACCOUNT_NUMBER + BOT_NUMBER):
-    print(f"{i + 1},user")
+    print("user")
 print("\\.")
 print()
 
@@ -153,33 +153,28 @@ for i in range(ACCOUNT_NUMBER, ACCOUNT_NUMBER + BOT_NUMBER):
 print("\\.")
 print()
 
-print("COPY wallets(wallet_id, account_id, name, active) FROM stdin WITH(FORMAT csv);") 
+print("COPY wallets(account_id, name, active) FROM stdin WITH(FORMAT csv);") 
 for i in range(ACCOUNT_NUMBER):
     for j in range(WALLETS_PER_ACCOUNT):
         wallet_id = 1 + WALLETS_PER_ACCOUNT*i + j
         account_id = 1 + i
         name = f"User {account_id} Wallet {j + 1}"
         active = "true"
-        print(f'{wallet_id},{account_id},"{name}",{active}')
+        print(f'{account_id},"{name}",{active}')
 for i in range(BOT_NUMBER):
     wallet_id = WALLETS_PER_ACCOUNT * ACCOUNT_NUMBER + 1 + i
     account_id = ACCOUNT_NUMBER + i + 1
     name = f"Bot {i + 1} Wallet"
     active = "true"
-    print(f'{wallet_id},{account_id},"{name}",{active}')
+    print(f'{account_id},"{name}",{active}')
     founds_needed[wallet_id] = 1000000
     shares_needed[wallet_id][1] = 10000
 
 print("\\.")
 print()
 
-print("COPY companies(company_id) FROM stdin WITH(FORMAT csv);")
 for i in range(COMPANY_NUMBER):
-    company_id = i+1
-    print(company_id)
-    
-print("\\.")
-print()
+    print("INSERT INTO companies DEFAULT VALUES;")
 
 def int_to_code(n):
     if not (0 <= n < 26**3):
@@ -206,7 +201,7 @@ print("\\.")
 print()
 
 
-print("COPY ipo(ipo_id, company_id, payment_wallet_id, shares_amount, ipo_price, subscription_start, subscription_end, processed) FROM stdin WITH(FORMAT csv);")
+print("COPY ipo(company_id, payment_wallet_id, shares_amount, ipo_price, subscription_start, subscription_end, processed) FROM stdin WITH(FORMAT csv);")
 for i in range(COMPANY_NUMBER):
     ipo_id = i + 1
     company_id = i + 1
@@ -216,7 +211,7 @@ for i in range(COMPANY_NUMBER):
     subscription_start = "2025-05-01 00:00:02"
     subscription_end = "2025-05-02 23:59:59"
     processed = "true"
-    print(f'{ipo_id},{company_id},{payment_wallet_id},{shares_amount},{ipo_price},"{subscription_start}","{subscription_end}",{processed}')
+    print(f'{company_id},{payment_wallet_id},{shares_amount},{ipo_price},"{subscription_start}","{subscription_end}",{processed}')
 
 print("\\.")
 print()
@@ -254,8 +249,8 @@ for company_id in range(1,COMPANY_NUMBER + 1):
             order_expiration_date = f"2025-05-{str(day).zfill(2)} {str(hour).zfill(2)}:01:04"
             transaction_date = f"2025-05-{str(day).zfill(2)} {str(hour).zfill(2)}:00:05"
 
-            orders.append(f'{buy_order_id},"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
-            orders.append(f'{sell_order_id},"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
+            orders.append(f'"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
+            orders.append(f'"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
 
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
@@ -279,8 +274,8 @@ for company_id in range(1,COMPANY_NUMBER + 1):
             order_expiration_date = f"2025-06-{str(day).zfill(2)} {str(hour).zfill(2)}:01:04"
             transaction_date = f"2025-06-{str(day).zfill(2)} {str(hour).zfill(2)}:00:05"
 
-            orders.append(f'{buy_order_id},"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
-            orders.append(f'{sell_order_id},"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
+            orders.append(f'"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
+            orders.append(f'"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
             
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
@@ -303,8 +298,8 @@ for company_id in range(1,COMPANY_NUMBER + 1):
             order_expiration_date = f"2025-06-{str(now.day).zfill(2)} {str(hour).zfill(2)}:{str(minute).zfill(2)}:06"
             transaction_date = f"2025-06-{str(now.day).zfill(2)} {str(hour).zfill(2)}:{str(minute).zfill(2)}:05"
 
-            orders.append(f'{buy_order_id},"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
-            orders.append(f'{sell_order_id},"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
+            orders.append(f'"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
+            orders.append(f'"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
             
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
@@ -327,8 +322,8 @@ for company_id in range(1,COMPANY_NUMBER + 1):
             order_expiration_date = f"2025-06-{str(now.day).zfill(2)} {str(now.hour).zfill(2)}:{str(minute).zfill(2)}:{str(seccond + 6).zfill(2)}"
             transaction_date = f"2025-06-{str(now.day).zfill(2)} {str(now.hour).zfill(2)}:{str(minute).zfill(2)}:{str(seccond + 5).zfill(2)}"
 
-            orders.append(f'{buy_order_id},"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
-            orders.append(f'{sell_order_id},"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
+            orders.append(f'"buy",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{buy_wallet_id},{company_id}')
+            orders.append(f'"sell",{shares_amount},"{order_start_date}","{order_expiration_date}",{new_price},{sell_wallet_id},{company_id}')
             
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
@@ -343,7 +338,7 @@ for wallet_id in range(1, WALLETS_PER_ACCOUNT * ACCOUNT_NUMBER + 1 + BOT_NUMBER)
     amount = founds_needed[wallet_id]
     date = "2025-05-01 00:00:02"
     account_nuber = '00000000000000000000000000'
-    transefers.append(f'{transfer_id},{wallet_id},"{type}","{date}",{amount},"{account_nuber}"')
+    transefers.append(f'{wallet_id},"{type}","{date}",{amount},"{account_nuber}"')
 
 for wallet_id in range(1,  WALLETS_PER_ACCOUNT * ACCOUNT_NUMBER + 1 + BOT_NUMBER):
     for ipo_id in range(1, COMPANY_NUMBER + 1):
@@ -353,22 +348,22 @@ for wallet_id in range(1,  WALLETS_PER_ACCOUNT * ACCOUNT_NUMBER + 1 + BOT_NUMBER
         date = "2025-05-01 00:01:02"
         shares_amount = shares_needed[wallet_id][ipo_id]
         shares_asigned = shares_needed[wallet_id][ipo_id]
-        subscriptions.append(f'{subscription_id},{ipo_id},{wallet_id},"{date}",{shares_amount},{shares_asigned}')
+        subscriptions.append(f'{ipo_id},{wallet_id},"{date}",{shares_amount},{shares_asigned}')
 
-print("COPY external_transfers(transfer_id, wallet_id, type, date, amount, account_number) FROM stdin WITH(FORMAT csv);")
+print("COPY external_transfers(wallet_id, type, date, amount, account_number) FROM stdin WITH(FORMAT csv);")
 for transfer in transefers:
     print(transfer)
 
 print("\\.")
 print()
 
-print("COPY subscriptions(subscription_id, ipo_id, wallet_id, date, shares_amount, shares_assigned) FROM stdin WITH(FORMAT csv);")
+print("COPY subscriptions(ipo_id, wallet_id, date, shares_amount, shares_assigned) FROM stdin WITH(FORMAT csv);")
 for subscription in subscriptions:
     print(subscription)
 print("\\.")
 print()
 
-print("COPY orders(order_id, order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id) FROM stdin WITH(FORMAT csv);")
+print("COPY orders(order_type, shares_amount, order_start_date, order_expiration_date, share_price, wallet_id, company_id) FROM stdin WITH(FORMAT csv);")
 for order in orders:
     print(order)
 print("\\.")
