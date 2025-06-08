@@ -34,26 +34,21 @@ public class RegistrationView extends VerticalLayout {
     private final AddressService addressService;
 
     private final Binder<RegistrationDTO> binder = new BeanValidationBinder<>(RegistrationDTO.class);
-    private RegistrationDTO registrationDTO;
-
-
     private final EmailField email = new EmailField("Email");
     private final PasswordField password = new PasswordField("Hasło");
     private final PasswordField confirmPassword = new PasswordField("Potwierdź hasło");
     private final TextField firstName = new TextField("Imię");
     private final TextField secondaryName = new TextField("Drugie imię (opcjonalne)");
     private final TextField lastName = new TextField("Nazwisko");
-
     private final ComboBox<Town> townComboBox = new ComboBox<>("Miasto");
     private final ComboBox<String> postalCodeComboBox = new ComboBox<>("Kod pocztowy");
-
     private final TextField street = new TextField("Ulica");
     private final TextField streetNumber = new TextField("Numer domu");
     private final TextField apartmentNumber = new TextField("Numer mieszkania (opcjonalne)");
     private final TextField phoneNumber = new TextField("Numer telefonu (np. +48123456789)");
     private final TextField pesel = new TextField("PESEL");
-
     private final Button registerButton = new Button("Zarejestruj");
+    private RegistrationDTO registrationDTO;
 
     @Autowired
     public RegistrationView(AccountService accountService, AddressService addressService) {

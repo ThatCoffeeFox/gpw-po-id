@@ -9,6 +9,7 @@ import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.services.WalletsService;
 
 import java.math.BigDecimal;
+
 @Component
 public class OrderWrapperFactory {
     private final WalletsService walletsService;

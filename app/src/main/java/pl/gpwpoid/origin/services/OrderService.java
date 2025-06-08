@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.services;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.repositories.DTO.ActiveOrderDTO;
@@ -19,6 +20,8 @@ public interface OrderService {
     void cancelOrder(Integer orderId);
 
     List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount();
+
+    List<ActiveOrderListItem> getOrderListItemsByAccountId(Integer accountId, Pageable pageable);
 
     Collection<Order> getOrders();
 

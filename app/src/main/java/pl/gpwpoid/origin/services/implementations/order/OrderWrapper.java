@@ -25,10 +25,6 @@ class OrderWrapper {
         this.shareMatchingPrice = order.getSharePrice();
     }
 
-    void setShareMatchingPrice(BigDecimal shareMatchingPrice) {
-        this.shareMatchingPrice = shareMatchingPrice;
-    }
-
     Order getOrder() {
         return order;
     }
@@ -45,13 +41,16 @@ class OrderWrapper {
         return sharesLeft <= 0 || (expiration != null && !expiration.after(now));
     }
 
-
     int getSharesLeft() {
         return this.sharesLeft;
     }
 
     BigDecimal getShareMatchingPrice() {
         return this.shareMatchingPrice;
+    }
+
+    void setShareMatchingPrice(BigDecimal shareMatchingPrice) {
+        this.shareMatchingPrice = shareMatchingPrice;
     }
 }
 

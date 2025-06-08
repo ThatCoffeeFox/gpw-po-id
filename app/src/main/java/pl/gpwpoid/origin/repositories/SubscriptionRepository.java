@@ -25,16 +25,16 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Inte
     List<SubscriptionListItem> findSubscriptionListItemsByAccountId(Integer accountId);
 
     @Query(value = """
-        SELECT COALESCE(SUM(s.shares_amount), 0)
-        FROM subscriptions s
-        WHERE s.ipo_id = :ipoId
-""", nativeQuery = true)
+                    SELECT COALESCE(SUM(s.shares_amount), 0)
+                    FROM subscriptions s
+                    WHERE s.ipo_id = :ipoId
+            """, nativeQuery = true)
     Integer getSharesSumByIPOId(Integer ipoId);
 
     @Query(value = """
-        SELECT s
-        FROM Subscription s
-        WHERE s.ipo.ipoId = :ipoId
-""")
+                    SELECT s
+                    FROM Subscription s
+                    WHERE s.ipo.ipoId = :ipoId
+            """)
     List<Subscription> getSubscriptionsByIPOId(Integer ipoId);
 }

@@ -15,17 +15,14 @@ import java.util.Collection;
 import java.util.Locale;
 
 public class AdminCompanyIPOsGrid extends VerticalLayout {
-    private final IPOService ipoService;
-    private Integer companyId;
-
-    private final Grid<AdminIPOListItem> grid = new Grid<>();
-
     private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
             "#,##0.00",
             DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
     );
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private final IPOService ipoService;
+    private final Grid<AdminIPOListItem> grid = new Grid<>();
+    private Integer companyId;
 
     public AdminCompanyIPOsGrid(IPOService ipoService) {
         this.ipoService = ipoService;
@@ -59,20 +56,20 @@ public class AdminCompanyIPOsGrid extends VerticalLayout {
     }
 
     private String formatFunds(AdminIPOListItem item) {
-        if(item.getIpoPrice() == null)
+        if (item.getIpoPrice() == null)
             return "";
         return FUNDS_FORMATTER.format(item.getIpoPrice()) + " zł";
     }
 
     private String formatStartDate(AdminIPOListItem item) {
-        if(item.getSubsctiptionStart() == null)
+        if (item.getSubsctiptionStart() == null)
             return "";
         LocalDateTime date = item.getSubsctiptionStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         return date.format(DATE_FORMATTER);
     }
 
     private String formatEndDate(AdminIPOListItem item) {
-        if(item.getSubsctiptionEnd() == null)
+        if (item.getSubsctiptionEnd() == null)
             return "";
         LocalDateTime date = item.getSubsctiptionEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         return date.format(DATE_FORMATTER);
@@ -82,7 +79,7 @@ public class AdminCompanyIPOsGrid extends VerticalLayout {
         this.companyId = companyId;
     }
 
-    public void updateList(){
+    public void updateList() {
         Collection<AdminIPOListItem> items = ipoService.getAdminIPOListItemsByCompanyId(companyId);
         grid.setItems(items);
     }

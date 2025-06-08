@@ -10,7 +10,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ActiveOrderDTO{
+public class ActiveOrderDTO {
     private Integer orderId;
     private String orderType;
     private Integer sharesAmount;
