@@ -285,11 +285,11 @@ CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_i
                     FROM subscriptions s 
                     JOIN ipo i ON s.ipo_id = i.ipo_id
                     WHERE s.wallet_id = arg_wallet_id AND i.processed = true AND i.company_id = arg_company_id)::INTEGER --akcje kupione w trakcie emisji
-                + (SELECT i.shares_amount - COALESCE(SUM(s.shares_assigned),0)
+                + COALESCE((SELECT i.shares_amount - COALESCE(SUM(s.shares_assigned),0)
                     FROM subscriptions s
                     JOIN ipo i ON s.ipo_id = i.ipo_id
                     WHERE i.payment_wallet_id = arg_wallet_id AND i.company_id = arg_company_id AND i.processed = true
-                    GROUP BY i.shares_amount, i.ipo_id); --akcje pozostale po emisji
+                    GROUP BY i.shares_amount, i.ipo_id)::INTEGER,0); --akcje pozostale po emisji
     END
 $$ LANGUAGE plpgsql;        
 
