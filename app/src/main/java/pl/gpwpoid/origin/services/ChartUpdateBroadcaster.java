@@ -21,6 +21,8 @@ public interface ChartUpdateBroadcaster {
 
     void broadcastGlobal();
 
+    void broadcastPulse(Integer companyId);
+
     @FunctionalInterface
     interface ChartUpdateListener {
         void onChartUpdate(TransactionDTO transactionData);
@@ -30,6 +32,4 @@ public interface ChartUpdateBroadcaster {
     interface GlobalUpdateListener {
         void onUpdate(Integer companyId);
     }
-
-    void broadcastPulse(Integer companyId);
 }

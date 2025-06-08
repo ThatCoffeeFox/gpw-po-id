@@ -74,6 +74,7 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
             }
         }
     }
+
     @Override
     public void broadcastPulse(Integer companyId) {
         List<ChartUpdateListener> companyListeners;
