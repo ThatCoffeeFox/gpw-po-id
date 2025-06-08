@@ -31,6 +31,14 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
+echo Tworzenie pliku konfiguracyjnego .env...
+
+(
+    echo POSTGRESQL_USER=%DB_USER%
+    echo POSTGRESQL_PASSWORD=postgres
+    echo DATABASE_URL=jdbc:postgresql://127.0.0.1:5432/%DB_NAME%
+) > .env
+
 echo Budowanie aplikacji (mvnw clean package)... To moze potrwac kilka minut.
 CALL mvnw.cmd clean package -Pproduction
 if %ERRORLEVEL% neq 0 (

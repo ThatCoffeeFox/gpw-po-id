@@ -20,6 +20,17 @@ echo ""
 echo "Przechodzenie do katalogu ./app..."
 cd ../app
 
+echo "Tworzenie pliku konfiguracyjnego .env..."
+
+cat > .env <<EOF
+POSTGRESQL_USER=${DB_USER}
+POSTGRESQL_PASSWORD=postgres
+DATABASE_URL=jdbc:postgresql://127.0.0.1:5432/${DB_NAME}
+EOF
+
+echo "Plik .env został utworzony."
+echo ""
+
 echo "Budowanie aplikacji (mvnw clean package)... To może potrwać kilka minut."
 ./mvnw clean package -Pproduction
 
