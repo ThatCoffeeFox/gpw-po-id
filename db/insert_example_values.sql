@@ -88,12 +88,12 @@ INSERT INTO companies_info (company_id, updated_at, name, code, town_id, postal_
 -- C3: ongoing
 -- C4: ended
 -- C4: ended
-INSERT INTO ipo (company_id, payment_wallet_id, shares_amount, ipo_price, subscription_start, subscription_end) VALUES
-(1, 2, 100000, 10.00, NOW() - INTERVAL '30 days', NOW() - INTERVAL '15 days'),
-(2, 2, 200000, 5.50,  NOW() - INTERVAL '20 days', NOW() - INTERVAL '10 days'),
-(3, 2, 150000, 12.75, NOW() - INTERVAL '7 days',  NOW() + INTERVAL '7 days'),
-(4, 2, 100000, 15.64, NOW() - INTERVAL '30 days', NOW() - INTERVAL '10 days'),
-(4, 2, 100000, 20.45, NOW() - INTERVAL '9 days', NOW() - INTERVAL '3 days');
+INSERT INTO ipo (company_id, payment_wallet_id, shares_amount, ipo_price, subscription_start, subscription_end, processed) VALUES
+(1, 2, 100000, 10.00, NOW() - INTERVAL '30 days', NOW() - INTERVAL '15 days', true),
+(2, 2, 200000, 5.50,  NOW() - INTERVAL '20 days', NOW() - INTERVAL '10 days', true),
+(3, 2, 150000, 12.75, NOW() - INTERVAL '7 days',  NOW() + INTERVAL '7 days', false),
+(4, 2, 100000, 15.64, NOW() - INTERVAL '30 days', NOW() - INTERVAL '10 days', true),
+(4, 2, 100000, 20.45, NOW() - INTERVAL '9 days', NOW() - INTERVAL '3 days', true);
 
 -- 10. Companies Status
 -- Company 1,2 & 4: Tradable (IPO ended)

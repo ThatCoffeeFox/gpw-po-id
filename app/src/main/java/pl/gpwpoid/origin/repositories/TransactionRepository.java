@@ -158,6 +158,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
             """, nativeQuery = true)
     Optional<BigDecimal> findLastSharePriceBeforeDate(@Param("companyId") int companyId, @Param("beforeDate") LocalDateTime beforeDate);
 
-    @Query("SELECT new pl.gpwpoid.origin.repositories.views.TransactionDTO(t.date, t.sharesAmount, t.sharePrice) FROM Transaction t WHERE t.buyOrder.wallet.account.accountId = :accountId OR t.sellOrder.wallet.account.accountId = :accountId ORDER BY t.date DESC")
+    @Query("SELECT new pl.gpwpoid.origin.repositories.DTO.TransactionDTO(t.date, t.sharesAmount, t.sharePrice) FROM Transaction t WHERE t.buyOrder.wallet.account.accountId = :accountId OR t.sellOrder.wallet.account.accountId = :accountId ORDER BY t.date DESC")
     List<TransactionDTO> findLatestTransactionsByAccountId(Integer accountId, Pageable pageable);
 }
