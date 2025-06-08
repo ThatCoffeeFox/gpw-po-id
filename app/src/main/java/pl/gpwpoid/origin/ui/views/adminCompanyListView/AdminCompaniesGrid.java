@@ -18,14 +18,13 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 public class AdminCompaniesGrid extends VerticalLayout {
-    private final CompanyService companyService;
-    private final IPOService ipoService;
-    private final Grid<AdminCompanyListItem> grid = new Grid<>();
-
     private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
             "#,##0.00",
             DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
     );
+    private final CompanyService companyService;
+    private final IPOService ipoService;
+    private final Grid<AdminCompanyListItem> grid = new Grid<>();
 
     AdminCompaniesGrid(CompanyService companyService, IPOService ipoService) {
         this.companyService = companyService;
@@ -67,20 +66,20 @@ public class AdminCompaniesGrid extends VerticalLayout {
     }
 
     private String formatFunds(AdminCompanyListItem item) {
-        if(item.getCurrentPrice() == null)
+        if (item.getCurrentPrice() == null)
             return "";
         return FUNDS_FORMATTER.format(item.getCurrentPrice()) + " zł";
     }
 
     private String calculatePercentage(AdminCompanyListItem item) {
-        if(item.getPreviousPrice() == null)
+        if (item.getPreviousPrice() == null)
             return "0.00%";
         BigDecimal percentage = item.getCurrentPrice().divide(item.getPreviousPrice(), 10, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP).add(new BigDecimal("-100"));
         return percentage + "%";
     }
 
-    private Button navigateToCompanyButton(AdminCompanyListItem item){
+    private Button navigateToCompanyButton(AdminCompanyListItem item) {
         Button navigationButton = new Button(item.getCompanyName());
         navigationButton.addClickListener(e -> {
             String url = "/admin/companies/" + item.getCompanyId();
@@ -95,11 +94,10 @@ public class AdminCompaniesGrid extends VerticalLayout {
             String newButtonText;
             Boolean oldTradable = item.getTradable();
             try {
-                if(oldTradable) {
+                if (oldTradable) {
                     item.setTradable(false);
                     newButtonText = "Nie";
-                }
-                else {
+                } else {
                     item.setTradable(true);
                     newButtonText = "Tak";
                 }
@@ -122,7 +120,7 @@ public class AdminCompaniesGrid extends VerticalLayout {
     }
 
     private String translateTradable(AdminCompanyListItem item) {
-        if(item.getTradable())
+        if (item.getTradable())
             return "Tak";
         return "Nie";
     }

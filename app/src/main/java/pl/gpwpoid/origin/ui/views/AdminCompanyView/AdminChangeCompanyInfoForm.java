@@ -4,7 +4,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -27,13 +26,13 @@ import java.util.Collections;
 import java.util.Locale;
 
 public class AdminChangeCompanyInfoForm extends VerticalLayout {
+    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
+            "#,##0.00",
+            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
+    );
     private final AddressService addressService;
     private final CompanyService companyService;
-    private Integer companyId;
-
     private final Binder<CompanyUpdateDTO> binder = new BeanValidationBinder<>(CompanyUpdateDTO.class);
-    private CompanyUpdateDTO currentCompanyData = new CompanyUpdateDTO();
-
     private final TextField name = new TextField("Nazwa Firmy");
     private final TextField code = new TextField("Kod firmy");
     private final ComboBox<Town> town = new ComboBox<>("Miasto");
@@ -41,19 +40,14 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
     private final TextField street = new TextField("Ulica");
     private final TextField streetNumber = new TextField("Numer budynku");
     private final TextField apartmentNumber = new TextField("Numer lokalu");
-
     private final TextField sharePrice = new TextField("Cena za akcję");
     private final TextField changeInPrice = new TextField("Zmiana ceny");
     private final TextField tradable = new TextField("Tradable");
-
     private final Button saveButton = new Button("Zatwierdź");
     private final Button cancelButton = new Button("Anuluj");
     private final Button navigateToIPOButton = new Button("Rozpocznij IPO");
-
-    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
-            "#,##0.00",
-            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
-    );
+    private Integer companyId;
+    private CompanyUpdateDTO currentCompanyData = new CompanyUpdateDTO();
 
     public AdminChangeCompanyInfoForm(AddressService addressService, CompanyService companyService) {
         this.addressService = addressService;
@@ -64,7 +58,7 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
         add(layout);
     }
 
-    private VerticalLayout configureCompanyStatus(){
+    private VerticalLayout configureCompanyStatus() {
         VerticalLayout companyStatusLayout = new VerticalLayout();
         companyStatusLayout.add(sharePrice, changeInPrice, tradable);
         companyStatusLayout.setPadding(true);
@@ -123,8 +117,8 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
         HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        saveButton.addClickListener(e->saveChanges());
-        cancelButton.addClickListener(e->updateCompanyData());
+        saveButton.addClickListener(e -> saveChanges());
+        cancelButton.addClickListener(e -> updateCompanyData());
         buttonLayout.setSpacing(true);
 
         return new VerticalLayout(formLayout, buttonLayout);
@@ -181,19 +175,18 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
     }
 
     private void saveChanges() {
-        if(binder.validate().isOk()) {
+        if (binder.validate().isOk()) {
             try {
                 binder.writeBean(currentCompanyData);
                 companyService.updateCompany(currentCompanyData);
                 Notification.show("Dane firmy zostały zaktualizowane", 4000, Notification.Position.TOP_CENTER);
                 updateCompanyData();
-            } catch (ValidationException e){
+            } catch (ValidationException e) {
                 Notification.show("Błąd walidacji", 4000, Notification.Position.TOP_CENTER);
-            } catch (Exception e){
+            } catch (Exception e) {
                 Notification.show("Wystąpił błąd: " + e.getMessage(), 4000, Notification.Position.TOP_CENTER);
             }
-        }
-        else
+        } else
             Notification.show("Proszę wpisać poprawne dane", 4000, Notification.Position.TOP_CENTER);
     }
 
@@ -201,10 +194,10 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
         this.companyId = companyId;
     }
 
-    public void updateCompanyData(){
+    public void updateCompanyData() {
         CompanyInfo latestInfo = companyService.getNewestCompanyInfoItemById(companyId);
 
-        if(latestInfo == null)
+        if (latestInfo == null)
             return;
 
         name.setValue(latestInfo.getName());
@@ -252,25 +245,24 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
 
         CompanyStatusItem companyStatusItem = companyService.getCompanyStatusItemById(companyId);
 
-        if(companyStatusItem != null) {
+        if (companyStatusItem != null) {
             sharePrice.setValue(formatCurrentPrice(companyStatusItem));
             changeInPrice.setValue(formatPercentage(companyStatusItem));
             tradable.setValue(translateTradable(companyStatusItem));
-        }
-        else{
+        } else {
             Notification.show("null", 10000, Notification.Position.TOP_CENTER);
         }
     }
 
-    private String formatCurrentPrice(CompanyStatusItem item){
-        if(item.getCurrentPrice() == null)
+    private String formatCurrentPrice(CompanyStatusItem item) {
+        if (item.getCurrentPrice() == null)
             return "brak";
         else
             return FUNDS_FORMATTER.format(item.getCurrentPrice()) + " zł";
     }
 
     private String formatPercentage(CompanyStatusItem item) {
-        if(item.getPreviousPrice() == null)
+        if (item.getPreviousPrice() == null)
             return "0%";
         BigDecimal percentage = item.getCurrentPrice().divide(item.getPreviousPrice(), 10, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP).add(new BigDecimal("-100"));
@@ -278,7 +270,7 @@ public class AdminChangeCompanyInfoForm extends VerticalLayout {
     }
 
     private String translateTradable(CompanyStatusItem item) {
-        if(item.getTradable())
+        if (item.getTradable())
             return "Tak";
         return "Nie";
     }

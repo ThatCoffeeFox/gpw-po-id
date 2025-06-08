@@ -102,24 +102,24 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
     List<TransferListItem> getTransferListForCurrentWallet(Integer walletId);
 
     @Query(value = """
-        SELECT 
-            w.wallet_id AS walletId,
-            w.name AS name,
-            funds_in_wallet(w.wallet_id) AS funds
-        FROM wallets w
-        WHERE w.wallet_id = :walletId AND w.active = true
-""", nativeQuery = true)
+                    SELECT 
+                        w.wallet_id AS walletId,
+                        w.name AS name,
+                        funds_in_wallet(w.wallet_id) AS funds
+                    FROM wallets w
+                    WHERE w.wallet_id = :walletId AND w.active = true
+            """, nativeQuery = true)
     WalletListItem getWalletListItemById(Integer walletListItemId);
 
     @Query(value = """
-           SELECT
-            :walletId,
-            funds_in_wallet(:walletId),
-            unblocked_funds_in_wallet(:walletId),
-            :companyId,
-            shares_in_wallet(:walletId, :companyId),
-            shares_in_wallet(:walletId, :companyId) - blocked_shares_in_wallet(:walletId, :companyId),
-            shares_value(:companyId);
-           """, nativeQuery = true)
+            SELECT
+             :walletId,
+             funds_in_wallet(:walletId),
+             unblocked_funds_in_wallet(:walletId),
+             :companyId,
+             shares_in_wallet(:walletId, :companyId),
+             shares_in_wallet(:walletId, :companyId) - blocked_shares_in_wallet(:walletId, :companyId),
+             shares_value(:companyId);
+            """, nativeQuery = true)
     WalletCompanyDTO findWalletCompanyDTOByWalletIdCompanyId(Integer walletId, Integer companyId);
 }

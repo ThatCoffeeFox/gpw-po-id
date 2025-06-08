@@ -40,7 +40,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     public List<SubscriptionListItem> getSubscriptionListItemsForLoggedInAccount() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
-        if(accountId == null){
+        if (accountId == null) {
             throw new RuntimeException("there is no logged in user");
         }
         return subscriptionRepository.findSubscriptionListItemsByAccountId(accountId);
@@ -49,23 +49,23 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     public void addSubscription(SubscriptionDTO subscriptionDTO) throws AccessDeniedException {
         Optional<IPO> ipo = ipoService.getActiveIPOById(subscriptionDTO.getIpoId());
-        if(ipo.isEmpty()){
-            throw new  EntityNotFoundException("There is no active IPO with this ID");
+        if (ipo.isEmpty()) {
+            throw new EntityNotFoundException("There is no active IPO with this ID");
         }
 
         Optional<Wallet> wallet = walletsService.getWalletById(subscriptionDTO.getWalletId());
-        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
+        if (wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
 
-        if(ipo.get().getIpoPrice().multiply(BigDecimal.valueOf(subscriptionDTO.getSharesAmount()))
-                .compareTo(walletsService.getWalletUnblockedFundsById(subscriptionDTO.getWalletId())) > 0){
+        if (ipo.get().getIpoPrice().multiply(BigDecimal.valueOf(subscriptionDTO.getSharesAmount()))
+                .compareTo(walletsService.getWalletUnblockedFundsById(subscriptionDTO.getWalletId())) > 0) {
             throw new RuntimeException("You don't have enough shares/funds");
         }
 
         try {
-            Subscription subscription = subscriptionFactory.createSubscription(subscriptionDTO.getSharesAmount(),wallet.get(),ipo.get());
+            Subscription subscription = subscriptionFactory.createSubscription(subscriptionDTO.getSharesAmount(), wallet.get(), ipo.get());
             subscriptionRepository.save(subscription);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create subscription", e);

@@ -15,6 +15,7 @@ import pl.gpwpoid.origin.services.IPOService;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.IPODTO;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -43,9 +44,9 @@ public class IPOServiceImpl implements IPOService {
     @Override
     public Optional<IPO> getActiveIPOById(Integer ipoId) {
         Optional<IPO> ipo = ipoRepository.findById(Long.valueOf(ipoId));
-        if(ipo.isPresent() &&
+        if (ipo.isPresent() &&
                 (new Date()).before(ipo.get().getSubscriptionEnd()) &&
-                (new Date()).after(ipo.get().getSubscriptionStart())){
+                (new Date()).after(ipo.get().getSubscriptionStart())) {
             return ipo;
         }
         return Optional.empty();
@@ -61,10 +62,10 @@ public class IPOServiceImpl implements IPOService {
     @Transactional
     public void addIPO(IPODTO ipoDTO) {
         Optional<Company> companyOptional = companyService.getCompanyById(ipoDTO.getCompanyId());
-        if(companyOptional.isEmpty())
+        if (companyOptional.isEmpty())
             throw new IllegalArgumentException("No company found");
         Optional<Wallet> walletOptional = walletsService.getWalletById(ipoDTO.getWalletOwnerId());
-        if(walletOptional.isEmpty())
+        if (walletOptional.isEmpty())
             throw new IllegalArgumentException("No wallet found");
         IPO ipo = ipoFactory.createIPO(
                 ipoDTO.getSharePrice(),
@@ -95,5 +96,11 @@ public class IPOServiceImpl implements IPOService {
     @Override
     public Boolean hadIPO(Integer companyId) {
         return ipoRepository.hadIPO(companyId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<BigDecimal> getIpoPriceByCompanyId(Integer companyId) {
+        return ipoRepository.findIpoPriceByCompanyId(companyId);
     }
 }

@@ -1,17 +1,14 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.models.order.Order;
 import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
 
@@ -67,7 +64,7 @@ public class OrderMatchingWorker implements Runnable {
     }
 
     @Transactional
-    private boolean match(){
+    private boolean match() {
         OrderWrapper buyOrder = buyQueue.peek(), sellOrder = sellQueue.peek();
         if (buyOrder.isExpiredOrEmpty() || orderService.isCanceledOrder(buyOrder.getOrder().getOrderId())) {
             buyQueue.poll();
@@ -86,15 +83,13 @@ public class OrderMatchingWorker implements Runnable {
             sellOrder.tradeShares(sharesAmount);
             recentTransactionSharePrice = sharePrice;
         } catch (Exception e) {
-            if (e.toString().contains( "buy order is cancelled")) {
+            if (e.toString().contains("buy order is cancelled")) {
                 buyQueue.poll();
                 return true;
-            }
-            else if (e.toString().contains( "sell order is cancelled")){
+            } else if (e.toString().contains("sell order is cancelled")) {
                 sellQueue.poll();
                 return true;
-            }
-            else {
+            } else {
                 throw new RuntimeException("Transaction failed", e);
             }
         }
@@ -105,7 +100,7 @@ public class OrderMatchingWorker implements Runnable {
     public void run() {
         while (!Thread.interrupted()) {
             while (!(buyQueue.isEmpty() || sellQueue.isEmpty())) {//matching loop
-                if(!match())break;
+                if (!match()) break;
             }
             try {
                 Order order = companyIdOrderQueue.get(companyId).take();

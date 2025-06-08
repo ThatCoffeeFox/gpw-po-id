@@ -9,8 +9,12 @@ import java.util.List;
 
 public interface SubscriptionService {
     List<SubscriptionListItem> getSubscriptionListItemsForLoggedInAccount();
+
     void addSubscription(SubscriptionDTO subscriptionDTO) throws AccessDeniedException;
+
     Integer getSharesSumByIPOId(Integer ipoId);
+
     List<Subscription> getSubscriptionsByIPOId(Integer ipoId);
+
     void saveModifiedSubscriptions(List<Subscription> subscription);
 }

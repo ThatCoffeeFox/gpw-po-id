@@ -1,6 +1,5 @@
 package pl.gpwpoid.origin.ui.views.DTO;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.NoArgsConstructor;

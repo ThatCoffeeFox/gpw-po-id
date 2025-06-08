@@ -115,11 +115,11 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional
     public void updateCompany(CompanyUpdateDTO companyUpdateDTO) {
-        if(companyUpdateDTO == null || !companyRepository.existsById(Long.valueOf(companyUpdateDTO.getCompanyId())))
+        if (companyUpdateDTO == null || !companyRepository.existsById(Long.valueOf(companyUpdateDTO.getCompanyId())))
             throw new IllegalArgumentException("Id nie istnieje lub jest NULL");
 
         Company company = companyRepository.findById(Long.valueOf(companyUpdateDTO.getCompanyId())).orElse(null);
-        if(company == null)
+        if (company == null)
             throw new IllegalArgumentException("Nie znaleziono Firmy");
 
         Town town = addressService.getTownById(companyUpdateDTO.getTownId()).get();
@@ -133,14 +133,14 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public CompanyInfo getNewestCompanyInfoItemById(Integer companyId) {
-        if(companyId == null)
+        if (companyId == null)
             return null;
         return companyRepository.findCompanyInfoById(companyId.longValue());
     }
 
     @Override
     public CompanyStatusItem getCompanyStatusItemById(Integer companyId) {
-        if(companyId == null)
+        if (companyId == null)
             return null;
         return companyRepository.getCompanyStatusItemById(companyId);
     }

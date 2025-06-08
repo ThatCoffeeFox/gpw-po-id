@@ -20,11 +20,10 @@ public class CompanyUserTransactionsGrid extends VerticalLayout {
     private final TransactionService transactionService;
     private final WalletsService walletsService;
     private final Grid<TransactionWalletListItem> grid = new Grid<>();
-
-    private Integer companyId;
     private final Integer userId;
+    private Integer companyId;
 
-    public CompanyUserTransactionsGrid(TransactionService transactionService,  WalletsService walletsService) {
+    public CompanyUserTransactionsGrid(TransactionService transactionService, WalletsService walletsService) {
         this.transactionService = transactionService;
         this.walletsService = walletsService;
         this.userId = SecurityUtils.getAuthenticatedUser().map(ExtendedUserDetails::getAccountId).orElse(null);
@@ -45,7 +44,7 @@ public class CompanyUserTransactionsGrid extends VerticalLayout {
         grid.addComponentColumn(item -> new Button(walletsService.getWalletNameById(item.getWalletId()),
                 e -> {
                     UI.getCurrent().navigate("/wallets/" + item.getWalletId());
-        })).setHeader("Portfel");
+                })).setHeader("Portfel");
     }
 
     public void setCompanyId(Integer companyId) {

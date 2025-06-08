@@ -1,4 +1,4 @@
-package pl.gpwpoid.origin.repositories.views;
+package pl.gpwpoid.origin.repositories.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

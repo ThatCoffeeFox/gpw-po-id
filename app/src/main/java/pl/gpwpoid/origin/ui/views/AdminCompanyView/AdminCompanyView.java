@@ -67,7 +67,7 @@ public class AdminCompanyView extends VerticalLayout implements HasUrlParameter<
     @Override
     public void setParameter(BeforeEvent beforeEvent, Integer parameter) {
         this.companyId = parameter;
-        try{
+        try {
             adminChangeCompanyInfoForm.setCompany(companyId);
             adminCompanyTransactionsGrid.setCompany(companyId);
             adminCompanyIPOsGrid.setCompany(companyId);
@@ -75,7 +75,7 @@ public class AdminCompanyView extends VerticalLayout implements HasUrlParameter<
             adminChangeCompanyInfoForm.updateCompanyData();
             adminCompanyTransactionsGrid.updateList();
             adminCompanyIPOsGrid.updateList();
-        } catch (Exception e){
+        } catch (Exception e) {
             Notification.show("Wystąpił błąd: " + e.getMessage());
         }
     }

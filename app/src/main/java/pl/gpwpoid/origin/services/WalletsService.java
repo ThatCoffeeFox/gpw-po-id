@@ -47,5 +47,6 @@ public interface WalletsService {
     void addTransfer(TransferDTO transferDTO);
 
     void deleteWallet(Integer walletId);
+
     WalletCompanyDTO getWalletCompanyDTOByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException;
 }
