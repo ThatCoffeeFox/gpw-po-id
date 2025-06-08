@@ -51,6 +51,12 @@ dla użytkowników Windowsa lub
 
 dla użytkowników Linuxa.
 
+W środku app/ znajduje się plik .env w którym można zmienić zmienne środowiskowe.
+
+    POSTGRESQL_USER=${DB_USER}
+    POSTGRESQL_PASSWORD=postgres
+    DATABASE_URL=jdbc:postgresql://127.0.0.1:5432/${DB_NAME}
+
 ### 3. API Aplikacji
 
 Aplikacja udostępnia REST API, które pozwala na interakcję z systemem giełdowym w sposób programistyczny. Jest ono wykorzystywane głównie przez boty symulujące ruch na giełdzie, ale może być używane przez dowolne zewnętrzne narzędzia. Wszystkie endpointy znajdują się pod bazowym adresem `/api`.
