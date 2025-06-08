@@ -12,7 +12,6 @@ import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 public interface WalletsService {

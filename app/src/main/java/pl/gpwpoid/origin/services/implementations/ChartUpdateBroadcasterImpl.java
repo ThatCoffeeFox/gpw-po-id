@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import pl.gpwpoid.origin.services.ChartUpdateBroadcaster;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -15,7 +14,6 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Map<Integer, List<ChartUpdateListener>> listenersByCompany = new HashMap<>();
     private final List<GlobalUpdateListener> globalListeners = new LinkedList<>();
-    private final List<PulsarListener> pulsarListeners = new CopyOnWriteArrayList<>();
 
     @Override
     public synchronized Registration register(Integer companyId, ChartUpdateListener listener) {
@@ -38,14 +36,6 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
     public synchronized Registration register(GlobalUpdateListener listener) {
         globalListeners.add(listener);
         return () -> unregister(listener);
-    }
-
-    @Override
-    public Registration register(PulsarListener listener) {
-        this.pulsarListeners.add(listener);
-        return () -> {
-            this.pulsarListeners.remove(listener);
-        };
     }
 
     @Override
@@ -73,12 +63,16 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
     }
 
     @Override
-    public void broadcastPulse() {
-        pulsarListeners.forEach(PulsarListener::onPulse);
+    public synchronized Set<Integer> getActiveCompanyIds() {
+        return new HashSet<>(listenersByCompany.keySet());
     }
 
     @Override
-    public synchronized Set<Integer> getActiveCompanyIds() {
-        return new HashSet<>(listenersByCompany.keySet());
+    public void broadcastGlobal() {
+        synchronized (this) {
+            for (GlobalUpdateListener listener : globalListeners) {
+                executor.execute(() -> listener.onUpdate(null));
+            }
+        }
     }
 }

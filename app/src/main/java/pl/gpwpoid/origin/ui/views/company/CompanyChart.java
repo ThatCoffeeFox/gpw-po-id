@@ -111,7 +111,7 @@ public class CompanyChart extends VerticalLayout {
         plotOptions.setUpLineColor(upColor);
         plotOptions.setShowInLegend(false);
         conf.setPlotOptions(plotOptions);
-        
+
         DataSeries upSeries = new DataSeries("Wzrost");
         PlotOptionsScatter upOptions = new PlotOptionsScatter();
         Marker upMarker = upOptions.getMarker();
@@ -120,7 +120,7 @@ public class CompanyChart extends VerticalLayout {
         upMarker.setLineWidth(0);
         upSeries.setPlotOptions(upOptions);
 
-        
+
         DataSeries downSeries = new DataSeries("Spadek");
         PlotOptionsScatter downOptions = new PlotOptionsScatter();
         Marker downMarker = downOptions.getMarker();
@@ -157,12 +157,7 @@ public class CompanyChart extends VerticalLayout {
         LocalDateTime rawNow = LocalDateTime.now();
         LocalDateTime alignedNow = currentRange.truncate(rawNow);
         LocalDateTime startTime = currentRange.getStartTime(alignedNow);
-
-        List<OHLCDataItem> rawDataFromDb = transactionService.getOHLCDataByCompanyId(
-                this.companyId,
-                startTime,
-                rawNow
-        );
+        List<OHLCDataItem> rawDataFromDb = transactionService.getOHLCDataByCompanyId(this.companyId, startTime, rawNow);
 
         BigDecimal anchorPrice;
         Optional<BigDecimal> previousCloseOpt = transactionService.findLastSharePriceBeforeDate(this.companyId, startTime);
@@ -185,57 +180,50 @@ public class CompanyChart extends VerticalLayout {
 
         chartHeader.setText("Historia cen akcji");
         Map<LocalDateTime, OhlcItem> candleMap = new TreeMap<>();
-        if (rawDataFromDb != null) {
+        if (rawDataFromDb != null && !rawDataFromDb.isEmpty()) {
             Map<LocalDateTime, List<OHLCDataItem>> groupedByInterval = rawDataFromDb.stream()
                     .collect(Collectors.groupingBy(data -> currentRange.truncate(toLocalDateTime(data.getTimestamp()))));
-
             for (Map.Entry<LocalDateTime, List<OHLCDataItem>> entry : groupedByInterval.entrySet()) {
                 LocalDateTime groupTimestamp = entry.getKey();
                 List<OHLCDataItem> itemsInGroup = entry.getValue();
                 itemsInGroup.sort(Comparator.comparing(OHLCDataItem::getTimestamp));
 
+                BigDecimal high = itemsInGroup.stream().map(OHLCDataItem::getHigh).reduce(BigDecimal.ZERO, BigDecimal::max);
+                BigDecimal low = itemsInGroup.stream().map(OHLCDataItem::getLow).reduce(itemsInGroup.get(0).getLow(), BigDecimal::min);
+
                 OhlcItem aggregatedCandle = new OhlcItem();
                 aggregatedCandle.setX(groupTimestamp.atZone(SERVER_ZONE_ID).toInstant());
                 aggregatedCandle.setOpen(itemsInGroup.get(0).getOpen());
-                aggregatedCandle.setHigh(itemsInGroup.stream().map(OHLCDataItem::getHigh).mapToDouble(Number::doubleValue).max().orElse(0));
-                aggregatedCandle.setLow(itemsInGroup.stream().map(OHLCDataItem::getLow).mapToDouble(Number::doubleValue).min().orElse(0));
+                aggregatedCandle.setHigh(high);
+                aggregatedCandle.setLow(low);
                 aggregatedCandle.setClose(itemsInGroup.get(itemsInGroup.size() - 1).getClose());
                 candleMap.put(groupTimestamp, aggregatedCandle);
             }
         }
 
-        OhlcItem lastKnownCandle = new OhlcItem();
-        lastKnownCandle.setClose(anchorPrice);
-
+        BigDecimal lastRealClosePrice = anchorPrice;
         List<OhlcItem> finalCandles = new ArrayList<>();
         LocalDateTime currentTimeStep = startTime;
-
         while (!currentTimeStep.isAfter(alignedNow)) {
             OhlcItem candleForThisStep = candleMap.get(currentTimeStep);
-
             if (candleForThisStep != null) {
                 finalCandles.add(candleForThisStep);
-                lastKnownCandle = candleForThisStep;
+                lastRealClosePrice = new BigDecimal(candleForThisStep.getClose().toString());
             } else {
                 OhlcItem flatCandle = new OhlcItem();
                 flatCandle.setX(currentTimeStep.atZone(SERVER_ZONE_ID).toInstant());
-
-                Number lastClose = lastKnownCandle.getClose();
-                flatCandle.setOpen(lastClose);
-                flatCandle.setHigh(lastClose);
-                flatCandle.setLow(lastClose);
-                flatCandle.setClose(lastClose);
+                flatCandle.setOpen(lastRealClosePrice);
+                flatCandle.setHigh(lastRealClosePrice);
+                flatCandle.setLow(lastRealClosePrice);
+                flatCandle.setClose(lastRealClosePrice);
                 finalCandles.add(flatCandle);
-
-                lastKnownCandle = flatCandle;
             }
-
             currentTimeStep = currentTimeStep.plus(currentRange.getIntervalAmount(), currentRange.getGroupingUnit());
         }
 
         this.series.clear();
         for (OhlcItem item : finalCandles) {
-            this.series.add(item, false, false); 
+            this.series.add(item, false, false);
         }
 
 
@@ -285,64 +273,47 @@ public class CompanyChart extends VerticalLayout {
 
     private void updateLastCandle(OhlcItem lastItem, LocalDateTime startTime, LocalDateTime endTime) {
         List<OHLCDataItem> updates = transactionService.getOHLCDataByCompanyId(companyId, startTime, endTime);
-
         if (!updates.isEmpty()) {
-            OHLCDataItem lastTransaction = updates.stream()
-                    .max(Comparator.comparing(OHLCDataItem::getTimestamp))
-                    .get();
-
-            BigDecimal newHigh = updates.stream()
-                    .map(OHLCDataItem::getHigh)
-                    .max(Comparator.naturalOrder())
-                    .map(h -> h.max(BigDecimal.valueOf(lastItem.getHigh().doubleValue())))
-                    .get();
-
-            BigDecimal newLow = updates.stream()
-                    .map(OHLCDataItem::getLow)
-                    .min(Comparator.naturalOrder())
-                    .map(l -> l.min(BigDecimal.valueOf(lastItem.getLow().doubleValue())))
-                    .get();
+            OHLCDataItem lastTransaction = updates.stream().max(Comparator.comparing(OHLCDataItem::getTimestamp)).get();
+            BigDecimal lastHigh = new BigDecimal(lastItem.getHigh().toString());
+            BigDecimal lastLow = new BigDecimal(lastItem.getLow().toString());
+            BigDecimal newHigh = updates.stream().map(OHLCDataItem::getHigh).reduce(lastHigh, BigDecimal::max);
+            BigDecimal newLow = updates.stream().map(OHLCDataItem::getLow).reduce(lastLow, BigDecimal::min);
 
             lastItem.setHigh(newHigh);
             lastItem.setLow(newLow);
             lastItem.setClose(lastTransaction.getClose());
-
             series.update(lastItem);
-
             adjustYAxisIfNeeded(newHigh, newLow);
-
             candlestickChart.drawChart();
         }
     }
 
     private void addNewCandle(OhlcItem previousItem, LocalDateTime now) {
         LocalDateTime newIntervalStart = currentRange.truncate(now);
-
         List<OHLCDataItem> updates = transactionService.getOHLCDataByCompanyId(companyId, newIntervalStart, now);
-
         OhlcItem newItem = new OhlcItem();
         newItem.setX(newIntervalStart.atZone(SERVER_ZONE_ID).toInstant());
-        Number openPrice = previousItem.getClose();
+        Number previousClosePrice = previousItem.getClose();
 
         if (!updates.isEmpty()) {
             OHLCDataItem firstTransaction = updates.stream().min(Comparator.comparing(OHLCDataItem::getTimestamp)).get();
             OHLCDataItem lastTransaction = updates.stream().max(Comparator.comparing(OHLCDataItem::getTimestamp)).get();
-
             newItem.setOpen(firstTransaction.getOpen());
-
-            newItem.setHigh(updates.stream().map(OHLCDataItem::getHigh).max(Comparator.naturalOrder()).get());
-            newItem.setLow(updates.stream().map(OHLCDataItem::getLow).min(Comparator.naturalOrder()).get());
-
+            newItem.setHigh(updates.stream().map(OHLCDataItem::getHigh).reduce(BigDecimal.ZERO, BigDecimal::max));
+            newItem.setLow(updates.stream().map(OHLCDataItem::getLow).reduce(firstTransaction.getLow(), BigDecimal::min));
             newItem.setClose(lastTransaction.getClose());
         } else {
-            newItem.setOpen(openPrice);
-            newItem.setHigh(openPrice);
-            newItem.setLow(openPrice);
-            newItem.setClose(openPrice);
+            newItem.setOpen(previousClosePrice);
+            newItem.setHigh(previousClosePrice);
+            newItem.setLow(previousClosePrice);
+            newItem.setClose(previousClosePrice);
         }
 
         series.add(newItem, false, true);
-        adjustYAxisIfNeeded(BigDecimal.valueOf(newItem.getHigh().doubleValue()), BigDecimal.valueOf(newItem.getLow().doubleValue()));
+        BigDecimal newHigh = new BigDecimal(newItem.getHigh().toString());
+        BigDecimal newLow = new BigDecimal(newItem.getLow().toString());
+        adjustYAxisIfNeeded(newHigh, newLow);
         candlestickChart.drawChart();
     }
 

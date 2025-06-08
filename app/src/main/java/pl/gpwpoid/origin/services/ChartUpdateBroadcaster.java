@@ -12,15 +12,13 @@ public interface ChartUpdateBroadcaster {
 
     void broadcast(Integer companyId);
 
-    void broadcastPulse();
-
     Set<Integer> getActiveCompanyIds();
 
     Registration register(GlobalUpdateListener listener);
 
-    Registration register(PulsarListener listener);
-
     void unregister(GlobalUpdateListener listener);
+
+    void broadcastGlobal();
 
     @FunctionalInterface
     interface ChartUpdateListener {

@@ -6,18 +6,15 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
-import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collection;
 
 public class WalletSharesGrid extends VerticalLayout {
     private final WalletsService walletsService;
-
-    private Integer walletId;
     private final Grid<WalletCompanyListItem> sharesGrid = new Grid<>();
+    private Integer walletId;
 
     public WalletSharesGrid(WalletsService walletsService) {
         this.walletsService = walletsService;
@@ -25,7 +22,7 @@ public class WalletSharesGrid extends VerticalLayout {
         sharesGrid.setWidth("100%");
     }
 
-    private void configureSharesGrid(){
+    private void configureSharesGrid() {
         sharesGrid.addColumn(new ComponentRenderer<>(this::navigateToCompany))
                 .setHeader("Firma")
                 .setAutoWidth(true);
@@ -79,7 +76,7 @@ public class WalletSharesGrid extends VerticalLayout {
         return percentage + "%";
     }
 
-    public void updateList(){
+    public void updateList() {
         sharesGrid.setItems(walletsService.getWalletCompanyListForCurrentWallet(walletId));
     }
 }

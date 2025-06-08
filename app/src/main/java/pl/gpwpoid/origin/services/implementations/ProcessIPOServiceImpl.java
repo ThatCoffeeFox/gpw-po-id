@@ -52,7 +52,7 @@ public class ProcessIPOServiceImpl implements ProcessIPOService {
 
         subscriptionService.saveModifiedSubscriptions(subscriptionsToModify);
         ipo.setProcessed(true);
-        if(!companyService.isTradable(ipo.getCompany().getCompanyId()))
+        if (!companyService.isTradable(ipo.getCompany().getCompanyId()))
             companyService.setTradable(ipo.getCompany().getCompanyId(), true);
         ipoService.saveProcessedIPO(ipo);
     }
