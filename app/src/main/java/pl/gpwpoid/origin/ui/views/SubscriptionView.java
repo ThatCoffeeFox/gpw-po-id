@@ -9,11 +9,13 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.renderer.LocalDateTimeRenderer;
 import com.vaadin.flow.data.renderer.NumberRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
+import pl.gpwpoid.origin.repositories.DTO.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.IPOListItem;
 import pl.gpwpoid.origin.repositories.views.SubscriptionListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
@@ -24,6 +26,9 @@ import pl.gpwpoid.origin.ui.views.DTO.SubscriptionDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Objects;
@@ -51,6 +56,8 @@ public class SubscriptionView extends VerticalLayout {
     );
     private Collection<WalletListItem> avaibleWallets;
     private Collection<IPOListItem> avaibleCompanies;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
 
     @Autowired
@@ -151,14 +158,23 @@ public class SubscriptionView extends VerticalLayout {
     }
 
     private void configureActiveIPOGrid() {
+        ZoneId systemZoneId = ZoneId.systemDefault();
+
         activeIPOGrid.setSizeFull();
         activeIPOGrid.setAllRowsVisible(true);
         activeIPOGrid.addColumn(IPOListItem::getCompanyName).setHeader("Firma");
         activeIPOGrid.addColumn(new NumberRenderer<>(IPOListItem::getIpoPrice, currencyFormat)).setHeader("Cena");
         activeIPOGrid.addColumn(IPOListItem::getSharesAmount).setHeader("Liczba Akcji");
         activeIPOGrid.addColumn(IPOListItem::getSubscriptionStart).setHeader("Data rozpoczęcia");
-        activeIPOGrid.addColumn(IPOListItem::getSubscriptionEnd).setHeader("Data zakończenia");
+        activeIPOGrid.addColumn(this::formatDate).setHeader("Data zakończenia");
         activeIPOGrid.getColumns().forEach(column -> column.setAutoWidth(true));
+    }
+
+    private String formatDate(IPOListItem item) {
+        if (item.getSubscriptionEnd() == null)
+            return "";
+        LocalDateTime date = item.getSubscriptionEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return date.format(DATE_FORMATTER);
     }
 
 }
