@@ -95,7 +95,10 @@ public class IPOServiceImpl implements IPOService {
 
     @Override
     public Boolean hadIPO(Integer companyId) {
-        return ipoRepository.hadIPO(companyId);
+        Boolean ans = ipoRepository.hadIPO(companyId);
+        if(ans == null)
+            return false;
+        return ans;
     }
 
     @Transactional(readOnly = true)
