@@ -206,7 +206,7 @@ CREATE TABLE subscriptions (
 
 /*
 ##############################################################
-            DATABASE FUNCTIONS, TRIGGERS AND VIEWS
+        DATABASE FUNCTIONS, TRIGGERS, VIEWS AND INDEXES
 ##############################################################
 */
 
@@ -215,7 +215,7 @@ CREATE TABLE subscriptions (
 
 
 -- This function checks the available funds in target wallet --
-CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_date TIMESTAMP DEFAULT current_timestamp)
+/*CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_date TIMESTAMP DEFAULT current_timestamp)
     RETURNS NUMERIC(17,2)
     AS $$
     BEGIN
@@ -246,6 +246,80 @@ CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_dat
                     JOIN ipo i ON i.ipo_id = s.ipo_id
                     WHERE i.payment_wallet_id = arg_wallet_id AND i.subscription_end < arg_before_date AND i.processed = true); --pieniadze otrzymane z zakonczonych zapisow
     END
+$$ LANGUAGE plpgsql;*/
+
+CREATE OR REPLACE FUNCTION funds_in_wallet(arg_wallet_id INTEGER, arg_before_date TIMESTAMP DEFAULT current_timestamp)
+    RETURNS NUMERIC(17,2)
+    AS $$
+    BEGIN
+        RETURN (
+            SELECT COALESCE(SUM(funds),0)
+            FROM (
+                --wplacone na konto
+                SELECT et.amount AS funds
+                FROM external_transfers et
+                WHERE et.wallet_id = arg_wallet_id
+                AND et.type = 'deposit' AND et.date < arg_before_date
+
+                UNION ALL
+
+                --wyplacone z konta
+                SELECT -et.amount AS funds
+                FROM external_transfers et
+                WHERE et.wallet_id = arg_wallet_id
+                AND et.type = 'withdrawal' AND et.date < arg_before_date
+
+                UNION ALL
+
+                --ze sprzedanych akcji
+                SELECT t.share_price * t.shares_amount AS funds
+                FROM transactions t
+                JOIN orders o ON t.sell_order_id = o.order_id
+                WHERE o.wallet_id = arg_wallet_id
+                AND t.date < arg_before_date
+
+                UNION ALL
+
+                --za kupione akcje
+                SELECT -(t.share_price * t.shares_amount) AS funds
+                FROM transactions t
+                JOIN orders o ON t.buy_order_id = o.order_id
+                WHERE o.wallet_id = arg_wallet_id
+                AND t.date < arg_before_date
+
+                UNION ALL
+
+                --zakonczone ipo
+                SELECT -(s.shares_assigned * i.ipo_price) AS funds
+                FROM subscriptions s
+                JOIN ipo i ON i.ipo_id = s.ipo_id
+                WHERE s.wallet_id = arg_wallet_id
+                AND i.processed = true
+                AND i.subscription_end < arg_before_date
+                AND s.date < arg_before_date
+
+                UNION ALL
+
+                --trwajace ipo
+                SELECT -(s.shares_amount * i.ipo_price) AS funds
+                FROM subscriptions s
+                JOIN ipo i ON i.ipo_id = s.ipo_id
+                WHERE s.wallet_id = arg_wallet_id
+                AND i.subscription_end >= arg_before_date
+                AND s.date < arg_before_date
+
+                UNION ALL
+
+                --zakonczone ipo jako wlasciciel
+                SELECT s.shares_assigned * i.ipo_price AS funds
+                FROM subscriptions s
+                JOIN ipo i ON i.ipo_id = s.ipo_id
+                WHERE i.payment_wallet_id = arg_wallet_id
+                AND i.processed = true
+                AND i.subscription_end < arg_before_date
+            ) AS all_funds
+        );
+    END
 $$ LANGUAGE plpgsql;
 
 -- This function checks how many left over shares are available in a partially finished orders --
@@ -268,7 +342,8 @@ CREATE OR REPLACE FUNCTION shares_left_in_order(arg_order_id INTEGER)
     END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
+-- This function calculates the amount of shares available in target wallet --
+/*CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
     RETURNS INTEGER
     AS $$
     BEGIN
@@ -290,7 +365,56 @@ CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_i
                     WHERE i.payment_wallet_id = arg_wallet_id AND i.company_id = arg_company_id AND i.processed = true
                     GROUP BY i.shares_amount, i.ipo_id)::INTEGER,0); --akcje pozostale po emisji
     END
-$$ LANGUAGE plpgsql;     
+$$ LANGUAGE plpgsql;  */
+
+CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
+    RETURNS INTEGER
+    AS $$
+    BEGIN
+        RETURN (
+            SELECT COALESCE(SUM(shares),0)::INTEGER
+            FROM (
+                --kupione akcje
+                SELECT t.shares_amount AS shares
+                FROM transactions t
+                JOIN orders o ON o.order_id = t.buy_order_id
+                WHERE o.wallet_id = arg_wallet_id
+                AND o.company_id = arg_company_id
+
+                UNION ALL
+
+                --sprzedane akcje
+                SELECT -t.shares_amount AS shares
+                FROM transactions t
+                JOIN orders o ON o.order_id = t.sell_order_id
+                WHERE o.wallet_id = arg_wallet_id
+                AND o.company_id = arg_company_id
+
+                UNION ALL
+
+                --akcje kupione w trakcie emisji
+                SELECT s.shares_assigned as shares
+                FROM subscriptions s
+                JOIN ipo i ON s.ipo_id = i.ipo_id
+                WHERE s.wallet_id = arg_wallet_id
+                AND i.processed = true
+                AND i.company_id = arg_company_id
+
+                UNION ALL
+
+                --akcje pozostale po emisji
+                SELECT (i.shares_amount - COALESCE(SUM(s.shares_assigned),0)) AS shares
+                FROM ipo i
+                JOIN subscriptions s ON i.ipo_id = s.ipo_id
+                WHERE i.payment_wallet_id = arg_wallet_id
+                AND i.company_id = arg_company_id
+                AND i.processed = true
+                GROUP BY i.ipo_id, i.shares_amount
+            ) AS all_shares
+        );
+    END
+$$ LANGUAGE plpgsql;
+
 
 -- This function calculates the amount of shares blocked in target wallet --
 CREATE OR REPLACE FUNCTION blocked_shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
@@ -302,7 +426,7 @@ CREATE OR REPLACE FUNCTION blocked_shares_in_wallet(arg_wallet_id INTEGER, arg_c
                     WHERE o.wallet_id = arg_wallet_id
                     AND o.company_id = arg_company_id
                     AND o.order_type = 'sell'
-                    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc));
+                    AND NOT EXISTS (SELECT 1 FROM order_cancellations oc WHERE oc.order_id = o.order_id));
     END
 $$ LANGUAGE plpgsql;
 
@@ -317,10 +441,9 @@ CREATE OR REPLACE FUNCTION shares_value(arg_company_id INTEGER)
                             WHERE o.company_id = arg_company_id
                             ORDER BY t.date DESC LIMIT 1), i.ipo_price)
                     FROM ipo i
-                    WHERE i.company_id = arg_company_id AND
-                    i.subscription_start = (SELECT subscription_start FROM ipo ii 
-                                            WHERE ii.company_id = arg_company_id 
-                                            ORDER BY 1 DESC LIMIT 1));
+                    WHERE i.company_id = arg_company_id
+                    ORDER BY i.subscription_start DESC
+                    LIMIT 1);
     END
 $$ LANGUAGE plpgsql;
 
@@ -329,10 +452,14 @@ CREATE OR REPLACE FUNCTION shares_value_last_day(arg_company_id INTEGER)
     RETURNS NUMERIC(17,2)
     AS $$
     BEGIN
-    RETURN (SELECT t.share_price
+    RETURN (SELECT COALESCE((SELECT t.share_price
             FROM transactions t JOIN orders o ON t.sell_order_id = o.order_id
             WHERE t.date < CURRENT_DATE AND o.company_id = arg_company_id
             ORDER BY t.date DESC
+            LIMIT 1), i.ipo_price)
+            FROM ipo i
+            WHERE i.company_id = arg_company_id
+            ORDER BY i.subscription_start DESC
             LIMIT 1);
     END
 $$ LANGUAGE plpgsql;
@@ -364,7 +491,7 @@ CREATE OR REPLACE FUNCTION unblocked_funds_in_wallet(arg_wallet_id INTEGER)
                         FROM orders o
                         WHERE o.wallet_id = arg_wallet_id
                         AND o.order_type = 'buy'
-                        AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc))
+                        AND NOT EXISTS (SELECT 1 FROM order_cancellations oc WHERE oc.order_id = o.order_id))
                 END;
     END;
 $$ LANGUAGE plpgsql;
@@ -394,7 +521,7 @@ CREATE OR REPLACE FUNCTION unblocked_funds_before_market_buy_order(arg_order_id 
                     WHERE o.wallet_id = arg_wallet_id
                     AND o.order_type = 'buy'
                     AND o.order_start_date < before_date
-                    AND o.order_id NOT IN (SELECT oc.order_id FROM order_cancellations oc WHERE oc.date < before_date))
+                    AND NOT EXISTS (SELECT 1 FROM order_cancellations oc WHERE oc.order_id = o.order_id))
             END;
     END;
 $$ LANGUAGE plpgsql;
@@ -676,6 +803,23 @@ CREATE OR REPLACE TRIGGER prevent_update_on_transactions_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_update_on_immutable_table();
 
+----------------------------------------------------------------------
+
+--INDEXES:
+
+----------------------------------------------------------------------
+CREATE INDEX idx_accounts_info_account_id_updated_at ON accounts_info (account_id, updated_at DESC);
+
+CREATE INDEX idx_companies_info_company_id_updated_at ON companies_info (company_id, updated_at DESC);
+CREATE INDEX idx_companies_status_company_id_date ON companies_status (company_id, date DESC);
+
+CREATE INDEX idx_orders_wallet_id_company_id ON orders (wallet_id, company_id);
+CREATE INDEX idx_orders_company_id ON orders (company_id);
+
+CREATE INDEX idx_transactions_sell_order_id ON transactions (sell_order_id, date) INCLUDE (share_price);
+CREATE INDEX idx_transactions_buy_order_id ON transactions (buy_order_id);
+
+CREATE INDEX idx_order_cancellations_order_id ON order_cancellations (order_id);
 ----------------------------------------------------------------------
 
 /*
