@@ -268,7 +268,6 @@ CREATE OR REPLACE FUNCTION shares_left_in_order(arg_order_id INTEGER)
     END
 $$ LANGUAGE plpgsql;
 
--- This function calculates the amount of shares available in target wallet --
 CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
     RETURNS INTEGER
     AS $$
@@ -291,7 +290,7 @@ CREATE OR REPLACE FUNCTION shares_in_wallet(arg_wallet_id INTEGER, arg_company_i
                     WHERE i.payment_wallet_id = arg_wallet_id AND i.company_id = arg_company_id AND i.processed = true
                     GROUP BY i.shares_amount, i.ipo_id)::INTEGER,0); --akcje pozostale po emisji
     END
-$$ LANGUAGE plpgsql;        
+$$ LANGUAGE plpgsql;     
 
 -- This function calculates the amount of shares blocked in target wallet --
 CREATE OR REPLACE FUNCTION blocked_shares_in_wallet(arg_wallet_id INTEGER, arg_company_id INTEGER)
