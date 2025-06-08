@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services.implementations;
 
 import com.vaadin.flow.shared.Registration;
 import org.springframework.stereotype.Component;
+import pl.gpwpoid.origin.repositories.DTO.TransactionDTO;
 import pl.gpwpoid.origin.services.ChartUpdateBroadcaster;
 
 import java.util.*;
@@ -44,20 +45,18 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
     }
 
     @Override
-    public void broadcast(Integer companyId) {
+    public void broadcast(TransactionDTO transactionData) {
+        if (transactionData == null) return;
+        Integer companyId = transactionData.getCompanyId();
+
         List<ChartUpdateListener> companyListeners;
         synchronized (this) {
             companyListeners = listenersByCompany.get(companyId);
         }
+
         if (companyListeners != null) {
             for (ChartUpdateListener listener : companyListeners) {
-                executor.execute(() -> listener.onChartUpdate(companyId));
-            }
-        }
-
-        synchronized (this) {
-            for (GlobalUpdateListener listener : globalListeners) {
-                executor.execute(() -> listener.onUpdate(companyId));
+                executor.execute(() -> listener.onChartUpdate(transactionData));
             }
         }
     }
@@ -72,6 +71,18 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
         synchronized (this) {
             for (GlobalUpdateListener listener : globalListeners) {
                 executor.execute(() -> listener.onUpdate(null));
+            }
+        }
+    }
+    @Override
+    public void broadcastPulse(Integer companyId) {
+        List<ChartUpdateListener> companyListeners;
+        synchronized (this) {
+            companyListeners = listenersByCompany.get(companyId);
+        }
+        if (companyListeners != null) {
+            for (ChartUpdateListener listener : companyListeners) {
+                executor.execute(() -> listener.onChartUpdate(null));
             }
         }
     }

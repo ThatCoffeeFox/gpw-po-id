@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.services;
 
 import com.vaadin.flow.shared.Registration;
+import pl.gpwpoid.origin.repositories.DTO.TransactionDTO;
 
 import java.util.Set;
 
@@ -10,7 +11,7 @@ public interface ChartUpdateBroadcaster {
 
     void unregister(Integer companyId, ChartUpdateListener listener);
 
-    void broadcast(Integer companyId);
+    void broadcast(TransactionDTO transactionDTO);
 
     Set<Integer> getActiveCompanyIds();
 
@@ -22,7 +23,7 @@ public interface ChartUpdateBroadcaster {
 
     @FunctionalInterface
     interface ChartUpdateListener {
-        void onChartUpdate(Integer companyId);
+        void onChartUpdate(TransactionDTO transactionData);
     }
 
     @FunctionalInterface
@@ -30,8 +31,5 @@ public interface ChartUpdateBroadcaster {
         void onUpdate(Integer companyId);
     }
 
-    @FunctionalInterface
-    interface PulsarListener {
-        void onPulse();
-    }
+    void broadcastPulse(Integer companyId);
 }

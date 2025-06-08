@@ -23,25 +23,33 @@ Jeśli użytkownik posiada uprawnienia administratora, to dostanie on dostęp do
 ### 2. Rozpoczęcie aplikacji
 
 Aby rozpocząć aplikację, musisz mieć stworzoną bazę danych w PostgreSQL oraz zainstalowaną Javę w wersji 24+.
-Następnie wykonaj następujące polecenia w katalogu głównym:
+Następnie odpal skrypt
+
+    .\build.bat
+
+dla użytkowników Windows lub
+
+    .\build.sh
+
+dla użytkowników Linuxa.
+Do uruchomienia aplikacji po budowie należy używać komendy
+
+    java -jar target\origin-0.0.1-SNAPSHOT.jar
+
+Aby usunąć strukturę bazy danych należy uruchomić:
 
     cd .\db\
-    psql -U <NAZWA_UŻYTKOWNIKA> -d <NAZWA_BAZY> -f .\create.sql
+    psql -U <NAZWA_UŻYTKOWNIKA> -d <NAZWA_BAZY> -f .\clear.sql
 
-I opcjonalnie można dodać boty do aplikacji:
+Do użytku są również dostępne boty aby przedstawić symulację giełdy. Aby ich użyć należy zainstalować Python'a w wersji 3+ i uruchomić skrypt:
 
-    psql -U <NAZWA_UŻYTKOWNIKA> -d <NAZWA_BAZY> -f .\insert_bots.sql
+    .\deploy_bots.bat
 
-Następnie budujemy aplikację:
+dla użytkowników Windowsa lub
 
-    cd ..\app
-    .\mvnw clean package -Pproduction
-    java -jar target/origin-0.0.1-SNAPSHOT.jar
+    .\deploy_bots.sh
 
-I opcjonalnie uruchamiamy boty:
-
-    cd ..\simulation
-    python .\launch_bots.py
+dla użytkowników Linuxa.
 
 ### 3. API Aplikacji
 

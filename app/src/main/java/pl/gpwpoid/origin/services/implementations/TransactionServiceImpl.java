@@ -48,11 +48,17 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction newTransaction = transactionFactory.createTransaction(sellOrder, buyOrder, sharesAmount, sharePrice);
         transactionRepository.save(newTransaction);
 
-        Integer companyId = buyOrder.getCompany().getCompanyId();
+        TransactionDTO dataDTO = new TransactionDTO(
+                buyOrder.getCompany().getCompanyId(),
+                newTransaction.getDate(),
+                newTransaction.getSharesAmount(),
+                newTransaction.getSharePrice()
+        );
+
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                broadcaster.broadcast(companyId);
+                broadcaster.broadcast(dataDTO);
             }
         });
     }

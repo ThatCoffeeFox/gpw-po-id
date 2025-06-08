@@ -36,8 +36,4 @@ public class ProfileUpdateDTO {
     @NotBlank(message = "Numer telefonu jest wymagany")
     @Pattern(regexp = "\\+[0-9]{10,13}", message = "Niepoprawny format numeru telefonu (np. +48123456789)")
     private String phoneNumber;
-
-    @NotBlank(message = "PESEL jest wymagany")
-    @ValidPesel
-    private String pesel;
 }
