@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.ui.views;
 
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -17,28 +18,24 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
+import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
+import pl.gpwpoid.origin.repositories.views.WalletListViewItem;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Locale;
 
 @Route(value = "wallets", layout = MainLayout.class)
 @PageTitle("Lista portfeli")
 @RolesAllowed({"user", "admin"})
-public class WalletsListView extends HorizontalLayout {
+public class WalletsListView extends VerticalLayout {
     private final WalletsService walletsService;
-    private final Grid<WalletListItem> grid = new Grid<>();
-
-    private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
-            "#,##0.00",
-            DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
-    );
+    private final Grid<WalletListViewItem> grid = new Grid<>();
 
     public WalletsListView(WalletsService walletsService) {
         this.walletsService = walletsService;
@@ -47,7 +44,7 @@ public class WalletsListView extends HorizontalLayout {
 
         configureGrid();
         VerticalLayout addWalletLayout = configureAddWalletButton();
-        add(grid, addWalletLayout);
+        add(addWalletLayout, new H3("Twoje portfele: "), grid);
         loadWalletListItems();
         setSpacing(true);
         setPadding(true);
@@ -110,33 +107,47 @@ public class WalletsListView extends HorizontalLayout {
     private void configureGrid() {
         grid.setSizeFull();
 
-        grid.addColumn(WalletListItem::getName).setHeader("Nazwa portfela").setSortable(true);
+        grid.addColumn(WalletListViewItem::getWalletName)
+                .setHeader("Nazwa portfela")
+                .setAutoWidth(true)
+                .setSortable(true);
 
-        grid.addColumn(
-                        wallet -> {
-                            return FUNDS_FORMATTER.format(wallet.getFunds()) + " zł";
-                        })
+        grid.addColumn(item -> formatPrice(item.getWalletFunds()))
                 .setHeader("Dostępne fundusze")
-                .setTextAlign(ColumnTextAlign.END).setSortable(true);
+                .setAutoWidth(true);
+
+        grid.addColumn(WalletListViewItem::getWalletShares)
+                .setHeader("Ilość Wszystkich akcji")
+                .setAutoWidth(true);
+
+        grid.addColumn(item -> formatPrice(item.getWalletSharesValue()))
+                .setHeader("Łączna wartość akcji")
+                .setAutoWidth(true);
 
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
         grid.addItemClickListener(event -> {
-            WalletListItem item = event.getItem();
-            if (item != null && item.getFunds() != null) {
+            WalletListViewItem item = event.getItem();
+            if (item != null && item.getWalletId() != null) {
                 UI.getCurrent().navigate("wallets/" + item.getWalletId());
             }
         });
 
-        grid.getColumns().forEach(column -> column.setAutoWidth(true));
-        grid.setMaxWidth("1000px");
+        grid.setMaxWidth("100%");
     }
 
     private void loadWalletListItems() {
         if (SecurityUtils.isLoggedIn()) {
-            Collection<WalletListItem> walletList = walletsService.getWalletListViewForCurrentUser();
+            Collection<WalletListViewItem> walletList = walletsService.getExtendedWalletListViewByAccountId(SecurityUtils.getAuthenticatedAccountId());
             grid.setItems(walletList);
         } else
             grid.setItems(Collections.emptyList());
+    }
+
+    private String formatPrice(BigDecimal item) {
+        if (item == null) {
+            return "Brak danych";
+        }
+        return String.format("%.2f PLN", item);
     }
 }

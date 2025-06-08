@@ -8,6 +8,7 @@ import pl.gpwpoid.origin.repositories.DTO.WalletCompanyDTO;
 import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
+import pl.gpwpoid.origin.repositories.views.WalletListViewItem;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,19 +24,22 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
                     JOIN accounts a ON a.account_id = w.account_id
                     WHERE a.account_id = :accountId AND w.active = true
             """, nativeQuery = true)
-    List<WalletListItem> getWalletListViewForCurrentUser(Integer accountId);
-
+    List<WalletListItem> getWalletListViewByAccountId(Integer accountId);
 
     @Query(value = """
                     SELECT 
                         w.wallet_id AS walletId,
                         w.name AS name,
-                        funds_in_wallet(w.wallet_id) AS funds
+                        funds_in_wallet(w.wallet_id) AS funds,
+                        SUM(shares_in_wallet(w.wallet_id, c.company_id)) AS shares,
+                        SUM(shares_in_wallet(w.wallet_id, c.company_id)*shares_value(c.company_id)) AS shares_value
                     FROM wallets w
                     JOIN accounts a ON a.account_id = w.account_id
+                    CROSS JOIN companies c
                     WHERE a.account_id = :accountId AND w.active = true
+                    GROUP BY w.wallet_id, w.name, w.account_id
             """, nativeQuery = true)
-    List<WalletListItem> getWalletListViewByAccountId(Integer accountId);
+    List<WalletListViewItem> getExtendedWalletListViewByAccountId(Integer accountId);
 
     @Query(value = """
                     SELECT 

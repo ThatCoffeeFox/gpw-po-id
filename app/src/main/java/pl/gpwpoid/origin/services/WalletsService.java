@@ -5,12 +5,14 @@ import pl.gpwpoid.origin.repositories.DTO.WalletCompanyDTO;
 import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
+import pl.gpwpoid.origin.repositories.views.WalletListViewItem;
 import pl.gpwpoid.origin.ui.views.DTO.TransferDTO;
 import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface WalletsService {
@@ -19,6 +21,8 @@ public interface WalletsService {
     Collection<WalletListItem> getWalletListViewForCurrentUser();
 
     Collection<WalletListItem> getWalletListViewByAccountId(Integer accountId);
+
+    Collection<WalletListViewItem> getExtendedWalletListViewByAccountId(Integer accountId);
 
     WalletListItem getWalletListItemById(Integer walletListItemId);
 

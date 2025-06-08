@@ -15,6 +15,7 @@ import pl.gpwpoid.origin.repositories.WalletRepository;
 import pl.gpwpoid.origin.repositories.views.TransferListItem;
 import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListItem;
+import pl.gpwpoid.origin.repositories.views.WalletListViewItem;
 import pl.gpwpoid.origin.services.AccountService;
 import pl.gpwpoid.origin.services.CompanyService;
 import pl.gpwpoid.origin.services.WalletsService;
@@ -55,7 +56,7 @@ public class WalletServiceImpl implements WalletsService {
     @Transactional(readOnly = true)
     public Collection<WalletListItem> getWalletListViewForCurrentUser() {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
-        return walletRepository.getWalletListViewForCurrentUser(accountId);
+        return walletRepository.getWalletListViewByAccountId(accountId);
     }
 
     @Override
@@ -69,6 +70,11 @@ public class WalletServiceImpl implements WalletsService {
     @Transactional(readOnly = true)
     public Collection<WalletListItem> getWalletListViewByAccountId(Integer accountId) {
         return walletRepository.getWalletListViewByAccountId(accountId);
+    }
+
+    @Override
+    public Collection<WalletListViewItem> getExtendedWalletListViewByAccountId(Integer accountId) {
+        return walletRepository.getExtendedWalletListViewByAccountId(accountId);
     }
 
     @Override

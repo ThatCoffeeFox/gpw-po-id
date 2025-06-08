@@ -9,13 +9,11 @@ import org.springframework.data.domain.PageRequest;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 import pl.gpwpoid.origin.services.TransactionService;
 import pl.gpwpoid.origin.services.WalletsService;
-import pl.gpwpoid.origin.ui.views.WalletView;
 import pl.gpwpoid.origin.utils.ExtendedUserDetails;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.util.Collections;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public class CompanyUserTransactionsGrid extends VerticalLayout {
 
