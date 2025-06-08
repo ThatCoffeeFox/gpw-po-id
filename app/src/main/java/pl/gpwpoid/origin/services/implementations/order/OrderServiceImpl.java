@@ -134,12 +134,10 @@ public class OrderServiceImpl implements OrderService {
         });
     }
 
-
-    @Override
     @Transactional
+    @Override
     public void cancelOrder(Integer orderId) {
-
-        Order order = orderRepository.findById(Long.valueOf(orderId))
+        Order order = orderRepository.findByIdForCancellation(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("This order does not exist"));
 
         if (!order.getWallet().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {

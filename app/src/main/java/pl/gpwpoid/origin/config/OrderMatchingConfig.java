@@ -17,7 +17,7 @@ public class OrderMatchingConfig {
     @Bean
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor t = new ThreadPoolTaskExecutor();
-        t.setCorePoolSize(4);
+        t.setCorePoolSize(10);
         t.setMaxPoolSize(20);
         t.setQueueCapacity(100);
         t.setThreadNamePrefix("OrderMatcher-");
