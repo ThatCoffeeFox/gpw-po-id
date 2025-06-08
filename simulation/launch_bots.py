@@ -8,16 +8,16 @@ import os
 # Adjust username/password or emails as needed
 BOTS = [
     # wallet_id, company_id, email
-    (2, 1, 'bot1@example.com'),
-    (3, 1, 'bot2@example.com'),
-    (4, 1, 'bot3@example.com'),
-    (5, 1, 'bot4@example.com'),
-    (6, 1, 'bot5@example.com'),
-    (7, 1, 'bot6@example.com'),
-    (8, 1, 'bot7@example.com'),
-    (9, 1, 'bot8@example.com'),
-    (10, 1, 'bot9@example.com'),
-    (11, 1, 'bot10@example.com'),
+    (301, 1, 'bot1@example.com'),
+    (302, 1, 'bot2@example.com'),
+    (303, 1, 'bot3@example.com'),
+    (304, 1, 'bot4@example.com'),
+    (305, 1, 'bot5@example.com'),
+    (306, 1, 'bot6@example.com'),
+    (307, 1, 'bot7@example.com'),
+    (308, 1, 'bot8@example.com'),
+    (309, 1, 'bot9@example.com'),
+    (310, 1, 'bot10@example.com'),
 ]
 
 # Bot script filename
