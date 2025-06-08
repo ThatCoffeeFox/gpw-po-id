@@ -2,6 +2,7 @@ package pl.gpwpoid.origin.services.implementations;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gpwpoid.origin.factories.CompanyFactory;
@@ -18,6 +19,7 @@ import pl.gpwpoid.origin.repositories.views.CompanyListItem;
 import pl.gpwpoid.origin.repositories.views.CompanyStatusItem;
 import pl.gpwpoid.origin.services.AddressService;
 import pl.gpwpoid.origin.services.CompanyService;
+import pl.gpwpoid.origin.services.OrderService;
 import pl.gpwpoid.origin.ui.views.DTO.CompanyDTO;
 import pl.gpwpoid.origin.ui.views.DTO.CompanyUpdateDTO;
 
@@ -33,6 +35,7 @@ public class CompanyServiceImpl implements CompanyService {
     private final CompanyStatusRepository companyStatusRepository;
     private final AddressService addressService;
     private final CompanyFactory companyFactory;
+    private final OrderService orderService;
 
     @Autowired
     public CompanyServiceImpl(
@@ -40,12 +43,14 @@ public class CompanyServiceImpl implements CompanyService {
             CompanyStatusFactory companyStatusFactory,
             CompanyStatusRepository companyStatusRepository,
             AddressService addressService,
-            CompanyFactory companyFactory) {
+            CompanyFactory companyFactory,
+            @Lazy OrderService orderService) {
         this.companyStatusFactory = companyStatusFactory;
         this.companyRepository = companyRepository;
         this.companyStatusRepository = companyStatusRepository;
         this.addressService = addressService;
         this.companyFactory = companyFactory;
+        this.orderService = orderService;
     }
 
     @Override
@@ -76,10 +81,20 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
+    @Transactional
     public void setTradable(Integer companyId, Boolean tradable) {
         Company company = companyRepository.findById(Long.valueOf(companyId)).orElse(null);
         CompanyStatus companyStatus = companyStatusFactory.createCompanyStatus(company, tradable);
         companyStatusRepository.save(companyStatus);
+        if(tradable)
+            orderService.startOrderMatching(companyId);
+        else
+            orderService.stopOrderMatching(companyId);
+    }
+
+    @Override
+    public Boolean isTradable(Integer companyId) {
+        return companyRepository.isTradable(companyId);
     }
 
     @Override

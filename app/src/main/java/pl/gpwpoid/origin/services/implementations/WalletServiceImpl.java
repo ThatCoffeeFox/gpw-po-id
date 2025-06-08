@@ -52,6 +52,13 @@ public class WalletServiceImpl implements WalletsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Collection<WalletListItem> getWalletListViewForCurrentUser() {
+        Integer accountId = SecurityUtils.getAuthenticatedAccountId();
+        return walletRepository.getWalletListViewForCurrentUser(accountId);
+    }
+
+    @Override
     public void addWallet(WalletDTO walletDTO) {
         Account account = accountService.getAccountById(walletDTO.getAccountId());
         Wallet wallet = walletFactory.createWallet(account, walletDTO.getWalletName());

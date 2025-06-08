@@ -177,7 +177,6 @@ public class AdminStartIPODialog extends VerticalLayout {
 
             Notification.show("Rozpoczęto emisję", 4000, Notification.Position.TOP_CENTER);
             startIPOButton.setEnabled(canStartIPO());
-            companyService.setTradable(companyId, false);
             dialog.close();
         } catch (Exception e) {
             Notification.show("Wystąpił błąd: " + e.getMessage(), 4000, Notification.Position.TOP_CENTER);

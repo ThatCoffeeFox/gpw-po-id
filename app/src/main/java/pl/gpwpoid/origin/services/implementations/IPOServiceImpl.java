@@ -91,4 +91,9 @@ public class IPOServiceImpl implements IPOService {
     public void saveProcessedIPO(IPO ipo) {
         ipoRepository.save(ipo);
     }
+
+    @Override
+    public Boolean hadIPO(Integer companyId) {
+        return ipoRepository.hadIPO(companyId);
+    }
 }

@@ -16,6 +16,8 @@ import java.util.Optional;
 public interface WalletsService {
     void addWallet(WalletDTO walletDTO);
 
+    Collection<WalletListItem> getWalletListViewForCurrentUser();
+
     Collection<WalletListItem> getWalletListViewByAccountId(Integer accountId);
 
     WalletListItem getWalletListItemById(Integer walletListItemId);

@@ -113,4 +113,12 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
                         LIMIT 1)
 """, nativeQuery = true)
     CompanyStatusItem getCompanyStatusItemById(Integer companyId);
+
+    @Query(value = """
+        SELECT 
+            cs.tradable
+        FROM companies_status cs
+        WHERE cs.company_id = :companyId ORDER BY cs.date DESC LIMIT 1
+""", nativeQuery = true)
+    Boolean isTradable(Integer companyId);
 }

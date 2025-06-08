@@ -113,12 +113,12 @@ public class AdminCompaniesGrid extends VerticalLayout {
                 tradableButton.setEnabled(true);
             }
         });
-        tradableButton.setEnabled(!hasActiveIPO(item.getCompanyId()));
+        tradableButton.setEnabled(hadIPO(item.getCompanyId()));
         return tradableButton;
     }
 
-    private boolean hasActiveIPO(Integer companyId) {
-        return ipoService.hasActiveIPO(companyId);
+    private boolean hadIPO(Integer companyId) {
+        return ipoService.hadIPO(companyId);
     }
 
     private String translateTradable(AdminCompanyListItem item) {

@@ -18,4 +18,5 @@ public interface IPOService {
     Boolean hasActiveIPO(Integer companyId);
     List<IPO> findIPOsToProcess();
     void saveProcessedIPO(IPO ipo);
+    Boolean hadIPO(Integer companyId);
 }

@@ -1,6 +1,7 @@
 package pl.gpwpoid.origin.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.company.IPO;
@@ -62,4 +63,15 @@ public interface IPORepository extends JpaRepository<IPO, Long> {
         WHERE i.subscriptionEnd < CURRENT_TIMESTAMP AND i.processed = false
 """)
     List<IPO> findIPOsToProcess();
+
+    @Query(value = """
+        SELECT 
+            CASE WHEN i.ipo_id IS NULL OR i.processed = false THEN false
+            ELSE true END
+        FROM ipo i
+        WHERE i.company_id = :companyId
+        ORDER BY i.subscription_end ASC
+        LIMIT 1
+""", nativeQuery = true)
+    Boolean hadIPO(Integer companyId);
 }
