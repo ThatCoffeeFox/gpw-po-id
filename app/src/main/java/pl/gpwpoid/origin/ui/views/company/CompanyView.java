@@ -16,6 +16,8 @@ import pl.gpwpoid.origin.services.*;
 import pl.gpwpoid.origin.ui.views.MainLayout;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
+import java.math.BigDecimal;
+
 @Route(value = "companies", layout = MainLayout.class)
 @AnonymousAllowed
 public class CompanyView extends VerticalLayout implements HasUrlParameter<Integer> {
@@ -34,6 +36,8 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     private Registration broadcasterRegistration;
     private Integer companyId;
     private CompanyListItem companyInfo;
+    private CompanyListItem companyInfoCache;
+    private BigDecimal currentPriceCache;
 
     @Autowired
     public CompanyView(CompanyService companyService,
@@ -84,11 +88,21 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
 
     @Override
     public void setParameter(BeforeEvent beforeEvent, Integer parameter) {
+        if (!parameter.equals(this.companyId)) {
+            this.companyInfoCache = null;
+            this.currentPriceCache = null;
+        }
+
         this.companyId = parameter;
-        companyInfoTablet.reset();
+
+        if (this.companyInfoCache == null) {
+            loadCompanyDetailsAndFullUpdate();
+        } else {
+            updateCurrentPriceAndRefreshTablet();
+        }
+
         try {
             loadCompanyDetails();
-            updateCompanyInfoTablet();
             updateChart();
 
             if (SecurityUtils.isLoggedIn()) {
@@ -103,6 +117,32 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         }
     }
 
+    private void updateCurrentPriceAndRefreshTablet() {
+        if (companyId == null) return;
+        BigDecimal newPrice = transactionService.getShareValueByCompanyId(companyId);
+
+        this.currentPriceCache = newPrice;
+
+        updateCompanyInfoTablet();
+    }
+
+    private void loadCompanyDetailsAndFullUpdate() {
+        if (companyId == null) return;
+        try {
+            this.companyInfoCache = companyService.getCompanyItemById(companyId);
+            if (this.companyInfoCache == null) {
+                Notification.show("Firma o ID " + companyId + " nie została znaleziona.", 4000, Notification.Position.MIDDLE);
+                return;
+            }
+            this.currentPriceCache = this.companyInfoCache.getCurrentSharePrice();
+
+            updateCompanyInfoTablet();
+
+        } catch (Exception e) {
+            Notification.show("Nieprawidłowy adres: " + e.getMessage(), 4000, Notification.Position.MIDDLE);
+        }
+    }
+
     private void updateCompanyInfoTablet() {
         this.companyInfo = companyService.getCompanyItemById(companyId);
         if (companyInfo != null) {
@@ -114,8 +154,8 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
                     companyInfo.getStreetName(),
                     companyInfo.getStreetNumber(),
                     companyInfo.getApartmentNumber(),
-                    companyInfo.getCurrentSharePrice(),
-                    companyInfo.getLastDaySharePrice());
+                    this.currentPriceCache,
+                    companyInfoCache.getLastDaySharePrice());
         }
     }
 
@@ -131,9 +171,11 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         if (companyId != null) {
+            // Zmieniamy logikę wewnątrz słuchacza
             broadcasterRegistration = broadcaster.register(companyId, id -> {
                 attachEvent.getUI().access(() -> {
-                    updateCompanyInfoTablet();
+                    updateCurrentPriceAndRefreshTablet();
+
                     if (SecurityUtils.isLoggedIn()) {
                         updateTransactionsGrid();
                         activeOrdersGrid.updateList();
