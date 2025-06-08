@@ -1,12 +1,11 @@
 package pl.gpwpoid.origin.ui.views;
 
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -18,15 +17,12 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
-import pl.gpwpoid.origin.repositories.views.WalletCompanyListItem;
-import pl.gpwpoid.origin.repositories.views.WalletListItem;
 import pl.gpwpoid.origin.repositories.views.WalletListViewItem;
 import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.DTO.WalletDTO;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Collections;
 

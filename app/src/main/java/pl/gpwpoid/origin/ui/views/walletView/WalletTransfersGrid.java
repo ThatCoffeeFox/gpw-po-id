@@ -11,13 +11,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 public class WalletTransfersGrid extends VerticalLayout {
-    private final WalletsService walletsService;
-
-    private final Grid<TransferListItem> transfersGrid = new Grid<>();
-
-    private Integer walletId;
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private final WalletsService walletsService;
+    private final Grid<TransferListItem> transfersGrid = new Grid<>();
+    private Integer walletId;
 
     public WalletTransfersGrid(WalletsService walletsService) {
         this.walletsService = walletsService;
@@ -45,7 +42,7 @@ public class WalletTransfersGrid extends VerticalLayout {
         configureTransfersGrid();
     }
 
-    public void updateList(){
+    public void updateList() {
         Collection<TransferListItem> transferListItems = walletsService.getTransferListForCurrentWallet(walletId);
         transfersGrid.setItems(transferListItems);
     }

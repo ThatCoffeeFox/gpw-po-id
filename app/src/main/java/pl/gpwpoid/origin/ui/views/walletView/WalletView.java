@@ -14,7 +14,8 @@ import pl.gpwpoid.origin.services.WalletsService;
 import pl.gpwpoid.origin.ui.views.MainLayout;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 
 
 @Route(value = "wallets", layout = MainLayout.class)
@@ -22,15 +23,12 @@ import java.util.*;
 public class WalletView extends VerticalLayout implements HasUrlParameter<Integer> {
     private final WalletsService walletsService;
     private final TransactionService transactionService;
-
+    private final H3 walletName = new H3();
     private WalletSharesGrid walletSharesGrid;
     private WalletStatus walletStatus;
     private WalletTransactionsGrid walletTransactionsGrid;
     private WalletTransfersGrid walletTransfersGrid;
-
     private Integer walletId;
-
-    private final H3 walletName = new H3();
 
     @Autowired
     public WalletView(WalletsService walletsService, TransactionService transactionService) {
@@ -60,10 +58,9 @@ public class WalletView extends VerticalLayout implements HasUrlParameter<Intege
         if (SecurityUtils.isLoggedIn()) {
             Integer accountId = SecurityUtils.getAuthenticatedAccountId();
             Optional<Wallet> wallet = walletsService.getWalletById(walletId);
-            if(wallet.isEmpty() || !Objects.equals(wallet.get().getAccount().getAccountId(), accountId)) {
+            if (wallet.isEmpty() || !Objects.equals(wallet.get().getAccount().getAccountId(), accountId)) {
                 beforeEvent.rerouteToError(IllegalAccessException.class, "Nie masz dostępu do tego portfela.");
-            }
-            else {
+            } else {
                 walletSharesGrid.setWallet(walletId);
                 walletStatus.setWallet(walletId);
                 walletTransactionsGrid.setWallet(walletId);
