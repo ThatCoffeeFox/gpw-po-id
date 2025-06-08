@@ -7,6 +7,7 @@ ACCOUNT_NUMBER = 100
 WALLETS_PER_ACCOUNT = 3
 COMPANY_NUMBER = 10
 BOT_NUMBER = 10
+IPO_PRICE = 100
 
 
 
@@ -129,7 +130,7 @@ for i in range(ACCOUNT_NUMBER):
     first_name = f"User {id}"
     middle_name = "Middle name"
     last_name = "Kowalski"
-    postal_code, town_id = postal_code_town[i]
+    postal_code, town_id = postal_code_town[random.randint(0,len(postal_code_town) - 1)]
     street = "Spacerowa"
     street_number = id
     apartment_number = id
@@ -143,7 +144,7 @@ for i in range(ACCOUNT_NUMBER, ACCOUNT_NUMBER + BOT_NUMBER):
     first_name = f"Bot {id-ACCOUNT_NUMBER}"
     middle_name = "Middle name"
     last_name = "Kowalski"
-    postal_code, town_id = postal_code_town[i]
+    postal_code, town_id = postal_code_town[random.randint(0,len(postal_code_town) - 1)]
     street = "Spacerowa"
     street_number = id
     apartment_number = id
@@ -167,8 +168,9 @@ for i in range(BOT_NUMBER):
     name = f"Bot {i + 1} Wallet"
     active = "true"
     print(f'{account_id},"{name}",{active}')
-    founds_needed[wallet_id] = 1000000
-    shares_needed[wallet_id][1] = 10000
+    for j in range(COMPANY_NUMBER):
+        founds_needed[wallet_id] += 100000 + 1000 * IPO_PRICE
+        shares_needed[wallet_id][j + 1] = 1000
 
 print("\\.")
 print()
@@ -207,7 +209,7 @@ for i in range(COMPANY_NUMBER):
     company_id = i + 1
     payment_wallet_id = random.randint(1, WALLETS_PER_ACCOUNT * ACCOUNT_NUMBER)
     shares_amount = 1000000
-    ipo_price = 10.00
+    ipo_price = IPO_PRICE
     subscription_start = "2025-05-01 00:00:02"
     subscription_end = "2025-05-02 23:59:59"
     processed = "true"
@@ -232,7 +234,7 @@ now.day
 
 
 for company_id in range(1,COMPANY_NUMBER + 1):
-    last_price = 10.00
+    last_price = IPO_PRICE
     for day in range (3, 30):
         for hour in [0, 7, 12, 19]:
             new_price = round(max(1, last_price * random.uniform(0.95,1.05)),2)
@@ -254,7 +256,7 @@ for company_id in range(1,COMPANY_NUMBER + 1):
 
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
-            founds_needed[sell_wallet_id] += shares_amount * 10
+            founds_needed[sell_wallet_id] += shares_amount * IPO_PRICE
 
             transactions.append(f'{sell_order_id},{buy_order_id},"{transaction_date}",{shares_amount},{new_price}')
 
@@ -279,7 +281,7 @@ for company_id in range(1,COMPANY_NUMBER + 1):
             
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
-            founds_needed[sell_wallet_id] += shares_amount * 10
+            founds_needed[sell_wallet_id] += shares_amount * IPO_PRICE
 
             transactions.append(f'{sell_order_id},{buy_order_id},"{transaction_date}",{shares_amount},{new_price}')
     for hour in range(now.hour):
@@ -303,7 +305,7 @@ for company_id in range(1,COMPANY_NUMBER + 1):
             
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
-            founds_needed[sell_wallet_id] += shares_amount * 10
+            founds_needed[sell_wallet_id] += shares_amount * IPO_PRICE
 
             transactions.append(f'{sell_order_id},{buy_order_id},"{transaction_date}",{shares_amount},{new_price}')
     for minute in range(now.minute):
@@ -327,12 +329,14 @@ for company_id in range(1,COMPANY_NUMBER + 1):
             
             founds_needed[buy_wallet_id] += new_price * shares_amount
             shares_needed[sell_wallet_id][company_id] += shares_amount
-            founds_needed[sell_wallet_id] += shares_amount * 10
+            founds_needed[sell_wallet_id] += shares_amount * IPO_PRICE
 
             transactions.append(f'{sell_order_id},{buy_order_id},"{transaction_date}",{shares_amount},{new_price}')
 
 
 for wallet_id in range(1, WALLETS_PER_ACCOUNT * ACCOUNT_NUMBER + 1 + BOT_NUMBER):
+    if(founds_needed[wallet_id] == 0):
+        continue
     transfer_id = len(transefers) + 1
     type = "deposit"
     amount = founds_needed[wallet_id]

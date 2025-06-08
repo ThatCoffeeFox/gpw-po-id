@@ -83,15 +83,8 @@ public class OrderMatchingWorker implements Runnable {
             sellOrder.tradeShares(sharesAmount);
             recentTransactionSharePrice = sharePrice;
         } catch (Exception e) {
-            if (e.toString().contains("buy order is cancelled")) {
-                buyQueue.poll();
-                return true;
-            } else if (e.toString().contains("sell order is cancelled")) {
-                sellQueue.poll();
-                return true;
-            } else {
-                throw new RuntimeException("Transaction failed", e);
-            }
+            System.out.println("Db issue");
+            return true;
         }
         return true;
     }

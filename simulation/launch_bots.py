@@ -6,19 +6,16 @@ import os
 
 # Configuration for each bot (wallet_id, company_id, email, username, password)
 # Adjust username/password or emails as needed
-BOTS = [
-    # wallet_id, company_id, email
-    (301, 1, 'bot1@example.com'),
-    (302, 1, 'bot2@example.com'),
-    (303, 1, 'bot3@example.com'),
-    (304, 1, 'bot4@example.com'),
-    (305, 1, 'bot5@example.com'),
-    (306, 1, 'bot6@example.com'),
-    (307, 1, 'bot7@example.com'),
-    (308, 1, 'bot8@example.com'),
-    (309, 1, 'bot9@example.com'),
-    (310, 1, 'bot10@example.com'),
-]
+
+COMPANIES = 1
+BOTS_PER_COMPANY = 10
+FIRST_WALELT_ID = 301
+
+BOTS = []
+
+for company in range(COMPANIES):
+    for j in range(BOTS_PER_COMPANY):
+        BOTS.append((FIRST_WALELT_ID + company*BOTS_PER_COMPANY + j, company + 1, f'bot{company*BOTS_PER_COMPANY + j + 1}@example.com') )
 
 # Bot script filename
 BOT_SCRIPT = "trading_bot.py"

@@ -1,7 +1,9 @@
 package pl.gpwpoid.origin.repositories;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,6 +13,7 @@ import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -85,4 +88,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                 ORDER BY order_start_date DESC
             """, nativeQuery = true)
     List<ActiveOrderListItem> findOrdersByAccountId(@Param("accountId") Integer accountId, Pageable pageable);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query(value = """
+            SELECT order_id, order_type, shares_amount, share_price, order_start_date, order_expiration_date
+            FROM orders
+            WHERE order_id = :orderId
+            """, nativeQuery = true)
+    Optional<Order> findByIdForCancellation(Integer orderId);
 }
