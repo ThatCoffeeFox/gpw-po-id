@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
+import pl.gpwpoid.origin.services.IPOService;
 import pl.gpwpoid.origin.services.TransactionService;
 
 import java.math.BigDecimal;
@@ -18,19 +19,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CompanyChart extends VerticalLayout {
+    private static final ZoneId SERVER_ZONE_ID = ZoneId.systemDefault();
     private final Chart candlestickChart = new Chart(ChartType.CANDLESTICK);
     private final H3 chartHeader = new H3("Historia cen akcji");
     private final TransactionService transactionService;
-
-
+    private final IPOService ipoService;
     private Integer companyId;
-
     private ChartTimeRange currentRange = ChartTimeRange.THIRTY_MINUTES;
 
-    private static final ZoneId SERVER_ZONE_ID = ZoneId.systemDefault();
-
-    public CompanyChart(TransactionService transactionService) {
+    public CompanyChart(TransactionService transactionService, IPOService ipoService) {
         this.transactionService = transactionService;
+        this.ipoService = ipoService;
         configureChart();
 
         HorizontalLayout headerWithControls = new HorizontalLayout(chartHeader, createRangeSelectorButtons());
@@ -108,18 +107,33 @@ public class CompanyChart extends VerticalLayout {
         }
 
         Configuration conf = candlestickChart.getConfiguration();
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startTime = currentRange.getStartTime(now);
-        BigDecimal anchorPrice = BigDecimal.ZERO;
+        LocalDateTime rawNow = LocalDateTime.now();
+        LocalDateTime alignedNow = currentRange.truncate(rawNow);
+        LocalDateTime startTime = currentRange.getStartTime(alignedNow);
 
         List<OHLCDataItem> rawDataFromDb = transactionService.getOHLCDataByCompanyId(
                 this.companyId,
                 startTime,
-                now
+                rawNow
         );
 
-        if(rawDataFromDb.isEmpty()){
-            anchorPrice = transactionService.getShareValueByCompanyId(companyId);
+        BigDecimal anchorPrice;
+        Optional<BigDecimal> previousCloseOpt = transactionService.findLastSharePriceBeforeDate(this.companyId, startTime);
+
+        if (previousCloseOpt.isPresent()) {
+            anchorPrice = previousCloseOpt.get();
+        } else {
+            Optional<BigDecimal> ipoPriceOpt = ipoService.getIpoPriceByCompanyId(this.companyId);
+            if (ipoPriceOpt.isPresent()) {
+                anchorPrice = ipoPriceOpt.get();
+            } else {
+                if (!rawDataFromDb.isEmpty()) {
+                    anchorPrice = rawDataFromDb.get(0).getOpen();
+                } else {
+                    BigDecimal currentPrice = transactionService.getShareValueByCompanyId(companyId);
+                    anchorPrice = (currentPrice != null) ? currentPrice : BigDecimal.ZERO;
+                }
+            }
         }
 
         chartHeader.setText("Historia cen akcji");
@@ -147,22 +161,17 @@ public class CompanyChart extends VerticalLayout {
         lastKnownCandle.setClose(anchorPrice);
 
         List<OhlcItem> finalCandles = new ArrayList<>();
-        LocalDateTime currentTimeStep = currentRange.truncate(startTime);
-        LocalDateTime endTimestamp = currentRange.truncate(now);
+        LocalDateTime currentTimeStep = startTime;
 
-        while (!currentTimeStep.isAfter(endTimestamp)) {
+        while (!currentTimeStep.isAfter(alignedNow)) {
             OhlcItem candleForThisStep = candleMap.get(currentTimeStep);
 
             if (candleForThisStep != null) {
-
                 finalCandles.add(candleForThisStep);
-
                 lastKnownCandle = candleForThisStep;
             } else {
-
                 OhlcItem flatCandle = new OhlcItem();
                 flatCandle.setX(currentTimeStep.atZone(SERVER_ZONE_ID).toInstant());
-
 
                 Number lastClose = lastKnownCandle.getClose();
                 flatCandle.setOpen(lastClose);
@@ -170,7 +179,6 @@ public class CompanyChart extends VerticalLayout {
                 flatCandle.setLow(lastClose);
                 flatCandle.setClose(lastClose);
                 finalCandles.add(flatCandle);
-
 
                 lastKnownCandle = flatCandle;
             }
@@ -191,7 +199,7 @@ public class CompanyChart extends VerticalLayout {
 
             YAxis yAxis = conf.getyAxis();
 
-            yAxis.setMin(minLow - 1.0 < 0 ?  0.0 : minLow - 1.0);
+            yAxis.setMin(minLow - 1.0 < 0 ? 0.0 : minLow - 1.0);
             yAxis.setMax(maxHigh + 1.0);
         } else {
             YAxis yAxis = conf.getyAxis();

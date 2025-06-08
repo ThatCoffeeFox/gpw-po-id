@@ -7,25 +7,25 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pl.gpwpoid.origin.models.keys.TransactionId;
 import pl.gpwpoid.origin.models.order.Transaction;
+import pl.gpwpoid.origin.repositories.DTO.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
-import pl.gpwpoid.origin.repositories.views.TransactionDTO;
 import pl.gpwpoid.origin.repositories.views.TransactionWalletListItem;
 
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, TransactionId> {
 
     @Query(value = """
-    SELECT t.date, t.shares_amount, t.share_price
-    FROM transactions t JOIN orders o ON t.buy_order_id = o.order_id
-    WHERE o.company_id = :companyId
-    ORDER BY t.date DESC
-    LIMIT :limit
-    """, nativeQuery = true)
+            SELECT t.date, t.shares_amount, t.share_price
+            FROM transactions t JOIN orders o ON t.buy_order_id = o.order_id
+            WHERE o.company_id = :companyId
+            ORDER BY t.date DESC
+            LIMIT :limit
+            """, nativeQuery = true)
     List<TransactionDTO> findTransactionDTOListByCompanyId(@Param("companyId") int companyId, Integer limit);
 
     @Query(value = """
@@ -34,8 +34,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     BigDecimal findShareValueByCompanyId(@Param("companyId") Integer companyId);
 
     @Query(value = """
-            SELECT shares_value_last_day(:companyId)
-        """, nativeQuery = true)
+                SELECT shares_value_last_day(:companyId)
+            """, nativeQuery = true)
     BigDecimal findShareValueLastDayByCompany(@Param("companyId") Integer companyId);
 
     @Query(value = """
@@ -128,24 +128,36 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
     boolean existsByBuyOrder_Company_CompanyIdAndDateAfter(Integer companyId, LocalDateTime since);
 
     @Query(value = """
-    SELECT
-        o.order_type AS orderType,
-        t.date AS date,
-        t.shares_amount*t.share_price AS amount,
-        t.shares_amount AS shares_amount,
-        ci.code as companyCode,
-        ci.company_id AS companyId,
-        w.wallet_id as walletId
-    FROM transactions t
-    JOIN orders o ON (t.buy_order_id = o.order_id OR t.sell_order_id = o.order_id)
-    JOIN wallets w ON (w.wallet_id = o.wallet_id)
-    JOIN companies_info ci ON (ci.company_id = o.company_id)
-    WHERE w.account_id = :userId
-    AND o.company_id = :companyId
-    AND ci.updated_at = (SELECT cii.updated_at FROM companies_info cii WHERE cii.company_id = ci.company_id ORDER BY t.date DESC LIMIT 1)
-    ORDER BY t.date DESC
-""", nativeQuery = true)
+                SELECT
+                    o.order_type AS orderType,
+                    t.date AS date,
+                    t.shares_amount*t.share_price AS amount,
+                    t.shares_amount AS shares_amount,
+                    ci.code as companyCode,
+                    ci.company_id AS companyId,
+                    w.wallet_id as walletId
+                FROM transactions t
+                JOIN orders o ON (t.buy_order_id = o.order_id OR t.sell_order_id = o.order_id)
+                JOIN wallets w ON (w.wallet_id = o.wallet_id)
+                JOIN companies_info ci ON (ci.company_id = o.company_id)
+                WHERE w.account_id = :userId
+                AND o.company_id = :companyId
+                AND ci.updated_at = (SELECT cii.updated_at FROM companies_info cii WHERE cii.company_id = ci.company_id ORDER BY t.date DESC LIMIT 1)
+                ORDER BY t.date DESC
+            """, nativeQuery = true)
     List<TransactionWalletListItem> findByCompanyAndUser(@Param("companyId") int companyId,
                                                          @Param("userId") int userId,
                                                          Pageable pageable);
+
+    @Query(value = """
+            SELECT t.share_price
+            FROM transactions t JOIN orders o ON t.buy_order_id = o.order_id
+            WHERE o.company_id = :companyId AND t.date < :beforeDate
+            ORDER BY t.date DESC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<BigDecimal> findLastSharePriceBeforeDate(@Param("companyId") int companyId, @Param("beforeDate") LocalDateTime beforeDate);
+
+    @Query("SELECT new pl.gpwpoid.origin.repositories.views.TransactionDTO(t.date, t.sharesAmount, t.sharePrice) FROM Transaction t WHERE t.buyOrder.wallet.account.accountId = :accountId OR t.sellOrder.wallet.account.accountId = :accountId ORDER BY t.date DESC")
+    List<TransactionDTO> findLatestTransactionsByAccountId(Integer accountId, Pageable pageable);
 }

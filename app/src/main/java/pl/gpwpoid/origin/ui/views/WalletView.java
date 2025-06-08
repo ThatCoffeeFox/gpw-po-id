@@ -48,25 +48,22 @@ import java.util.Locale;
 @Route(value = "wallets", layout = MainLayout.class)
 @RolesAllowed({"user", "admin"})
 public class WalletView extends VerticalLayout implements HasUrlParameter<Integer> {
-    private final TransactionService transactionService;
-    WalletsService walletsService;
-
-    private Integer walletId;
-    private Collection<WalletCompanyListItem> walletCompanyListItems;
-    private final Grid<WalletCompanyListItem> sharesGrid = new Grid<>();
-    private final Grid<TransactionWalletListItem> transactionsGrid = new Grid<>();
-    private final Grid<TransferListItem> transfersGrid = new Grid<>();
-    private final H3 walletName = new H3();
-    private Span walletFunds = new Span();
-    private final Button deletionButton = new Button("Usuń portfel");
-    private BigDecimal funds;
-
     private static final DecimalFormat FUNDS_FORMATTER = new DecimalFormat(
             "#,##0.00",
             DecimalFormatSymbols.getInstance(new Locale("pl", "PL"))
     );
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private final TransactionService transactionService;
+    private final Grid<WalletCompanyListItem> sharesGrid = new Grid<>();
+    private final Grid<TransactionWalletListItem> transactionsGrid = new Grid<>();
+    private final Grid<TransferListItem> transfersGrid = new Grid<>();
+    private final H3 walletName = new H3();
+    private final Button deletionButton = new Button("Usuń portfel");
+    WalletsService walletsService;
+    private Integer walletId;
+    private Collection<WalletCompanyListItem> walletCompanyListItems;
+    private Span walletFunds = new Span();
+    private BigDecimal funds;
 
     @Autowired
     public WalletView(WalletsService walletsService, TransactionService transactionService) {

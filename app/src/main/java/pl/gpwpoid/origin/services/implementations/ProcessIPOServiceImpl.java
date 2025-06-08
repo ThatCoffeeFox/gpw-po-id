@@ -28,24 +28,24 @@ public class ProcessIPOServiceImpl implements ProcessIPOService {
 
     @Transactional
     @Override
-    public void processFinishedIPOS(){
+    public void processFinishedIPOS() {
         List<IPO> iposToProcess = ipoService.findIPOsToProcess();
 
-        for(IPO ipo : iposToProcess)
+        for (IPO ipo : iposToProcess)
             processIPO(ipo);
     }
 
-    private void processIPO(IPO ipo){
+    private void processIPO(IPO ipo) {
         Integer sharesSum = subscriptionService.getSharesSumByIPOId(ipo.getIpoId());
-        if(sharesSum == null)
+        if (sharesSum == null)
             sharesSum = 0;
 
         Integer ipoSharesAmount = ipo.getSharesAmount();
 
         List<Subscription> subscriptionsToModify = subscriptionService.getSubscriptionsByIPOId(ipo.getIpoId());
 
-        if(sharesSum <= ipoSharesAmount)
-            for(Subscription subscription : subscriptionsToModify)
+        if (sharesSum <= ipoSharesAmount)
+            for (Subscription subscription : subscriptionsToModify)
                 subscription.setSharesAssigned(subscription.getSharesAmount());
         else
             setSharesAssignedProportionally(subscriptionsToModify, sharesSum, ipoSharesAmount);
@@ -59,7 +59,7 @@ public class ProcessIPOServiceImpl implements ProcessIPOService {
     private void setSharesAssignedProportionally(List<Subscription> subscriptionsToModify, Integer sharesSum, Integer ipoSharesAmount) {
         Integer sumSharesAssigned = 0;
 
-        for(Subscription subscription : subscriptionsToModify){
+        for (Subscription subscription : subscriptionsToModify) {
             int sharesAssigned = (int) ((double) subscription.getSharesAmount() * ipoSharesAmount / sharesSum);
             subscription.setSharesAssigned(sharesAssigned);
             sumSharesAssigned += sharesAssigned;
@@ -69,7 +69,7 @@ public class ProcessIPOServiceImpl implements ProcessIPOService {
 
         subscriptionsToModify.sort(Comparator.comparing(Subscription::getSharesAmount).reversed());
 
-        for(int i = 0; i < remainder; i++){
+        for (int i = 0; i < remainder; i++) {
             Subscription subscription = subscriptionsToModify.get(i);
             subscription.setSharesAssigned(subscription.getSharesAssigned() + 1);
         }

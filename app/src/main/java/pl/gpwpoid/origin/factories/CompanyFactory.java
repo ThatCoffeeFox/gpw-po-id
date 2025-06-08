@@ -29,9 +29,9 @@ public class CompanyFactory {
     ) {
         if (companyName == null)
             throw new IllegalArgumentException("Company name cannot be null");
-        if(companyCode == null)
+        if (companyCode == null)
             throw new IllegalArgumentException("Company code cannot be null");
-        if(postalCodesTowns == null)
+        if (postalCodesTowns == null)
             throw new IllegalArgumentException("PostalCodesTowns cannot be null");
 
         Company company = new Company();
@@ -63,15 +63,15 @@ public class CompanyFactory {
     }
 
     public CompanyInfo createCompanyInfo(CompanyUpdateDTO companyUpdateDTO, PostalCodesTowns postalCodesTowns) {
-        if(companyUpdateDTO == null)
+        if (companyUpdateDTO == null)
             throw new IllegalArgumentException("Company update DTO cannot be null");
-        if(companyUpdateDTO.getCompanyId() == null)
+        if (companyUpdateDTO.getCompanyId() == null)
             throw new IllegalArgumentException("Company id cannot be null");
-        if(companyUpdateDTO.getCompanyName() == null)
+        if (companyUpdateDTO.getCompanyName() == null)
             throw new IllegalArgumentException("Company name cannot be null");
-        if(companyUpdateDTO.getCompanyCode() == null)
+        if (companyUpdateDTO.getCompanyCode() == null)
             throw new IllegalArgumentException("Company code cannot be null");
-        if(companyUpdateDTO.getTownId() == null || companyUpdateDTO.getPostalCode() == null)
+        if (companyUpdateDTO.getTownId() == null || companyUpdateDTO.getPostalCode() == null)
             throw new IllegalArgumentException("Town id cannot be null");
 
         CompanyInfo companyInfo = new CompanyInfo();

@@ -24,13 +24,14 @@ public class ChartPulsarService {
     @Scheduled(fixedRate = 5000)
     public void pulseCharts() {
         log.trace("Uruchamianie pulsara wykresów...");
+        broadcaster.broadcastPulse();
         LocalDateTime fiveSecondsAgo = LocalDateTime.now().minusSeconds(5);
 
         for (Integer companyId : broadcaster.getActiveCompanyIds()) {
             boolean hasTransactions = transactionRepository.existsByBuyOrder_Company_CompanyIdAndDateAfter(companyId, fiveSecondsAgo);
 
             if (!hasTransactions) {
-                log.debug("Wysyłanie pulsu dla spółki ID: {}. Brak transakcji.", companyId);
+                log.debug("Wysyłanie pulsu podtrzymującego dla spółki ID: {}. Brak transakcji.", companyId);
                 broadcaster.broadcast(companyId);
             }
         }

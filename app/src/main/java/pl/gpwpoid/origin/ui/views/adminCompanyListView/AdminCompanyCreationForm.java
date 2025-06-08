@@ -24,8 +24,6 @@ public class AdminCompanyCreationForm extends VerticalLayout {
     private final AdminCompaniesGrid companiesGird;
 
     private final Binder<CompanyDTO> binder = new BeanValidationBinder<>(CompanyDTO.class);
-    private CompanyDTO companyDTO;
-
     private final TextField name = new TextField("Nazwa Firmy");
     private final TextField code = new TextField("Kod firmy");
     private final ComboBox<Town> town = new ComboBox<>("Miasto");
@@ -33,8 +31,8 @@ public class AdminCompanyCreationForm extends VerticalLayout {
     private final TextField street = new TextField("Ulica");
     private final TextField streetNumber = new TextField("Numer budynku");
     private final TextField apartmentNumber = new TextField("Numer lokalu");
-
     private final Button createCompanyButton = new Button("Zatwierdź");
+    private CompanyDTO companyDTO;
 
     public AdminCompanyCreationForm(CompanyService companyService, AddressService addressService, AdminCompaniesGrid companiesGrid) {
         this.companyService = companyService;
@@ -60,7 +58,7 @@ public class AdminCompanyCreationForm extends VerticalLayout {
         return formLayout;
     }
 
-    private void bindFields(){
+    private void bindFields() {
         binder.forField(name).bind("companyName");
         name.setRequiredIndicatorVisible(true);
         binder.forField(code).bind("companyCode");
@@ -125,10 +123,10 @@ public class AdminCompanyCreationForm extends VerticalLayout {
         });
     }
 
-    private void configureCreateCompanyButton(){
+    private void configureCreateCompanyButton() {
         createCompanyButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         createCompanyButton.addClickListener(event -> {
-            try{
+            try {
                 binder.writeBean(companyDTO);
 
                 companyService.addCompany(companyDTO);
@@ -138,9 +136,9 @@ public class AdminCompanyCreationForm extends VerticalLayout {
                 binder.setBean(companyDTO);
                 town.clear();
                 companiesGird.updateList();
-            } catch (ValidationException e){
+            } catch (ValidationException e) {
                 Notification.show("Niepoprawne dane");
-            } catch (Exception e){
+            } catch (Exception e) {
                 Notification.show("Wystąpił błąd" + e.getMessage());
             }
         });

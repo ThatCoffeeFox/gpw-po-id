@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.services.AccountService;
 
 @Route("reset-password")
-@AnonymousAllowed 
+@AnonymousAllowed
 public class ResetPasswordView extends VerticalLayout {
 
     private final AccountService accountService;
@@ -50,7 +50,7 @@ public class ResetPasswordView extends VerticalLayout {
     }
 
     private void resetPassword(String email, String newPassword, String confirmPassword) {
-        
+
         if (email.isBlank() || newPassword.isBlank()) {
             Notification.show("Wszystkie pola muszą być wypełnione.", 3000, Notification.Position.MIDDLE);
             return;
@@ -62,16 +62,16 @@ public class ResetPasswordView extends VerticalLayout {
         }
 
         try {
-            
+
             accountService.updatePassword(email, newPassword);
 
-            
+
             Notification.show("Hasło zostało pomyślnie zmienione. Możesz się teraz zalogować.", 4000, Notification.Position.MIDDLE);
-            
+
             UI.getCurrent().navigate(LoginView.class);
 
         } catch (IllegalArgumentException | IllegalStateException e) {
-            
+
             Notification.show(e.getMessage(), 4000, Notification.Position.MIDDLE);
         }
     }

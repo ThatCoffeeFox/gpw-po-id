@@ -20,24 +20,16 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Account {
-    public enum UserRole {
-        admin,
-        user
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_id")
     private Integer accountId;
-
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "role", nullable = false)
     private UserRole role;
-
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<AccountInfo> accountInfos;
-
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Wallet> wallets;
 
@@ -63,5 +55,10 @@ public class Account {
                 "accountId=" + accountId +
                 ", role=" + role +
                 '}';
+    }
+
+    public enum UserRole {
+        admin,
+        user
     }
 }

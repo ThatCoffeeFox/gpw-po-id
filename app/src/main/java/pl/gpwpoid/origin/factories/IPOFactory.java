@@ -6,9 +6,9 @@ import pl.gpwpoid.origin.models.company.IPO;
 import pl.gpwpoid.origin.models.wallet.Wallet;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashSet;
 
 @Component
@@ -21,19 +21,19 @@ public class IPOFactory {
             Company company,
             Wallet wallet
     ) {
-        if(sharePrice == null)
+        if (sharePrice == null)
             throw new IllegalArgumentException("sharePrice cannot be null");
-        if(sharesAmount == null)
+        if (sharesAmount == null)
             throw new IllegalArgumentException("sharesAmount cannot be null");
-        if(subscriptionEnd == null)
+        if (subscriptionEnd == null)
             throw new IllegalArgumentException("subscriptionEnd cannot be null");
-        if(company == null)
+        if (company == null)
             throw new IllegalArgumentException("company cannot be null");
-        if(wallet == null)
+        if (wallet == null)
             throw new IllegalArgumentException("wallet cannot be null");
         ZoneId zoneId = ZoneId.of("UTC");
         Date dateSubscriptionEnd = Date.from(subscriptionEnd.atZone(zoneId).toInstant());
-        if(dateSubscriptionEnd.before(new Date()))
+        if (dateSubscriptionEnd.before(new Date()))
             throw new IllegalArgumentException("subscriptionEnd cannot be in the past");
 
         IPO ipo = new IPO();

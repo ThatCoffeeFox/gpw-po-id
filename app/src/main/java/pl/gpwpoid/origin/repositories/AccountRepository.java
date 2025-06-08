@@ -16,6 +16,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("""
                 SELECT new pl.gpwpoid.origin.repositories.views.AccountListItem(
                         a.accountId,
+                        ai.id.updatedAt,
                         ai.firstName,
                         ai.secondaryName,
                         ai.lastName,
@@ -40,6 +41,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("""
                 SELECT new pl.gpwpoid.origin.repositories.views.AccountListItem(
                         a.accountId,
+                        ai.id.updatedAt,
                         ai.firstName,
                         ai.secondaryName,
                         ai.lastName,
@@ -102,5 +104,27 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                 )
             """)
     Optional<Account> findAccountByEmail(String email);
+
+    @Query("""
+                SELECT new pl.gpwpoid.origin.repositories.views.AccountListItem(
+                    ai.account.accountId,
+                    ai.id.updatedAt,
+                    ai.firstName,
+                    ai.secondaryName,
+                    ai.lastName,
+                    ai.email,
+                    ai.phoneNumber,
+                    ai.pesel,
+                    ai.postalCodesTowns.town.name,
+                    ai.postalCodesTowns.postalCode.postalCode,
+                    ai.street,
+                    ai.streetNumber,
+                    ai.apartmentNumber
+                )
+                FROM AccountInfo ai
+                WHERE ai.account.accountId = :accountId
+                ORDER BY ai.id.updatedAt DESC
+            """)
+    List<AccountListItem> findAllAccountInfosByAccountIdOrderByUpdatedAtDesc(Integer accountId);
 }
 

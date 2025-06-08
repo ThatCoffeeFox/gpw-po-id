@@ -9,11 +9,6 @@ public class ExtendedUser extends User implements ExtendedUserDetails {
 
     private final Integer accountId;
 
-    @Override
-    public Integer getAccountId() {
-        return accountId;
-    }
-
     public ExtendedUser(String username, String password, Integer accountId, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
         this.accountId = accountId;
@@ -22,6 +17,11 @@ public class ExtendedUser extends User implements ExtendedUserDetails {
     public ExtendedUser(String username, String password, Integer accountId, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.accountId = accountId;
+    }
+
+    @Override
+    public Integer getAccountId() {
+        return accountId;
     }
 
 }

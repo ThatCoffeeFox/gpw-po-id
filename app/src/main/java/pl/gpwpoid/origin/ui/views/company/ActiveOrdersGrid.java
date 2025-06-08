@@ -13,8 +13,6 @@ import pl.gpwpoid.origin.repositories.views.ActiveOrderListItem;
 import pl.gpwpoid.origin.services.OrderService;
 
 import java.text.NumberFormat;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class ActiveOrdersGrid extends VerticalLayout {
