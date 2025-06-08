@@ -93,6 +93,11 @@ public class IPOServiceImpl implements IPOService {
         ipoRepository.save(ipo);
     }
 
+    @Override
+    public Boolean hadIPO(Integer companyId) {
+        return ipoRepository.hadIPO(companyId);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public Optional<BigDecimal> getIpoPriceByCompanyId(Integer companyId) {

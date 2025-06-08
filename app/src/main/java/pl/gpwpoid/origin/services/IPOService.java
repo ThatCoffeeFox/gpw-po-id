@@ -25,5 +25,7 @@ public interface IPOService {
 
     void saveProcessedIPO(IPO ipo);
 
+    Boolean hadIPO(Integer companyId);
+
     Optional<BigDecimal> getIpoPriceByCompanyId(Integer companyId);
 }

@@ -17,6 +17,8 @@ public interface CompanyService {
 
     void setTradable(Integer companyId, Boolean tradable);
 
+    Boolean isTradable(Integer companyId);
+
     void addCompany(CompanyDTO companyDTO);
 
     void updateCompany(CompanyUpdateDTO companyUpdateDTO);
