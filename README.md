@@ -22,7 +22,8 @@ Jeśli użytkownik posiada uprawnienia administratora, to dostanie on dostęp do
 
 ### 2. Rozpoczęcie aplikacji
 
-Aby rozpocząć aplikację, musisz mieć stworzoną bazę danych w PostgreSQL oraz zainstalowaną Javę w wersji 24+.
+Aby rozpocząć aplikację, musisz mieć stworzoną bazę danych w PostgreSQL, zainstalowaną Javę w wersji 24+ oraz
+zainstalowanego najnowszego Mavena.
 Następnie odpal skrypt
 
     .\build.bat
@@ -41,7 +42,7 @@ Aby usunąć strukturę bazy danych należy uruchomić:
     cd .\db\
     psql -U <NAZWA_UŻYTKOWNIKA> -d <NAZWA_BAZY> -f .\clear.sql
 
-Do użytku są również dostępne boty aby przedstawić symulację giełdy. Aby ich użyć należy zainstalować Python'a w wersji 3+ i uruchomić skrypt:
+Do użytku są również dostępne boty aby przedstawić symulację giełdy. Aby ich użyć należy zainstalować Python'a w wersji 3+ oraz zainstalowana biblioteka requests, i następnie uruchomić skrypt:
 
     .\deploy_bots.bat
 
