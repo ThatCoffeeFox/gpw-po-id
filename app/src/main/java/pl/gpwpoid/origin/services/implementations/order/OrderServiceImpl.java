@@ -163,12 +163,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount() {
+    public List<ActiveOrderListItem> getActiveOrderListItemsForLoggedInAccount(Integer companyId) {
         Integer accountId = SecurityUtils.getAuthenticatedAccountId();
         if (accountId == null) {
             throw new RuntimeException("there is no logged in user");
         }
-        return orderRepository.findActiveOrdersByAccountId(accountId, PageRequest.of(0, 50));
+        return orderRepository.findActiveOrdersByAccountIdCompanyId(accountId, companyId, PageRequest.of(0, 50));
     }
 
     @Override
@@ -213,13 +213,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ActiveOrderDTO> getActiveOrderDTOListByWalletIdCompanyId(Integer walletId, Integer companyId) throws AccessDeniedException {
-        if (companyService.getCompanyById(companyId).isEmpty()) {
+        if(companyService.getCompanyById(companyId).isEmpty()){
             throw new EntityNotFoundException("This company does not exist");
         }
 
         Optional<Wallet> wallet = walletsService.getWalletById(walletId);
-        if (wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
-        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())) {
+        if(wallet.isEmpty()) throw new EntityNotFoundException("This wallet does not exist");
+        if (!wallet.get().getAccount().getAccountId().equals(SecurityUtils.getAuthenticatedAccountId())){
             throw new AccessDeniedException("You are not an owner of the wallet");
         }
 
