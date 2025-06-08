@@ -34,6 +34,12 @@ DROP TRIGGER IF EXISTS prevent_update_on_order_cancellations_trigger ON order_ca
 
 DROP TRIGGER IF EXISTS prevent_update_on_transactions_trigger ON transactions;
 
+DROP TRIGGER IF EXISTS prevent_update_on_subscriptions_trigger ON subscriptions;
+
+DROP TRIGGER IF EXISTS prevent_update_on_ipo_trigger ON ipo;
+
+DROP TRIGGER IF EXISTS prevent_update_on_wallets_trigger ON wallets;
+
 DROP TYPE IF EXISTS user_role CASCADE;
 
 DROP TYPE IF EXISTS transfer_type CASCADE;
@@ -102,11 +108,19 @@ DROP FUNCTION IF EXISTS is_valid_cancellation CASCADE;
 
 DROP FUNCTION IF EXISTS is_valid_subscription CASCADE;
 
+DROP FUNCTION IF EXISTS is_canceled_order CASCADE;
+
 DROP FUNCTION IF EXISTS unblocked_funds_in_wallet CASCADE;
 
-DROP FUNCTION IF EXISTS ublocked_founds_before_market_buy_order CASCADE;
+DROP FUNCTION IF EXISTS unblocked_founds_before_market_buy_order CASCADE;
 
 DROP FUNCTION IF EXISTS prevent_update_on_immutable_table CASCADE;
+
+DROP FUNCTION IF EXISTS prevent_update_on_ipo CASCADE;
+
+DROP FUNCTION IF EXISTS prevent_update_on_wallets CASCADE;
+
+DROP FUNCTION IF EXISTS prevent_update_on_subscriptions CASCADE;
 
 DROP VIEW IF EXISTS active_buy_orders CASCADE;
 
