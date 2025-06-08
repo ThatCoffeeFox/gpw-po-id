@@ -8,12 +8,14 @@
 │   ├── main
 │   │   ├── bundles
 │   │   │   ├── README.md
-│   │   │   └── dev.bundle
+│   │   │   ├── dev.bundle
+│   │   │   └── prod.bundle
 │   │   ├── frontend
 │   │   │   ├── generated
 │   │   │   │   ├── flow
 │   │   │   │   │   ├── Flow.tsx
 │   │   │   │   │   ├── ReactAdapter.tsx
+│   │   │   │   │   ├── chunks
 │   │   │   │   │   ├── generated-flow-imports.d.ts
 │   │   │   │   │   ├── generated-flow-imports.js
 │   │   │   │   │   ├── generated-flow-webcomponent-imports.js
@@ -32,19 +34,19 @@
 │   │   │   │   │   ├── contextMenuConnector.js
 │   │   │   │   │   ├── contextMenuTargetConnector.js
 │   │   │   │   │   ├── copilot
-│   │   │   │   │   │   ├── base-panel-B0Uw6Qw8.js
-│   │   │   │   │   │   ├── copilot-DaciUyLO.js
-│   │   │   │   │   │   ├── copilot-features-plugin-BgIAA6XF.js
-│   │   │   │   │   │   ├── copilot-feedback-plugin-gHEYHvo_.js
-│   │   │   │   │   │   ├── copilot-global-vars-later-BLvyKi0w.js
-│   │   │   │   │   │   ├── copilot-info-plugin-C96PzNLm.js
-│   │   │   │   │   │   ├── copilot-init-step2-Bn-vm__O.js
-│   │   │   │   │   │   ├── copilot-log-plugin-7kxzKbnt.js
-│   │   │   │   │   │   ├── copilot-shortcuts-plugin-CquTmlLD.js
+│   │   │   │   │   │   ├── base-panel-C9ol8UWR.js
+│   │   │   │   │   │   ├── copilot-CjVeA4wK.js
+│   │   │   │   │   │   ├── copilot-features-plugin-CMd_PHRM.js
+│   │   │   │   │   │   ├── copilot-feedback-plugin-JO_VGCIE.js
+│   │   │   │   │   │   ├── copilot-global-vars-later-CS4EfrrG.js
+│   │   │   │   │   │   ├── copilot-info-plugin-Brbwv6Uq.js
+│   │   │   │   │   │   ├── copilot-init-step2-D4uFADtJ.js
+│   │   │   │   │   │   ├── copilot-log-plugin-DIPB4-7B.js
+│   │   │   │   │   │   ├── copilot-shortcuts-plugin-DfHIYwG8.js
 │   │   │   │   │   │   ├── early-project-state-CqEloDes.js
-│   │   │   │   │   │   ├── icons-BCyjv34U.js
-│   │   │   │   │   │   ├── overlay-monkeypatch-CdEmN4G0.js
-│   │   │   │   │   │   └── state-mcQNujqR.js
+│   │   │   │   │   │   ├── icons-Dn0aOY4J.js
+│   │   │   │   │   │   ├── overlay-monkeypatch-DwFNfocR.js
+│   │   │   │   │   │   └── state-iYK--DhW.js
 │   │   │   │   │   ├── copilot.css
 │   │   │   │   │   ├── copilot.js
 │   │   │   │   │   ├── datepickerConnector.js
@@ -60,10 +62,7 @@
 │   │   │   │   │   ├── menubarConnector.js
 │   │   │   │   │   ├── messageListConnector.js
 │   │   │   │   │   ├── selectConnector.js
-│   │   │   │   │   ├── styles
 │   │   │   │   │   ├── theme-util.js
-│   │   │   │   │   ├── themes
-│   │   │   │   │   │   └── maintheme
 │   │   │   │   │   ├── tooltip.ts
 │   │   │   │   │   ├── vaadin-big-decimal-field.js
 │   │   │   │   │   ├── vaadin-dev-tools
@@ -103,15 +102,21 @@
 │   │   │               ├── config
 │   │   │               │   ├── OrderMatchingConfig.java
 │   │   │               │   └── SecurityConfig.java
+│   │   │               ├── controlers
+│   │   │               │   └── ApiControler.java
 │   │   │               ├── decorators
 │   │   │               │   └── validPesel
 │   │   │               │       ├── PeselValidator.java
 │   │   │               │       └── ValidPesel.java
 │   │   │               ├── factories
 │   │   │               │   ├── AccountFactory.java
+│   │   │               │   ├── CompanyFactory.java
+│   │   │               │   ├── CompanyStatusFactory.java
 │   │   │               │   ├── ExternalTransferFactory.java
+│   │   │               │   ├── IPOFactory.java
 │   │   │               │   ├── OrderCancellationFactory.java
 │   │   │               │   ├── OrderFactory.java
+│   │   │               │   ├── SubscriptionFactory.java
 │   │   │               │   ├── TransactionFactory.java
 │   │   │               │   └── WalletFactory.java
 │   │   │               ├── models
@@ -146,10 +151,17 @@
 │   │   │               ├── repositories
 │   │   │               │   ├── AccountRepository.java
 │   │   │               │   ├── CompanyRepository.java
+│   │   │               │   ├── CompanyStatusRepository.java
+│   │   │               │   ├── DTO
+│   │   │               │   │   ├── ActiveOrderDTO.java
+│   │   │               │   │   ├── TransactionDTO.java
+│   │   │               │   │   └── WalletCompanyDTO.java
 │   │   │               │   ├── ExternalTransferRepository.java
+│   │   │               │   ├── IPORepository.java
 │   │   │               │   ├── OrderCancellationRepository.java
 │   │   │               │   ├── OrderRepository.java
 │   │   │               │   ├── PostalCodeTownRepository.java
+│   │   │               │   ├── SubscriptionRepository.java
 │   │   │               │   ├── TransactionRepository.java
 │   │   │               │   ├── WalletRepository.java
 │   │   │               │   ├── projections
@@ -158,26 +170,42 @@
 │   │   │               │       ├── AccountAuthItem.java
 │   │   │               │       ├── AccountListItem.java
 │   │   │               │       ├── ActiveOrderListItem.java
+│   │   │               │       ├── AdminCompanyListItem.java
+│   │   │               │       ├── AdminIPOListItem.java
 │   │   │               │       ├── CompanyListItem.java
+│   │   │               │       ├── CompanyStatusItem.java
+│   │   │               │       ├── IPOListItem.java
 │   │   │               │       ├── OHLCDataItem.java
 │   │   │               │       ├── PostalCodesTownsItem.java
-│   │   │               │       ├── TransactionListItem.java
+│   │   │               │       ├── SubscriptionListItem.java
 │   │   │               │       ├── TransactionWalletListItem.java
 │   │   │               │       ├── TransferListItem.java
 │   │   │               │       ├── WalletCompanyListItem.java
-│   │   │               │       └── WalletListItem.java
+│   │   │               │       ├── WalletListItem.java
+│   │   │               │       └── WalletListViewItem.java
+│   │   │               ├── scheduler
+│   │   │               │   └── ProcessIPOSScheduler.java
 │   │   │               ├── services
 │   │   │               │   ├── AccountService.java
 │   │   │               │   ├── AddressService.java
+│   │   │               │   ├── ChartPulsarService.java
+│   │   │               │   ├── ChartUpdateBroadcaster.java
 │   │   │               │   ├── CompanyService.java
+│   │   │               │   ├── IPOService.java
 │   │   │               │   ├── OrderService.java
+│   │   │               │   ├── ProcessIPOService.java
+│   │   │               │   ├── SubscriptionService.java
 │   │   │               │   ├── TransactionService.java
 │   │   │               │   ├── WalletsService.java
 │   │   │               │   └── implementations
 │   │   │               │       ├── AccountServiceImpl.java
 │   │   │               │       ├── AddressServiceImpl.java
+│   │   │               │       ├── ChartUpdateBroadcasterImpl.java
 │   │   │               │       ├── CompanyServiceImpl.java
+│   │   │               │       ├── IPOServiceImpl.java
+│   │   │               │       ├── ProcessIPOServiceImpl.java
 │   │   │               │       ├── SecurityServiceImpl.java
+│   │   │               │       ├── SubscriptionServiceImpl.java
 │   │   │               │       ├── TransactionServiceImpl.java
 │   │   │               │       ├── WalletServiceImpl.java
 │   │   │               │       └── order
@@ -190,25 +218,52 @@
 │   │   │               ├── ui
 │   │   │               │   ├── components
 │   │   │               │   └── views
-│   │   │               │       ├── AccountsListView.java
+│   │   │               │       ├── AdminCompanyView
+│   │   │               │       │   ├── AdminChangeCompanyInfoForm.java
+│   │   │               │       │   ├── AdminCompanyIPOsGrid.java
+│   │   │               │       │   ├── AdminCompanyTransactionsGrid.java
+│   │   │               │       │   ├── AdminCompanyView.java
+│   │   │               │       │   └── AdminStartIPODialog.java
 │   │   │               │       ├── CompaniesListView.java
 │   │   │               │       ├── DTO
+│   │   │               │       │   ├── AdminProfileUpdateDTO.java
+│   │   │               │       │   ├── CompanyDTO.java
+│   │   │               │       │   ├── CompanyUpdateDTO.java
+│   │   │               │       │   ├── IPODTO.java
 │   │   │               │       │   ├── OrderDTO.java
 │   │   │               │       │   ├── ProfileUpdateDTO.java
 │   │   │               │       │   ├── RegistrationDTO.java
+│   │   │               │       │   ├── SubscriptionDTO.java
 │   │   │               │       │   ├── TransferDTO.java
 │   │   │               │       │   └── WalletDTO.java
 │   │   │               │       ├── LoginView.java
 │   │   │               │       ├── MainLayout.java
 │   │   │               │       ├── ProfileView.java
 │   │   │               │       ├── RegistrationView.java
-│   │   │               │       ├── WalletView.java
+│   │   │               │       ├── ResetPasswordView.java
+│   │   │               │       ├── SubscriptionView.java
 │   │   │               │       ├── WalletsListView.java
-│   │   │               │       └── company
-│   │   │               │           ├── ActiveOrdersGrid.java
-│   │   │               │           ├── CompanyChart.java
-│   │   │               │           ├── CompanyView.java
-│   │   │               │           └── OrderForm.java
+│   │   │               │       ├── adminAccountView
+│   │   │               │       │   ├── AccountsListView.java
+│   │   │               │       │   └── AdminUserDetailView.java
+│   │   │               │       ├── adminCompanyListView
+│   │   │               │       │   ├── AdminCompaniesGrid.java
+│   │   │               │       │   ├── AdminCompanyCreationForm.java
+│   │   │               │       │   └── AdminCompanyListView.java
+│   │   │               │       ├── company
+│   │   │               │       │   ├── ActiveOrdersGrid.java
+│   │   │               │       │   ├── ChartTimeRange.java
+│   │   │               │       │   ├── CompanyChart.java
+│   │   │               │       │   ├── CompanyInfoTablet.java
+│   │   │               │       │   ├── CompanyUserTransactionsGrid.java
+│   │   │               │       │   ├── CompanyView.java
+│   │   │               │       │   └── OrderForm.java
+│   │   │               │       └── walletView
+│   │   │               │           ├── WalletSharesGrid.java
+│   │   │               │           ├── WalletStatus.java
+│   │   │               │           ├── WalletTransactionsGrid.java
+│   │   │               │           ├── WalletTransfersGrid.java
+│   │   │               │           └── WalletView.java
 │   │   │               └── utils
 │   │   │                   ├── ExtendedUser.java
 │   │   │                   ├── ExtendedUserDetails.java
@@ -225,4 +280,4 @@
 │                       └── OriginApplicationTests.java
 └── tree.txt
 
-52 directories, 174 files
+57 directories, 224 files

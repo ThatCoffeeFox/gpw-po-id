@@ -10,6 +10,7 @@ import pl.gpwpoid.origin.repositories.TransactionRepository;
 import java.time.LocalDateTime;
 
 @Service
+@Lazy
 public class ChartPulsarService {
 
     private static final Logger log = LoggerFactory.getLogger(ChartPulsarService.class);

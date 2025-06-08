@@ -1,12 +1,17 @@
 package pl.gpwpoid.origin.ui.views.company;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.charts.model.style.SolidColor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.shared.Registration;
 import pl.gpwpoid.origin.repositories.views.OHLCDataItem;
+import pl.gpwpoid.origin.services.ChartUpdateBroadcaster;
 import pl.gpwpoid.origin.services.IPOService;
 import pl.gpwpoid.origin.services.TransactionService;
 
@@ -24,12 +29,19 @@ public class CompanyChart extends VerticalLayout {
     private final H3 chartHeader = new H3("Historia cen akcji");
     private final TransactionService transactionService;
     private final IPOService ipoService;
+    private final ChartUpdateBroadcaster broadcaster;
     private Integer companyId;
     private ChartTimeRange currentRange = ChartTimeRange.THIRTY_MINUTES;
+    private Registration broadcasterRegistration;
+    private DataSeries series;
 
-    public CompanyChart(TransactionService transactionService, IPOService ipoService) {
+
+    public CompanyChart(TransactionService transactionService, IPOService ipoService, ChartUpdateBroadcaster broadcaster) {
         this.transactionService = transactionService;
         this.ipoService = ipoService;
+        this.broadcaster = broadcaster;
+        this.series = new DataSeries("Cena akcji");
+
         configureChart();
 
         HorizontalLayout headerWithControls = new HorizontalLayout(chartHeader, createRangeSelectorButtons());
@@ -87,7 +99,38 @@ public class CompanyChart extends VerticalLayout {
                 "Zamknięcie: {point.close}<br/>");
         conf.setTooltip(tooltip);
 
-        conf.setPlotOptions(new PlotOptionsCandlestick());
+        SolidColor upColor = new SolidColor("#5cb85c");
+        SolidColor downColor = new SolidColor("#ff3333");
+        SolidColor borderColor = new SolidColor("#000");
+
+
+        PlotOptionsCandlestick plotOptions = new PlotOptionsCandlestick();
+        plotOptions.setUpColor(upColor);
+        plotOptions.setColor(downColor);
+        plotOptions.setLineColor(downColor);
+        plotOptions.setUpLineColor(upColor);
+        plotOptions.setShowInLegend(false);
+        conf.setPlotOptions(plotOptions);
+        
+        DataSeries upSeries = new DataSeries("Wzrost");
+        PlotOptionsScatter upOptions = new PlotOptionsScatter();
+        Marker upMarker = upOptions.getMarker();
+        upMarker.setSymbol(MarkerSymbolEnum.SQUARE);
+        upMarker.setFillColor(upColor);
+        upMarker.setLineWidth(0);
+        upSeries.setPlotOptions(upOptions);
+
+        
+        DataSeries downSeries = new DataSeries("Spadek");
+        PlotOptionsScatter downOptions = new PlotOptionsScatter();
+        Marker downMarker = downOptions.getMarker();
+        downMarker.setSymbol(MarkerSymbolEnum.SQUARE);
+        downMarker.setFillColor(downColor);
+        downMarker.setLineColor(borderColor);
+        downMarker.setLineWidth(1);
+        downSeries.setPlotOptions(downOptions);
+
+        conf.setSeries(this.series, upSeries, downSeries);
     }
 
 
@@ -104,6 +147,10 @@ public class CompanyChart extends VerticalLayout {
         this.companyId = companyId;
         if (this.companyId == null) {
             return;
+        }
+
+        if (getUI().isPresent()) {
+            registerForUpdates();
         }
 
         Configuration conf = candlestickChart.getConfiguration();
@@ -186,6 +233,12 @@ public class CompanyChart extends VerticalLayout {
             currentTimeStep = currentTimeStep.plus(currentRange.getIntervalAmount(), currentRange.getGroupingUnit());
         }
 
+        this.series.clear();
+        for (OhlcItem item : finalCandles) {
+            this.series.add(item, false, false); 
+        }
+
+
         if (!finalCandles.isEmpty()) {
             double minLow = finalCandles.stream()
                     .mapToDouble(item -> item.getLow().doubleValue())
@@ -207,12 +260,135 @@ public class CompanyChart extends VerticalLayout {
             yAxis.setMax(1);
         }
 
-        DataSeries newDataSeries = new DataSeries("Cena Akcji");
-        for (OhlcItem item : finalCandles) {
-            newDataSeries.add(item);
+        candlestickChart.drawChart();
+    }
+
+    private void handleChartUpdate(Integer updatedCompanyId) {
+        if (!Objects.equals(this.companyId, updatedCompanyId)) return;
+        getUI().ifPresent(ui -> ui.access(() -> {
+            if (series.getData().isEmpty()) {
+                loadAndRenderData(companyId);
+                return;
+            }
+            int lastIndex = series.getData().size() - 1;
+            OhlcItem lastItem = (OhlcItem) series.get(lastIndex);
+            LocalDateTime lastIntervalStart = toLocalDateTime(lastItem.getX());
+            LocalDateTime now = LocalDateTime.now();
+
+            if (currentRange.truncate(now).isEqual(lastIntervalStart)) {
+                updateLastCandle(lastItem, lastIntervalStart, now);
+            } else {
+                addNewCandle(lastItem, now);
+            }
+        }));
+    }
+
+    private void updateLastCandle(OhlcItem lastItem, LocalDateTime startTime, LocalDateTime endTime) {
+        List<OHLCDataItem> updates = transactionService.getOHLCDataByCompanyId(companyId, startTime, endTime);
+
+        if (!updates.isEmpty()) {
+            OHLCDataItem lastTransaction = updates.stream()
+                    .max(Comparator.comparing(OHLCDataItem::getTimestamp))
+                    .get();
+
+            BigDecimal newHigh = updates.stream()
+                    .map(OHLCDataItem::getHigh)
+                    .max(Comparator.naturalOrder())
+                    .map(h -> h.max(BigDecimal.valueOf(lastItem.getHigh().doubleValue())))
+                    .get();
+
+            BigDecimal newLow = updates.stream()
+                    .map(OHLCDataItem::getLow)
+                    .min(Comparator.naturalOrder())
+                    .map(l -> l.min(BigDecimal.valueOf(lastItem.getLow().doubleValue())))
+                    .get();
+
+            lastItem.setHigh(newHigh);
+            lastItem.setLow(newLow);
+            lastItem.setClose(lastTransaction.getClose());
+
+            series.update(lastItem);
+
+            adjustYAxisIfNeeded(newHigh, newLow);
+
+            candlestickChart.drawChart();
+        }
+    }
+
+    private void addNewCandle(OhlcItem previousItem, LocalDateTime now) {
+        LocalDateTime newIntervalStart = currentRange.truncate(now);
+
+        List<OHLCDataItem> updates = transactionService.getOHLCDataByCompanyId(companyId, newIntervalStart, now);
+
+        OhlcItem newItem = new OhlcItem();
+        newItem.setX(newIntervalStart.atZone(SERVER_ZONE_ID).toInstant());
+        Number openPrice = previousItem.getClose();
+
+        if (!updates.isEmpty()) {
+            OHLCDataItem firstTransaction = updates.stream().min(Comparator.comparing(OHLCDataItem::getTimestamp)).get();
+            OHLCDataItem lastTransaction = updates.stream().max(Comparator.comparing(OHLCDataItem::getTimestamp)).get();
+
+            newItem.setOpen(firstTransaction.getOpen());
+
+            newItem.setHigh(updates.stream().map(OHLCDataItem::getHigh).max(Comparator.naturalOrder()).get());
+            newItem.setLow(updates.stream().map(OHLCDataItem::getLow).min(Comparator.naturalOrder()).get());
+
+            newItem.setClose(lastTransaction.getClose());
+        } else {
+            newItem.setOpen(openPrice);
+            newItem.setHigh(openPrice);
+            newItem.setLow(openPrice);
+            newItem.setClose(openPrice);
         }
 
-        conf.setSeries(newDataSeries);
+        series.add(newItem, false, true);
+        adjustYAxisIfNeeded(BigDecimal.valueOf(newItem.getHigh().doubleValue()), BigDecimal.valueOf(newItem.getLow().doubleValue()));
         candlestickChart.drawChart();
+    }
+
+    private void adjustYAxisIfNeeded(BigDecimal newHigh, BigDecimal newLow) {
+        YAxis yAxis = candlestickChart.getConfiguration().getyAxis();
+
+        Number currentMaxNumber = yAxis.getMax();
+        Number currentMinNumber = yAxis.getMin();
+
+        if (currentMaxNumber == null || newHigh.doubleValue() > currentMaxNumber.doubleValue()) {
+            yAxis.setMax(newHigh.doubleValue() + 1.0);
+        } else {
+            yAxis.setMax(currentMaxNumber.doubleValue());
+        }
+
+        if (currentMinNumber == null || newLow.doubleValue() < currentMinNumber.doubleValue()) {
+            double newMin = newLow.doubleValue() - 1.0;
+            yAxis.setMin(newMin < 0 ? 0 : newMin);
+        } else {
+            yAxis.setMin(currentMinNumber.doubleValue() < 0 ? 0 : currentMinNumber);
+        }
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        if (companyId != null) {
+            registerForUpdates();
+        }
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        unregisterForUpdates();
+        super.onDetach(detachEvent);
+    }
+
+    private void registerForUpdates() {
+        unregisterForUpdates();
+        broadcasterRegistration = broadcaster.register(companyId, this::handleChartUpdate);
+    }
+
+    private void unregisterForUpdates() {
+        if (broadcasterRegistration != null) {
+            broadcasterRegistration.remove();
+            broadcasterRegistration = null;
+        }
     }
 }

@@ -1,0 +1,6 @@
+{
+  "lumo": {
+    "parent": "Lumo",
+    "importCss": ["./styles.css"]
+  }
+}

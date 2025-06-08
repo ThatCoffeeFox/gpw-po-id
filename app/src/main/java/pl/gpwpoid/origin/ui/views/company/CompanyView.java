@@ -48,8 +48,8 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
         this.ipoService = ipoService;
         this.activeOrdersGrid = new ActiveOrdersGrid(orderService);
         this.orderForm = new OrderForm(orderService, walletsService);
-        this.companyChart = new CompanyChart(transactionService, ipoService);
         this.broadcaster = broadcaster;
+        this.companyChart = new CompanyChart(transactionService, ipoService, broadcaster);
         this.transactionsGrid = new CompanyUserTransactionsGrid(transactionService, walletsService);
         this.companyInfoTablet = new CompanyInfoTablet();
 
@@ -130,7 +130,6 @@ public class CompanyView extends VerticalLayout implements HasUrlParameter<Integ
             broadcasterRegistration = broadcaster.register(companyId, id -> {
                 attachEvent.getUI().access(() -> {
                     updateCompanyInfoTablet();
-                    updateChart();
                     if (SecurityUtils.isLoggedIn()) {
                         updateTransactionsGrid();
                         activeOrdersGrid.updateList();
