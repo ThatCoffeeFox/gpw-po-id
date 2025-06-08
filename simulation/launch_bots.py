@@ -7,8 +7,8 @@ import os
 # Configuration for each bot (wallet_id, company_id, email, username, password)
 # Adjust username/password or emails as needed
 
-COMPANIES = 10
-BOTS_PER_COMPANY = 5
+COMPANIES = 1
+BOTS_PER_COMPANY = 10
 FIRST_WALELT_ID = 301
 
 BOTS = []
