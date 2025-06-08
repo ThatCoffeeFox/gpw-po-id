@@ -63,3 +63,10 @@ build/
 .vscode/
 
 .env
+app/.vaadin-node-tasks.lock
+app/package-lock.json
+app/package.json
+app/tsconfig.json
+app/types.d.ts
+db/generate.sql
+db/generate_data.py
