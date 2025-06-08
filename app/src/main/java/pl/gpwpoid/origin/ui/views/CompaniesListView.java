@@ -34,7 +34,7 @@ public class CompaniesListView extends VerticalLayout {
     private final Grid<CompanyListItem> grid = new Grid<>();
     private Registration broadcasterRegistration;
     private ListDataProvider<CompanyListItem> dataProvider;
-    private Map<Integer, CompanyListItem> companyMap;
+//    private Map<Integer, CompanyListItem> companyMap;
 
     public CompaniesListView(CompanyService companyService, ChartUpdateBroadcaster broadcaster) {
         this.companyService = companyService;
@@ -106,27 +106,19 @@ public class CompaniesListView extends VerticalLayout {
     }
 
     private void refreshGridItems() {
-        List<CompanyListItem> freshList = companyService.getCompaniesViewList();
-
-        if (freshList.size() != companyMap.size()) {
-            loadCompanyListItems();
+        if (dataProvider == null || dataProvider.getItems().isEmpty()) {
             return;
         }
 
-        Map<Integer, CompanyListItem> freshMap = freshList.stream()
-                .collect(Collectors.toMap(CompanyListItem::getCompanyId, Function.identity()));
+        Map<Integer, BigDecimal> freshMap = companyService.getCompaniesViewList().stream()
+                .collect(Collectors.toMap(CompanyListItem::getCompanyId, CompanyListItem::getCurrentSharePrice));
 
-        companyMap.values().forEach(currentItem -> {
-            CompanyListItem freshItem = freshMap.get(currentItem.getCompanyId());
-            if (freshItem == null) return;
+        dataProvider.getItems().forEach(currentItem -> {
+            BigDecimal newPrice = freshMap.get(currentItem.getCompanyId());
+            if (newPrice == null) return;
 
-            boolean priceChanged = !Objects.equals(currentItem.getCurrentSharePrice(), freshItem.getCurrentSharePrice());
-            boolean lastDayPriceChanged = !Objects.equals(currentItem.getLastDaySharePrice(), freshItem.getLastDaySharePrice());
-
-            if (priceChanged || lastDayPriceChanged) {
-                currentItem.setCurrentSharePrice(freshItem.getCurrentSharePrice());
-                currentItem.setLastDaySharePrice(freshItem.getLastDaySharePrice());
-
+            if (!Objects.equals(currentItem.getCurrentSharePrice(), newPrice)) {
+                currentItem.setCurrentSharePrice(newPrice);
                 dataProvider.refreshItem(currentItem);
             }
         });
@@ -134,9 +126,6 @@ public class CompaniesListView extends VerticalLayout {
 
     private void loadCompanyListItems() {
         List<CompanyListItem> companyList = companyService.getCompaniesViewList();
-        this.companyMap = new ConcurrentHashMap<>(
-                companyList.stream().collect(Collectors.toMap(CompanyListItem::getCompanyId, Function.identity()))
-        );
         this.dataProvider = new ListDataProvider<>(companyList);
 
         grid.setDataProvider(dataProvider);
