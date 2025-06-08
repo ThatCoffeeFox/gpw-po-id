@@ -83,10 +83,6 @@ public class AccountFactory {
             throw new IllegalArgumentException("Email cannot be null or empty");
         }
 
-        if (profileUpdateDTO.getPesel() == null || profileUpdateDTO.getPesel().isEmpty()) {
-            throw new IllegalArgumentException("Pesel cannot be null or empty");
-        }
-
         if (profileUpdateDTO.getPhoneNumber() == null || profileUpdateDTO.getPhoneNumber().isEmpty()) {
             throw new IllegalArgumentException("Phone number cannot be null or empty");
         }
@@ -102,7 +98,6 @@ public class AccountFactory {
         accountInfo.setId(accountInfoId);
 
         accountInfo.setEmail(profileUpdateDTO.getEmail());
-        accountInfo.setPesel(profileUpdateDTO.getPesel());
         accountInfo.setPhoneNumber(profileUpdateDTO.getPhoneNumber());
         accountInfo.setStreet(profileUpdateDTO.getStreet());
         accountInfo.setStreetNumber(profileUpdateDTO.getStreetNumber());

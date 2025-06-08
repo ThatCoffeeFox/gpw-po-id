@@ -89,12 +89,18 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
         postalCodeField.setReadOnly(true);
         streetField.setReadOnly(true);
         phoneNumberField.setReadOnly(true);
-        peselField.setReadOnly(true);
 
 
         binder.forField(firstNameField).asRequired().bind(AdminProfileUpdateDTO::getFirstName, AdminProfileUpdateDTO::setFirstName);
         binder.forField(secondaryNameField).bind(AdminProfileUpdateDTO::getSecondaryName, AdminProfileUpdateDTO::setSecondaryName);
         binder.forField(lastNameField).asRequired().bind(AdminProfileUpdateDTO::getLastName, AdminProfileUpdateDTO::setLastName);
+        binder.forField(firstNameField).asRequired().bind(AdminProfileUpdateDTO::getFirstName, AdminProfileUpdateDTO::setFirstName);
+        binder.forField(secondaryNameField).bind(AdminProfileUpdateDTO::getSecondaryName, AdminProfileUpdateDTO::setSecondaryName);
+        binder.forField(lastNameField).asRequired().bind(AdminProfileUpdateDTO::getLastName, AdminProfileUpdateDTO::setLastName);
+        binder.forField(peselField)
+                .asRequired("PESEL jest wymagany.")
+                .withValidator(p -> p != null && p.matches("\\d{11}"), "PESEL musi składać się z 11 cyfr.")
+                .bind(AdminProfileUpdateDTO::getPESEL, AdminProfileUpdateDTO::setPESEL);
     }
 
     private FormLayout createFormLayout() {
@@ -178,7 +184,8 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
                     currentAccountId,
                     latestInfo.getFirstName(),
                     latestInfo.getSecondaryName(),
-                    latestInfo.getLastName()
+                    latestInfo.getLastName(),
+                    latestInfo.getPesel()
             );
             binder.setBean(dto);
         }
@@ -194,8 +201,7 @@ public class AdminUserDetailView extends VerticalLayout implements HasUrlParamet
     private void saveChanges() {
         if (binder.validate().isOk()) {
             try {
-                AdminProfileUpdateDTO dto = new AdminProfileUpdateDTO();
-                binder.writeBean(dto);
+                AdminProfileUpdateDTO dto = binder.getBean();
                 dto.setAccountId(currentAccountId);
 
                 accountService.updateAccountByAdmin(dto);

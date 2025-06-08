@@ -46,22 +46,17 @@ public class ChartUpdateBroadcasterImpl implements ChartUpdateBroadcaster {
 
     @Override
     public void broadcast(TransactionDTO transactionData) {
-        if(transactionData == null) return;
+        if (transactionData == null) return;
         Integer companyId = transactionData.getCompanyId();
 
         List<ChartUpdateListener> companyListeners;
         synchronized (this) {
             companyListeners = listenersByCompany.get(companyId);
         }
+
         if (companyListeners != null) {
             for (ChartUpdateListener listener : companyListeners) {
                 executor.execute(() -> listener.onChartUpdate(transactionData));
-            }
-        }
-
-        synchronized (this) {
-            for (GlobalUpdateListener listener : globalListeners) {
-                executor.execute(() -> listener.onUpdate(companyId));
             }
         }
     }
