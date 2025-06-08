@@ -36,4 +36,7 @@ public interface TransactionService {
     List<TransactionWalletListItem> getTransactionsByCompanyAndUser(int companyId, int userId, Pageable pageable);
 
     Optional<BigDecimal> findLastSharePriceBeforeDate(Integer companyId, LocalDateTime beforeDate);
+
+    @Transactional(readOnly = true)
+    List<TransactionDTO> getLatestTransactionsByAccountId(Integer accountId, Pageable pageable);
 }

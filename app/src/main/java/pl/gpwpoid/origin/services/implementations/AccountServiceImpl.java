@@ -9,14 +9,19 @@ import pl.gpwpoid.origin.models.account.Account;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.models.address.PostalCodesTowns;
 import pl.gpwpoid.origin.models.address.Town;
+import pl.gpwpoid.origin.models.keys.AccountInfoId;
 import pl.gpwpoid.origin.repositories.AccountRepository;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
 import pl.gpwpoid.origin.services.AddressService;
+import pl.gpwpoid.origin.ui.views.DTO.AdminProfileUpdateDTO;
 import pl.gpwpoid.origin.ui.views.DTO.ProfileUpdateDTO;
 import pl.gpwpoid.origin.ui.views.DTO.RegistrationDTO;
 
+import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -162,6 +167,49 @@ public class AccountServiceImpl implements AccountService {
             account.getAccountInfos().add(newInfo);
             accountRepository.save(account);
         }
+    }
 
+    @Override
+    @Transactional
+    public void updateAccountByAdmin(AdminProfileUpdateDTO adminDTO) {
+        if (adminDTO == null || adminDTO.getAccountId() == null) {
+            throw new IllegalArgumentException("ID konta nie może być puste.");
+        }
+
+        Account account = accountRepository.findById(adminDTO.getAccountId().longValue())
+                .orElseThrow(() -> new IllegalArgumentException("Konto o podanym ID nie istnieje."));
+
+        AccountInfo latestInfo = getNewestAccountInfoItemById(adminDTO.getAccountId());
+        if (latestInfo == null) {
+            throw new IllegalStateException("Nie można odnaleźć historii danych dla tego konta.");
+        }
+
+        ProfileUpdateDTO profileUpdateDTO = new ProfileUpdateDTO(
+                account.getAccountId(),
+                latestInfo.getEmail(),
+                latestInfo.getPostalCodesTowns().getTown().getTownId(),
+                latestInfo.getPostalCodesTowns().getPostalCode().getPostalCode(),
+                latestInfo.getStreet(),
+                latestInfo.getStreetNumber(),
+                latestInfo.getApartmentNumber(),
+                latestInfo.getPhoneNumber(),
+                latestInfo.getPesel()
+        );
+        AccountInfo newInfo = accountFactory.createAccountInfo(profileUpdateDTO, latestInfo.getPostalCodesTowns());
+
+        newInfo.setAccount(account);
+        newInfo.setPassword(latestInfo.getPassword());
+        newInfo.setFirstName(adminDTO.getFirstName());
+        newInfo.setLastName(adminDTO.getLastName());
+        newInfo.setSecondaryName(adminDTO.getSecondaryName());
+
+        account.getAccountInfos().add(newInfo);
+        accountRepository.save(account);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AccountListItem> getAccountInfoHistory(Integer accountId) {
+        return accountRepository.findAllAccountInfosByAccountIdOrderByUpdatedAtDesc(accountId);
     }
 }

@@ -1,8 +1,11 @@
 package pl.gpwpoid.origin.services.implementations.order;
 
+import com.vaadin.flow.data.provider.DataProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -169,7 +172,11 @@ public class OrderServiceImpl implements OrderService {
         if(accountId == null){
             throw new RuntimeException("there is no logged in user");
         }
-        return orderRepository.findActiveOrdersByAccountId(accountId);
+        return orderRepository.findActiveOrdersByAccountId(accountId, PageRequest.of(0, 50));
+    }
+    @Override
+    public List<ActiveOrderListItem> getOrderListItemsByAccountId(Integer accountId, Pageable pageable) {
+        return orderRepository.findOrdersByAccountId(accountId, pageable);
     }
 
     @Override

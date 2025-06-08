@@ -1,4 +1,4 @@
-package pl.gpwpoid.origin.ui.views;
+package pl.gpwpoid.origin.ui.views.adminAccountView;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
@@ -9,6 +9,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.repositories.views.AccountListItem;
 import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.ui.views.MainLayout;
 
 import java.util.Collection;
 
@@ -61,6 +62,12 @@ public class AccountsListView extends VerticalLayout {
                 .setHeader("Miasto")
                 .setSortable(true).setFlexGrow(1);
 
+        grid.addItemClickListener(event -> {
+            Long accountId = Long.valueOf(event.getItem().getAccountId());
+            if (accountId != null) {
+                getUI().ifPresent(ui -> ui.navigate("admin/accounts/" + accountId.intValue()));
+            }
+        });
     }
 
     private void loadAccountListItems() {

@@ -18,6 +18,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.gpwpoid.origin.models.account.AccountInfo;
 import pl.gpwpoid.origin.services.AccountService;
+import pl.gpwpoid.origin.ui.views.adminAccountView.AccountsListView;
 import pl.gpwpoid.origin.ui.views.adminCompanyListView.AdminCompanyListView;
 import pl.gpwpoid.origin.utils.SecurityUtils;
 

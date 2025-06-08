@@ -1,5 +1,6 @@
 package pl.gpwpoid.origin.repositories;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -50,7 +51,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         ) combined_orders
         ORDER BY order_start_date DESC
         """, nativeQuery = true)
-    List<ActiveOrderListItem> findActiveOrdersByAccountId(@Param("accountId") Integer accountId);
+    List<ActiveOrderListItem> findActiveOrdersByAccountId(@Param("accountId") Integer accountId, Pageable pageable);
 
     @Query(value = """
     SELECT order_id, order_type, shares_amount, share_price, order_start_date, order_expiration_date
@@ -78,4 +79,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                 SELECT shares_left_in_order(:orderId)
             """, nativeQuery = true)
     Integer getSharesLeft(Integer orderId);
+
+    @Query(value = """
+        SELECT o.order_id, w.name, o.order_type, o.shares_amount, o.share_price, o.order_start_date, o.order_expiration_date
+        FROM orders o JOIN wallets w ON o.wallet_id = w.wallet_id
+        WHERE w.account_id = :accountId
+        ORDER BY order_start_date DESC
+    """, nativeQuery = true)
+    List<ActiveOrderListItem> findOrdersByAccountId(@Param("accountId") Integer accountId, Pageable pageable);
 }

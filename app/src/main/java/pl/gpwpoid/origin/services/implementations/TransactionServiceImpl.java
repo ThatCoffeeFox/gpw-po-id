@@ -106,4 +106,10 @@ public class TransactionServiceImpl implements TransactionService {
     public Optional<BigDecimal> findLastSharePriceBeforeDate(Integer companyId, LocalDateTime beforeDate) {
         return transactionRepository.findLastSharePriceBeforeDate(companyId, beforeDate);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<TransactionDTO>  getLatestTransactionsByAccountId(Integer accountId, Pageable pageable) {
+        return transactionRepository.findLatestTransactionsByAccountId(accountId, pageable);
+    }
 }
