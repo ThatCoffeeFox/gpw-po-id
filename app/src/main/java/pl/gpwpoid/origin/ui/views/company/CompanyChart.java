@@ -77,6 +77,8 @@ public class CompanyChart extends VerticalLayout {
     private void configureChart() {
         Configuration conf = candlestickChart.getConfiguration();
 
+        ChartModel chartModel = conf.getChart();
+
         Time time = new Time();
         time.setUseUTC(false);
         conf.setTime(time);

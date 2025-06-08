@@ -76,6 +76,7 @@ public class ProfileView extends VerticalLayout {
         firstNameField.setReadOnly(true);
         secondaryNameField.setReadOnly(true);
         lastNameField.setReadOnly(true);
+        peselField.setReadOnly(true);
 
 
         townComboBox.setItems(query ->
@@ -127,7 +128,6 @@ public class ProfileView extends VerticalLayout {
 
         postalCodeComboBox.setRequiredIndicatorVisible(true);
         phoneNumberField.setRequiredIndicatorVisible(true);
-        peselField.setRequiredIndicatorVisible(true);
     }
 
     private FormLayout createFormLayout() {
@@ -196,13 +196,6 @@ public class ProfileView extends VerticalLayout {
                 .withValidator(pn -> pn == null || pn.matches("\\+\\d{10,13}"), "Niepoprawny format numeru telefonu (np. +48123456789).")
                 .bind(ProfileUpdateDTO::getPhoneNumber, ProfileUpdateDTO::setPhoneNumber);
 
-        binder.forField(peselField)
-                .asRequired("PESEL jest wymagany.")
-
-                .withValidator(p -> p == null || p.matches("\\d{11}"), "PESEL musi składać się z 11 cyfr.")
-                .bind(ProfileUpdateDTO::getPesel, ProfileUpdateDTO::setPesel);
-
-
         binder.setBean(currentProfileData);
     }
 
@@ -222,9 +215,11 @@ public class ProfileView extends VerticalLayout {
             return;
         }
 
-        firstNameField.setValue(latestInfo.getFirstName());
-        secondaryNameField.setValue(latestInfo.getSecondaryName() != null ? latestInfo.getSecondaryName() : "");
-        lastNameField.setValue(latestInfo.getLastName());
+        firstNameField.setValue(Optional.ofNullable(latestInfo.getFirstName()).orElse(""));
+        secondaryNameField.setValue(Optional.ofNullable(latestInfo.getSecondaryName()).orElse(""));
+        lastNameField.setValue(Optional.ofNullable(latestInfo.getLastName()).orElse(""));
+
+        peselField.setValue(Optional.ofNullable(latestInfo.getPesel()).orElse(""));
 
         currentProfileData.setAccountId(accountId);
         currentProfileData.setEmail(latestInfo.getEmail());
@@ -265,7 +260,6 @@ public class ProfileView extends VerticalLayout {
         currentProfileData.setStreetNumber(latestInfo.getStreetNumber());
         currentProfileData.setApartmentNumber(latestInfo.getApartmentNumber());
         currentProfileData.setPhoneNumber(latestInfo.getPhoneNumber());
-        currentProfileData.setPesel(latestInfo.getPesel());
 
         binder.setBean(currentProfileData);
     }

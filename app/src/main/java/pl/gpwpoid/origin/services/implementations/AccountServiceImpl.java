@@ -77,6 +77,7 @@ public class AccountServiceImpl implements AccountService {
         updatedAccountInfo.setFirstName(newestInfo.getFirstName());
         updatedAccountInfo.setLastName(newestInfo.getLastName());
         updatedAccountInfo.setSecondaryName(newestInfo.getSecondaryName());
+        updatedAccountInfo.setPesel(newestInfo.getPesel());
 
         account.getAccountInfos().add(updatedAccountInfo);
 
@@ -150,8 +151,7 @@ public class AccountServiceImpl implements AccountService {
                     latestInfo.getStreet(),
                     latestInfo.getStreetNumber(),
                     latestInfo.getApartmentNumber(),
-                    latestInfo.getPhoneNumber(),
-                    latestInfo.getPesel()
+                    latestInfo.getPhoneNumber()
             );
 
             AccountInfo newInfo = accountFactory.createAccountInfo(profileUpdateDTO, latestInfo.getPostalCodesTowns());
@@ -160,6 +160,7 @@ public class AccountServiceImpl implements AccountService {
             newInfo.setFirstName(latestInfo.getFirstName());
             newInfo.setLastName(latestInfo.getLastName());
             newInfo.setSecondaryName(latestInfo.getSecondaryName());
+            newInfo.setPesel(latestInfo.getPesel());
 
             account.getAccountInfos().add(newInfo);
             accountRepository.save(account);
@@ -189,8 +190,7 @@ public class AccountServiceImpl implements AccountService {
                 latestInfo.getStreet(),
                 latestInfo.getStreetNumber(),
                 latestInfo.getApartmentNumber(),
-                latestInfo.getPhoneNumber(),
-                latestInfo.getPesel()
+                latestInfo.getPhoneNumber()
         );
         AccountInfo newInfo = accountFactory.createAccountInfo(profileUpdateDTO, latestInfo.getPostalCodesTowns());
 
@@ -199,6 +199,7 @@ public class AccountServiceImpl implements AccountService {
         newInfo.setFirstName(adminDTO.getFirstName());
         newInfo.setLastName(adminDTO.getLastName());
         newInfo.setSecondaryName(adminDTO.getSecondaryName());
+        newInfo.setPesel(adminDTO.getPESEL());
 
         account.getAccountInfos().add(newInfo);
         accountRepository.save(account);
