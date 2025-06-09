@@ -90,10 +90,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<ActiveOrderListItem> findOrdersByAccountId(@Param("accountId") Integer accountId, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query(value = """
-            SELECT order_id, order_type, shares_amount, share_price, order_start_date, order_expiration_date
-            FROM orders
-            WHERE order_id = :orderId
-            """, nativeQuery = true)
-    Optional<Order> findByIdForCancellation(Integer orderId);
+    @Query("SELECT o FROM Order o WHERE o.orderId = :orderId")
+    Optional<Order> findByIdForCancellation(@Param("orderId") Integer orderId);
 }
