@@ -9,6 +9,7 @@ import pl.gpwpoid.origin.repositories.projections.ActiveOrderProjection;
 import pl.gpwpoid.origin.services.WalletsService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Component
 public class OrderWrapperFactory {
@@ -30,7 +31,10 @@ public class OrderWrapperFactory {
     OrderWrapper createOrderWrapper(Order order) {
         OrderWrapper orderWrapper = new OrderWrapper(order);
         if (order.getOrderType().getOrderType().equals("buy") && order.getSharePrice() == null) {
-            orderWrapper.setShareMatchingPrice(walletsService.getWalletUnblockedFundsBeforeMarketBuyOrder(order.getOrderId()).divide(BigDecimal.valueOf(order.getSharesAmount())));
+            orderWrapper.setShareMatchingPrice(
+                    walletsService.getWalletUnblockedFundsBeforeMarketBuyOrder(order.getOrderId())
+                            .divide(BigDecimal.valueOf(order.getSharesAmount()), 2, RoundingMode.DOWN)
+            );
         }
         return orderWrapper;
     }

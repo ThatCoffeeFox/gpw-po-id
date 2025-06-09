@@ -39,7 +39,6 @@ public class OrderMatchingWorker implements Runnable {
         this.transactionService = transactionService;
         this.orderWrapperFactory = orderWrapperFactory;
         this.companyIdOrderQueue = companyIdOrderQueue;
-
         if (activeBuyOrders != null) this.buyQueue.addAll(activeBuyOrders);
         if (activeSellOrders != null) this.sellQueue.addAll(activeSellOrders);
     }
