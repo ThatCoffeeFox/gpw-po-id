@@ -71,7 +71,7 @@ public class SubscriptionView extends VerticalLayout {
         add(
                 new H3("Aktywne IPO"),
                 activeIPOGrid,
-                new H3("Zapisz się na akcje"),
+                new H3("Zapisz się na emisję akcji"),
                 subscriptionFormLayout,
                 new H3("Twoje zapisy"),
                 subscriptionsGrid);
@@ -103,13 +103,13 @@ public class SubscriptionView extends VerticalLayout {
                 );
         binder.forField(companyComboBox)
                 .asRequired("Firma jest wymagana")
-                .withValidator(Objects::nonNull, "Wybierz firme")
+                .withValidator(Objects::nonNull, "Wybierz firmę")
                 .bind(dto -> null,
                         (dto, company) ->
                                 dto.setIpoId(company.getIpoId())
                 );
         binder.forField(sharesAmountIntegerField)
-                .asRequired("Ilos akcji jest wymagana")
+                .asRequired("Ilość akcji jest wymagana")
                 .bind(SubscriptionDTO::getSharesAmount,
                         SubscriptionDTO::setSharesAmount);
 
@@ -123,7 +123,7 @@ public class SubscriptionView extends VerticalLayout {
                     walletComboBox.clear();
                     companyComboBox.clear();
                     sharesAmountIntegerField.clear();
-                    Notification.show("Zapisano na akcje", 4000, Notification.Position.TOP_CENTER);
+                    Notification.show("Zapisano się na emisję akcji", 4000, Notification.Position.TOP_CENTER);
                 } catch (Exception ex) {
                     Notification.show("Wystąpił błąd " + ex.getMessage(), 4000, Notification.Position.TOP_CENTER);
                 }
